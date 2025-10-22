@@ -9,16 +9,17 @@ import json
 composio = Composio(api_key=os.getenv("COMPOSIO_API_KEY"))
 openai = OpenAI(
     api_key=os.getenv("OPENROUTER_API_KEY"),
-    base_url=os.getenv("OPENAI_BASE_URL", "https://openrouter.ai/api/v1")
+    base_url="https://openrouter.ai/api/v1"
 )
-
+gmail_auth_config_id = os.getenv("GMAIL_AUTH_CONFIG_ID", "")
+github_auth_config_id = os.getenv("GITHUB_AUTH_CONFIG_ID", "")
 TOOL_CONFIGS = {
     "gmail": {
-        "auth_config_id": "",
+        "auth_config_id": gmail_auth_config_id,
         "tools": ["GMAIL_SEND_EMAIL", "GMAIL_READ_EMAILS", "GMAIL_SEARCH_EMAILS"]
     },
     "github": {
-        "auth_config_id": "", 
+        "auth_config_id":github_auth_config_id, 
         "tools": ["GITHUB_LIST_REPOSITORIES_FOR_THE_AUTHENTICATED_USER", "GITHUB_CREATE_ISSUE", "GITHUB_LIST_ISSUES"]
     }
 }
