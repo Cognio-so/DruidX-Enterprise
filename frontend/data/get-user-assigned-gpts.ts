@@ -1,8 +1,8 @@
 import prisma from "@/lib/prisma";
-import { requireAdmin } from "./requireAdmin";
+import { requireUser } from "./requireUser";
 
 export async function getUserAssignedGpts(userId: string) {
-  await requireAdmin();
+  await requireUser();
 
   const data = await prisma.assignGpt.findMany({
     where: {

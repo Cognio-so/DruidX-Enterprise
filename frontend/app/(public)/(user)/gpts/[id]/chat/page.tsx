@@ -1,8 +1,9 @@
+
 "use client";
 
-import ChatHeader from "./_components/ChatHeader";
-import ChatInput from "./_components/ChatInput";
-import ChatMessage from "./_components/ChatMessage";
+import ChatHeader from "./_components/UserChatHeader";
+import ChatInput from "./_components/UserChatInput";
+import ChatMessage from "./_components/UserChatMessage";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useChatSession } from "@/hooks/use-chat-session";
 import { useChatMessages } from "@/hooks/use-chat-messages";
@@ -118,4 +119,4 @@ export default function ChatGptById() {
       </div>
     </div>
   );
-}
+} 
