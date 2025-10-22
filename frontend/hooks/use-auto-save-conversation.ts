@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
-import { saveConversation, ConversationData } from "@/app/admin/history/action";
+import { saveUserConversation, ConversationData } from "@/app/(public)/(user)/history/action";
 
 interface Message {
   id: string;
@@ -64,7 +64,7 @@ export function useAutoSaveConversation({
         }))
       };
 
-      await saveConversation(conversationData);
+      await saveUserConversation(conversationData);
       lastSavedCountRef.current = messages.length;
     } catch (error) {
       console.error('Auto-save failed:', error);

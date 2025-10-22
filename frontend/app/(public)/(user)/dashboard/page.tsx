@@ -1,23 +1,22 @@
-"use client";
-import { Button } from "@/components/ui/button";
-import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+import { UserDashboardOverview } from "./_components/user-dashboard-overview";
 
 export default function Dashboard() {
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between p-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Your Dashboard</h1>
+          <p className="text-muted-foreground">
+            Overview of your GPT usage and conversation activity
+          </p>
+        </div>
+      </div>
 
-  const router = useRouter();
-
-  const handleSignOut = async () => {
-    await authClient.signOut();
-    router.push("/login");
-  }
-
-  return <div> 
-    <div className="flex flex-col gap-4 justify-center items-center h-screen">
-      <h1 className="text-2xl font-bold">User Dashboard</h1>
-      <Button onClick={handleSignOut}>
-        logout
-      </Button>
+      {/* Main Dashboard Content */}
+      <div className="px-6">
+        <UserDashboardOverview />
+      </div>
     </div>
-  </div>;
+  );
 }
