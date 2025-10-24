@@ -110,6 +110,7 @@ export function useChatSession(): ChatSessionHook {
           instruction: gpt.instruction,
           name: gpt.name,
           description: gpt.description,
+          gpt_id: gptId,
         };
 
         setGptConfig(gptConfigData);

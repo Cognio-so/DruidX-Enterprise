@@ -14,7 +14,7 @@ class ChatRequest(BaseModel):
     deep_search: Optional[bool] = False  # Add deep search toggle
     uploaded_doc: Optional[bool] = False  # Add uploaded doc indicator
     composio_tools: Optional[List[str]] = []  # Add composio tools selection
-
+    gpt_id: Optional[str] = None
 class ChatResponse(BaseModel):
     message: str
     session_id: str
