@@ -5,6 +5,8 @@ import logging
 import time
 from datetime import date
 from typing import Optional, List, Callable, Any
+import sys
+import subprocess
 
 from livekit import agents
 from livekit.agents import AgentSession, Agent, RoomInputOptions, function_tool, RunContext
@@ -38,7 +40,7 @@ class ReliableDeepgramSTT(deepgram.STT):
         model: str = "nova-2", 
         api_key: Optional[str] = None,
         language: str = "multi",
-        max_retries: int = 1,
+        max_retries: int = 3,
         retry_delay: float = 0.5
     ):
         super().__init__(model=model, api_key=api_key, language=language)
@@ -47,7 +49,7 @@ class ReliableDeepgramSTT(deepgram.STT):
         
     async def _run(self):
         """Override _run method to add retry logic"""
-        retries = 0
+        retries = 3
         last_error = None
         
         while retries < self.max_retries:
@@ -184,6 +186,9 @@ class VoiceAssistant:
     async def _verify_api_keys(self) -> bool:
         """Verify that all required API keys are available"""
         required_keys = {
+            "LIVEKIT_API_KEY": os.getenv("LIVEKIT_API_KEY"),
+            "LIVEKIT_API_SECRET": os.getenv("LIVEKIT_API_SECRET"),
+            "LIVEKIT_URL": os.getenv("LIVEKIT_URL"),
             "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
             "DEEPGRAM_API_KEY": os.getenv("DEEPGRAM_API_KEY"),
             "TAVILY_API_KEY": os.getenv("TAVILY_API_KEY"),
@@ -224,7 +229,7 @@ class VoiceAssistant:
                 model=self.deepgram_stt_model, 
                 api_key=deepgram_api_key,
                 language="multi",
-                max_retries=1,
+                max_retries=3,
                 retry_delay=0.05
             ),
             
@@ -436,5 +441,26 @@ async def entrypoint(ctx: agents.JobContext):
 
 
 if __name__ == "__main__":
-    # Run the app with improved logging
-    agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
+    # If "console" is not in the command-line arguments,
+    # re-launch the script using subprocess with "console" added.
+    if "console" not in sys.argv:
+        print("Redirecting to execute with 'console' command...")
+        try:
+            # Construct the command: ['uv', 'run', 'voice_agent.py', ..., 'console']
+            command = ["uv", "run"] + sys.argv + ["console"]
+            # Execute the command
+            result = subprocess.run(command, check=True)
+            # Exit the current script to prevent it from continuing
+            sys.exit(result.returncode)
+        except FileNotFoundError:
+            print("Error: 'uv' command not found. Please ensure 'uv' is installed and in your PATH.")
+            print("Falling back to default execution without 'console'.")
+            # Fallback to the original execution if 'uv' isn't found
+            agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
+        except subprocess.CalledProcessError as e:
+            print(f"Error re-launching with 'console': {e}")
+            sys.exit(e.returncode)
+    else:
+        # If "console" is already in the arguments, run the app directly.
+        # This is the path taken by the subprocess call.
+        agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
