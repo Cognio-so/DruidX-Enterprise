@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { GeorgianLariIcon, Globe2, PlusIcon } from "lucide-react";
+import { Globe2, PlusIcon } from "lucide-react";
 import { GptFormValues } from "@/lib/zodSchema";
 import Image from "next/image";
 
@@ -15,7 +15,6 @@ export function PreviewGpt({ data }: PreviewGptProps) {
     gptDescription,
     model,
     webSearch,
-    mcp,
     docs,
     imageUrl,
   } = data;
@@ -69,12 +68,6 @@ export function PreviewGpt({ data }: PreviewGptProps) {
               <div className="flex justify-between">
                 <span className="text-gray-400">Web Search:</span>
                 <span className="text-green-400"><Globe2 className="size-4"/></span>
-              </div>
-            )}
-            {mcp && (
-              <div className="flex justify-between">
-                <span className="text-gray-400">MCP:</span>
-                <span className="text-blue-400"><GeorgianLariIcon className="size-4"/></span>
               </div>
             )}
             {docs.length > 0 && (
