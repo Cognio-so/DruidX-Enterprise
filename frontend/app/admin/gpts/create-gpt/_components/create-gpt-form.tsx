@@ -36,7 +36,6 @@ import DocsUploader from "./DocsUploader";
 import { PreviewGpt } from "./preview-gpt";
 import { GptFormValues, gptSchema } from "@/lib/zodSchema";
 import { createGpt } from "../action";
-import McpSchemaField from "./McpSchemaFeild";
 
 const GptModels = [
   { id: "gemini_2_5_flash", name: "Gemini 2.5 Flash" },
@@ -70,10 +69,8 @@ export function CreateGptForm() {
       instructions: "",
       webSearch: false,
       hybridRag: false,
-      mcp: false,
       docs: [],
       imageUrl: "",
-      mcpSchema: "",
     },
   });
 
@@ -253,25 +250,6 @@ export function CreateGptForm() {
                   )}
                 />
 
-                {/* MCP Toggle */}
-                <FormField
-                  control={form.control}
-                  name="mcp"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center justify-between border rounded-lg p-4">
-                      <FormLabel>MCP Integration</FormLabel>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                {/* Conditional MCP Schema Field */}
-                {form.watch("mcp") && <McpSchemaField control={form.control} />}
 
                 <Separator />
 
@@ -314,3 +292,6 @@ export function CreateGptForm() {
     </Card>
   );
 }
+
+
+

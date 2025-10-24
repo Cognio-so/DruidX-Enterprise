@@ -12,7 +12,6 @@ export async function getGpts() {
       id: true,
       name: true,
       description: true,
-      mcp: true,
       webBrowser: true,
       hybridRag: true,
       model: true,

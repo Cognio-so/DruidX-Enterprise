@@ -16,6 +16,7 @@ interface ChatRequest {
   deep_search?: boolean;
   uploaded_doc?: boolean;
   model?: string;
+  composio_tools?: string[];
 }
 
 interface StreamingChatHook {

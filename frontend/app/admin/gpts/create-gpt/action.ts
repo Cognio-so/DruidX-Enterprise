@@ -30,8 +30,6 @@ export async function createGpt(data: {
   instructions: string;
   webSearch: boolean;
   hybridRag: boolean;
-  mcp: boolean;
-  mcpSchema?: string;
   docs: string[];
   imageUrl?: string;
 }) {
@@ -64,10 +62,6 @@ export async function createGpt(data: {
       instruction: validatedData.instructions,
       webBrowser: validatedData.webSearch,
       hybridRag: validatedData.hybridRag,
-      mcp: validatedData.mcp,
-      mcpSchema: validatedData.mcpSchema
-        ? JSON.parse(validatedData.mcpSchema)
-        : null,
       image: validatedData.imageUrl || "default-avatar.png",
       knowledgeBase:
         validatedData.docs.length > 0

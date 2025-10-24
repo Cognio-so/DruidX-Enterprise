@@ -114,6 +114,7 @@ export default function ChatGptById() {
           isLoading={isLoading}
           hybridRag={hybridRag}
           defaultModel={gptData?.model}
+          gptId={gptId}
         />
       </div>
     </div>

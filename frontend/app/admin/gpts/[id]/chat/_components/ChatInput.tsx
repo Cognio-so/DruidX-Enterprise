@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowUp, Globe, Paperclip, Sparkle, Telescope, X } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { getModelsForFrontend, frontendToBackend, getDisplayName } from "@/lib/modelMapping";
+import { ComposioToolSelector } from "./ComposioToolSelector";
 
 interface ChatInputProps {
   onSendMessage: (message: string, options: {
@@ -14,12 +15,14 @@ interface ChatInputProps {
     uploaded_doc?: boolean;
     uploaded_docs?: UploadedDoc[];
     model?: string;
+    composio_tools?: string[];
   }) => void;
   onDocumentUploaded?: (url: string, filename: string) => void;
   hasMessages: boolean;
   isLoading?: boolean;
   hybridRag?: boolean;
   defaultModel?: string;
+  gptId?: string;
 }
 
 interface UploadedDoc {
@@ -38,6 +41,7 @@ export default function ChatInput({
   isLoading = false,
   hybridRag = false,
   defaultModel,
+  gptId,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [selectedModel, setSelectedModel] = useState("gpt_4o");
@@ -45,6 +49,7 @@ export default function ChatInput({
   const [deepSearch, setDeepSearch] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedDocs, setUploadedDocs] = useState<UploadedDoc[]>([]);
+  const [composioTools, setComposioTools] = useState<string[]>([]);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -71,7 +76,8 @@ export default function ChatInput({
         deep_search: deepSearch,
         uploaded_doc: uploadedDocs.length > 0,
         uploaded_docs: uploadedDocs,
-        model: backendModelName, 
+        model: backendModelName,
+        composio_tools: composioTools,
       };
 
       onSendMessage(message.trim(), sendOptions);
@@ -260,6 +266,14 @@ export default function ChatInput({
             >
               <Telescope className="size-4"/>
             </Button>
+            
+            {gptId && (
+              <ComposioToolSelector
+                gptId={gptId}
+                onToolsChange={setComposioTools}
+                disabled={isLoading}
+              />
+            )}
           </div>
 
           <div className="flex items-center gap-1.5">

@@ -39,24 +39,6 @@ export const gptSchema = z.object({
 
   webSearch: z.boolean(),
   hybridRag: z.boolean(),
-  mcp: z.boolean(),
-
-  mcpSchema: z
-    .string()
-    .optional()
-    .refine(
-      (val) => {
-        if (!val || val.trim() === "") return true;
-
-        try {
-          JSON.parse(val);
-          return true;
-        } catch {
-          return false;
-        }
-      },
-      { message: "Must be valid JSON schema" }
-    ),
 
   docs: z
     .array(z.string())

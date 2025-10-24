@@ -153,29 +153,39 @@ async def mcp_node(state: GraphState) -> GraphState:
     """MCP Node for the graph workflow"""
     try:
         print("=== MCP NODE EXECUTION ===")
-        mcp_connections = state.get("mcp_connections", [])
+        enabled_composio_tools = state.get("enabled_composio_tools", [])
         gpt_id = state.get("gpt_id") or state.get("session_id", "unknown")
         user_query = state.get("user_query", "")
         chunk_callback = state.get("_chunk_callback")
         
-        print(f"MCP Connections: {mcp_connections}")
+        print(f"Enabled Composio Tools: {enabled_composio_tools}")
         print(f"GPT ID: {gpt_id}")
         print(f"User Query: {user_query}")
         
-        if not mcp_connections:
-            print("No MCP connections available")
-            state["response"] = "No MCP tools are connected to this GPT."
+        if not enabled_composio_tools:
+            print("No Composio tools enabled for this message")
+            state["response"] = "No Composio tools are enabled for this message."
             return state
 
+        # Get active connections for the GPT
+        mcp_connections = await MCPNode.get_user_connections(gpt_id)
+        print(f"Active MCP Connections: {mcp_connections}")
+        
+        if not mcp_connections:
+            print("No active MCP connections found")
+            state["response"] = "No active connections found. Please authenticate your tools first."
+            return state
+
+        # Filter tools based on enabled composio tools and active connections
         connected_tools = []
         for connection in mcp_connections:
             app_name = connection.get("app_name", "").lower()
-            if app_name in TOOL_CONFIGS:
+            if app_name in enabled_composio_tools and app_name in TOOL_CONFIGS:
                 connected_tools.extend(TOOL_CONFIGS[app_name]["tools"])
         
         if not connected_tools:
-            print("No valid tools found in connections")
-            state["response"] = "Connected MCP tools are not properly configured."
+            print("No valid tools found for enabled composio tools")
+            state["response"] = "No valid tools found for the enabled Composio tools."
             return state
         
         print(f"Executing MCP action with tools: {connected_tools}")

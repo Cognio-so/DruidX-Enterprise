@@ -20,12 +20,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 6.17.0
- * Query Engine version: c0aafc03b8ef6cdced8654b9a817999e02457d6a
+ * Prisma Client JS version: 6.17.1
+ * Query Engine version: 272a37d34178c2894197e17273bf937f25acdeac
  */
 Prisma.prismaVersion = {
-  client: "6.17.0",
-  engine: "c0aafc03b8ef6cdced8654b9a817999e02457d6a"
+  client: "6.17.1",
+  engine: "272a37d34178c2894197e17273bf937f25acdeac"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -180,10 +180,18 @@ exports.Prisma.GptScalarFieldEnum = {
   instruction: 'instruction',
   webBrowser: 'webBrowser',
   hybridRag: 'hybridRag',
-  mcp: 'mcp',
-  mcpSchema: 'mcpSchema',
   image: 'image',
   knowledgeBase: 'knowledgeBase',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ComposioConnectionScalarFieldEnum = {
+  id: 'id',
+  gptId: 'gptId',
+  appName: 'appName',
+  connectionId: 'connectionId',
+  status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -234,11 +242,6 @@ exports.Prisma.SortOrder = {
   desc: 'desc'
 };
 
-exports.Prisma.NullableJsonNullValueInput = {
-  DbNull: Prisma.DbNull,
-  JsonNull: Prisma.JsonNull
-};
-
 exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -247,12 +250,6 @@ exports.Prisma.QueryMode = {
 exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
-};
-
-exports.Prisma.JsonNullValueFilter = {
-  DbNull: Prisma.DbNull,
-  JsonNull: Prisma.JsonNull,
-  AnyNull: Prisma.AnyNull
 };
 exports.ModelEnum = exports.$Enums.ModelEnum = {
   gemini_2_5_flash: 'gemini_2_5_flash',
@@ -285,6 +282,7 @@ exports.Prisma.ModelName = {
   Account: 'Account',
   Verification: 'Verification',
   Gpt: 'Gpt',
+  ComposioConnection: 'ComposioConnection',
   Invitation: 'Invitation',
   AssignGpt: 'AssignGpt',
   Conversation: 'Conversation',

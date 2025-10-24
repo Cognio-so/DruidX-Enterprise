@@ -107,7 +107,6 @@ export function useChatSession(): ChatSessionHook {
           model: backendModelName,
           webBrowser: gpt.webBrowser,
           hybridRag: gpt.hybridRag,
-          mcp: gpt.mcp,
           instruction: gpt.instruction,
           name: gpt.name,
           description: gpt.description,

@@ -13,6 +13,7 @@ class GraphState(TypedDict, total=False):
     mcp: Optional[bool]
     mcp_schema: Optional[List[Dict[str, Any]]]
     mcp_tools:Optional[List[Any]]
+    enabled_composio_tools: Optional[List[str]]  # Add composio tools selection
     web_search: Optional[bool]
     rag: Optional[bool]  # hybrid rag only
     uploaded_doc: Optional[bool]  # uploaded document indicator

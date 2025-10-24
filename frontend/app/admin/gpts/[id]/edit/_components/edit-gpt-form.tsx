@@ -36,7 +36,6 @@ import DocsUploader from "../../../create-gpt/_components/DocsUploader";
 import { PreviewGpt } from "../../../create-gpt/_components/preview-gpt";
 import { GptFormValues, gptSchema } from "@/lib/zodSchema";
 import { editGpt } from "../action";
-import McpSchemaField from "../../../create-gpt/_components/McpSchemaFeild";
 
 const GptModels = [
   { id: "gemini_2_5_flash", name: "Gemini 2.5 Flash" },
@@ -67,8 +66,6 @@ interface EditGptFormProps {
     instruction: string;
     webBrowser: boolean;
     hybridRag: boolean;
-    mcp: boolean;
-    mcpSchema: string;
     image: string;
     docs: string[];
   };
@@ -88,10 +85,8 @@ export function EditGptForm({ gptId, initialData }: EditGptFormProps) {
       instructions: initialData.instruction,
       webSearch: initialData.webBrowser,
       hybridRag: initialData.hybridRag,
-      mcp: initialData.mcp,
       docs: initialData.docs,
       imageUrl: initialData.image !== "default-avatar.png" ? initialData.image : "",
-      mcpSchema: initialData.mcpSchema,
     },
   });
 
@@ -278,26 +273,6 @@ export function EditGptForm({ gptId, initialData }: EditGptFormProps) {
                     </FormItem>
                   )}
                 />
-
-                {/* MCP Toggle */}
-                <FormField
-                  control={form.control}
-                  name="mcp"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center justify-between border rounded-lg p-4">
-                      <FormLabel>MCP Integration</FormLabel>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                {/* Conditional MCP Schema Field */}
-                {form.watch("mcp") && <McpSchemaField control={form.control} />}
 
                 <Separator />
 
