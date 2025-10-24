@@ -11,16 +11,21 @@ openai = OpenAI(
     api_key=os.getenv("OPENROUTER_API_KEY"),
     base_url="https://openrouter.ai/api/v1"
 )
+slack_auth_config_id = os.getenv("SLACK_AUTH_CONFIG_ID", "")
 gmail_auth_config_id = os.getenv("GMAIL_AUTH_CONFIG_ID", "")
 github_auth_config_id = os.getenv("GITHUB_AUTH_CONFIG_ID", "")
 TOOL_CONFIGS = {
     "gmail": {
         "auth_config_id": gmail_auth_config_id,
-        "tools": ["GMAIL_SEND_EMAIL", "GMAIL_READ_EMAILS", "GMAIL_SEARCH_EMAILS"]
+        "tools": ["GMAIL"]
     },
     "github": {
         "auth_config_id":github_auth_config_id, 
-        "tools": ["GITHUB_LIST_REPOSITORIES_FOR_THE_AUTHENTICATED_USER", "GITHUB_CREATE_ISSUE", "GITHUB_LIST_ISSUES"]
+        "tools": ["GITHUB"]
+    },
+    "slack": {
+        "auth_config_id": slack_auth_config_id,
+        "tools": ["SLACK"]
     }
 }
 
@@ -85,9 +90,9 @@ class MCPNode:
                 connections = connections_response.get("items", [])
             else:
                 connections = []
+            
             active_connections = []
             for conn in connections:
-
                 if hasattr(conn, 'status'):
                     status = conn.status
                 elif hasattr(conn, 'get'):
@@ -96,15 +101,29 @@ class MCPNode:
                     status = None
                 
                 if status == "ACTIVE":
-                   
+                    app_name = ""
+                    if hasattr(conn, 'toolkit'):
+                        if hasattr(conn.toolkit, 'slug'):
+                            app_name = conn.toolkit.slug
+                        elif hasattr(conn.toolkit, 'get'):
+                            app_name = conn.toolkit.get("slug", "")
+                    elif hasattr(conn, 'get'):
+                        toolkit_data = conn.get("toolkit", {})
+                        app_name = toolkit_data.get("slug", "") if isinstance(toolkit_data, dict) else ""
+                    
                     if hasattr(conn, '__dict__'):
                         conn_dict = {
-                            "app_name": getattr(conn, 'app_name', getattr(conn, 'app', '')),
+                            "app_name": app_name, 
                             "status": getattr(conn, 'status', ''),
                             "id": getattr(conn, 'id', ''),
                         }
                     else:
-                        conn_dict = conn
+                        conn_dict = {
+                            "app_name": app_name,  
+                            "status": conn.get("status", ""),
+                            "id": conn.get("id", ""),
+                        }
+                    
                     active_connections.append(conn_dict)
             
             return active_connections
@@ -121,15 +140,21 @@ class MCPNode:
             composio_tools = await asyncio.to_thread(
                 composio.tools.get, 
                 user_id=user_id, 
-                tools=connected_tools
+                toolkits=connected_tools
             )
-            
+            system_message = (
+                "You are an expert tool-calling assistant. Your only job is to "
+                "analyze the user's request and select the most appropriate tool "
+                "from the provided list. Respond *only* with the JSON for the "
+                "tool call. Do not add any conversational text. "
+                "For 'list last 10 emails', use a tool like 'list_messages' and set 'max_results' to 10."
+            )
             print(f"🔧 Loaded {len(composio_tools)} MCP tools for GPT {gpt_id}")
             completion = await asyncio.to_thread(
                 openai.chat.completions.create,
                 model="openai/gpt-4o",
                 messages=[
-                    {"role": "system", "content": "You are a helpful assistant with access to various tools. Use the available tools to help the user with their request."},
+                    {"role": "system", "content": system_message},
                     {"role": "user", "content": query}
                 ],
                 tools=composio_tools
@@ -148,17 +173,31 @@ class MCPNode:
             import traceback
             traceback.print_exc()
             return f"❌ Error executing MCP action: {e}"
+TOOL_MAPPING = {
+    "slack": "SLACK",
+    "gmail": "GMAIL", 
+    "github": "GITHUB"
+}
 
 async def mcp_node(state: GraphState) -> GraphState:
     """MCP Node for the graph workflow"""
     try:
         print("=== MCP NODE EXECUTION ===")
+        mcp_tool_needed = state.get("mcp_tools_needed")
+        if not mcp_tool_needed:
+            route = state.get("route", "")
+            if route.startswith("mcp:"):
+                mcp_tool_needed = route.replace("mcp:", "")
+                print(f"Extracted tool from route: {mcp_tool_needed}")
+        
         enabled_composio_tools = state.get("enabled_composio_tools", [])
-        gpt_id = state.get("gpt_id") or state.get("session_id", "unknown")
-        user_query = state.get("user_query", "")
+        gpt_config = state.get("gpt_config", {})
+        gpt_id = gpt_config.get("gpt_id")
+        user_query = state.get("resolved_query") or state.get("user_query", "")
         chunk_callback = state.get("_chunk_callback")
         
         print(f"Enabled Composio Tools: {enabled_composio_tools}")
+        print(f"MCP Tool Needed: {mcp_tool_needed}")
         print(f"GPT ID: {gpt_id}")
         print(f"User Query: {user_query}")
         
@@ -166,8 +205,6 @@ async def mcp_node(state: GraphState) -> GraphState:
             print("No Composio tools enabled for this message")
             state["response"] = "No Composio tools are enabled for this message."
             return state
-
-        # Get active connections for the GPT
         mcp_connections = await MCPNode.get_user_connections(gpt_id)
         print(f"Active MCP Connections: {mcp_connections}")
         
@@ -176,12 +213,17 @@ async def mcp_node(state: GraphState) -> GraphState:
             state["response"] = "No active connections found. Please authenticate your tools first."
             return state
 
-        # Filter tools based on enabled composio tools and active connections
         connected_tools = []
-        for connection in mcp_connections:
-            app_name = connection.get("app_name", "").lower()
-            if app_name in enabled_composio_tools and app_name in TOOL_CONFIGS:
-                connected_tools.extend(TOOL_CONFIGS[app_name]["tools"])
+        if mcp_tool_needed and mcp_tool_needed in TOOL_MAPPING:
+            toolkit_name = TOOL_MAPPING[mcp_tool_needed]
+            connected_tools.append(toolkit_name)
+            print(f"Added toolkit: {toolkit_name} for tool: {mcp_tool_needed}")
+        else:
+            for enabled_tool in enabled_composio_tools:
+                if enabled_tool in TOOL_MAPPING:
+                    toolkit_name = TOOL_MAPPING[enabled_tool]
+                    connected_tools.append(toolkit_name)
+                    print(f"Added toolkit: {toolkit_name} for enabled tool: {enabled_tool}")
         
         if not connected_tools:
             print("No valid tools found for enabled composio tools")
@@ -194,14 +236,51 @@ async def mcp_node(state: GraphState) -> GraphState:
             gpt_id=gpt_id,
             connected_tools=connected_tools,
             query=user_query,
-            chunk_callback=chunk_callback
+            chunk_callback=None
         )
     
-        if chunk_callback and hasattr(chunk_callback, '__call__'):
-            await chunk_callback(str(result))
+        raw_result_str = str(result)
+    
+        system_prompt = (
+            "You are an assistant that formats raw tool output into a clean, "
+            "user-friendly response. The user's original request was: "
+            f"'{user_query}'.\n"
+            "Do not include headers, HTML, or raw JSON structures. "
+            "Summarize the key information clearly. For emails, list the sender, "
+            "subject, and a brief preview."
+        )
         
-        state["response"] = str(result)
-        print(f"MCP Node result: {result}")
+        user_prompt = (
+            f"Here is the raw data from the tool:\n\n"
+            f"{raw_result_str[:8000]}\n\n" 
+            "Please format this into a concise, readable answer for the user."
+        )
+
+        try:
+            
+            formatting_completion = await asyncio.to_thread(
+                openai.chat.completions.create,
+                model="alibaba/tongyi-deepresearch-30b-a3b:free", 
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ]
+            )
+            
+            formatted_result = formatting_completion.choices[0].message.content
+            print(f"MCP Node formatted result: {formatted_result}")
+            final_response = formatted_result
+            
+        except Exception as format_e:
+            print(f"❌ Error during MCP result formatting: {format_e}")
+           
+            final_response = "Error formatting result. Raw data: " + raw_result_str[:1000] + "..."
+                
+       
+        if chunk_callback and hasattr(chunk_callback, '__call__'):
+            await chunk_callback(str(final_response))
+        
+        state["response"] = str(final_response)
         
     except Exception as e:
         print(f"❌ Error in MCP node: {e}")

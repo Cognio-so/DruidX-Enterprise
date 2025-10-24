@@ -14,6 +14,7 @@ class GraphState(TypedDict, total=False):
     mcp_schema: Optional[List[Dict[str, Any]]]
     mcp_tools:Optional[List[Any]]
     enabled_composio_tools: Optional[List[str]]  # Add composio tools selection
+    mcp_tools_needed: Optional[str]
     web_search: Optional[bool]
     rag: Optional[bool]  # hybrid rag only
     uploaded_doc: Optional[bool]  # uploaded document indicator
@@ -36,3 +37,4 @@ class GraphState(TypedDict, total=False):
     deep_research_query: Optional[str]
     deep_research_llm_model: Optional[str]  
     img_urls: Optional[List[str]]  # Add this line for image URLs
+    gpt_id: Optional[str]

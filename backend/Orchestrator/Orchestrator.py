@@ -181,18 +181,27 @@ async def analyze_query(
     recent_messages_text: str,
     session_summary: str,
     last_route: str | None,
+    available_composio_tools: List[str] = None,  # Add this parameter
 ) -> Optional[Dict[str, Any]]:
     """
     Analyze the user's message in context (conversation, summary, last route)
-    to decide the next node (RAG, WebSearch, SimpleLLM, Image).
+    to decide the next node (RAG, WebSearch, SimpleLLM, Image, MCP).
 
     Rules enforced:
     - Routing based purely on query content, conversation context, and last route
     - No active_docs dependency - analyze based on query patterns and follow-up detection
     - WebSearch and Image detection are purely query-driven
+    - MCP routing requires analyzing query for action patterns and matching available tools
     """
 
     try:
+        # Add available composio tools to the prompt
+        composio_tools_text = ""
+        if available_composio_tools and len(available_composio_tools) > 0:
+            composio_tools_text = f"\nAvailable Composio Tools: {', '.join(available_composio_tools)}"
+        else:
+            composio_tools_text = "\nAvailable Composio Tools: None"
+        
         prompt = (
             prompt_template
             .replace("{user_message}", user_message)
@@ -201,7 +210,7 @@ async def analyze_query(
             .replace("{last_route}", str(last_route or "None"))
         )
         system_msg = SystemMessage(content=STATIC_SYS)
-        # print(f"--------------system_prompt----------", system_msg)
+        
         # Create dynamic text separately (NOT part of system prompt)
         dynamic_context = f"""
         User Message:
@@ -210,11 +219,10 @@ async def analyze_query(
         Recent Messages:
         {recent_messages_text[:300] or '(none)'}
 
-        Last Route: {last_route or 'None'}
+        Last Route: {last_route or 'None'}{composio_tools_text}
         """
 
         messages = [system_msg, HumanMessage(content=dynamic_context)]
-
 
         google_api_key = os.getenv("GOOGLE_API_KEY", "")
         chat = ChatGoogleGenerativeAI(
@@ -359,6 +367,8 @@ def normalize_route(name: str) -> str:
         "rag": "RAG",
         "simple_llm": "SimpleLLM",
         "llm": "SimpleLLM",
+        "mcp": "MCP",  # Add MCP mapping
+        "composio": "MCP",  # Add composio mapping
         "end": "END",
     }
     return mapping.get(key, name)
@@ -383,7 +393,8 @@ async def orchestrator(state: GraphState) -> GraphState:
     if not state.get("active_docs"):
         state["active_docs"] = None
         print("[Orchestrator] Initialized active_docs as None.")
-
+    available_composio_tools = state.get("enabled_composio_tools", [])
+    print(f"Enlabled composio tools", state.get("enabled_composio_tools", []))
     if new_Doc:
         state["active_docs"]=new_Doc
     if not state.get("tasks"):
@@ -427,6 +438,7 @@ async def orchestrator(state: GraphState) -> GraphState:
             recent_messages_text=recent_messages_text,
             session_summary=session_summary,
             last_route=last_route,
+            available_composio_tools=available_composio_tools,
         )
         
         tentative_rewrite_task = rewrite_query(state)
@@ -533,6 +545,18 @@ async def orchestrator(state: GraphState) -> GraphState:
 
 def route_decision(state: GraphState) -> str:
     route = state.get("route", "SimpleLLM")
-    route=normalize_route(route)
+    
+    # Handle MCP routes with tool names
+    if route.startswith("mcp:"):
+        tool_name = route.replace("mcp:", "")
+        state["mcp_tools_needed"] = tool_name  # Set the specific tool needed
+        print(f"Extracted MCP tool: {tool_name}")
+        return "MCP"
+    
+    # Add MCP routing
+    if route.lower() in ["mcp", "composio"]:
+        return "MCP"
+    
+    route = normalize_route(route)
     print(f"Routing decision based on state: {route}")
     return route
