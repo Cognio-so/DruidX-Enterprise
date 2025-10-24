@@ -77,23 +77,37 @@ model Verification {
 }
 
 model Gpt {
-  id              String         @id @default(cuid())
-  userId          String
-  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name            String         @db.VarChar(100)
-  description     String         @db.VarChar(500)
-  model           ModelEnum
-  instruction     String         @db.Text
-  webBrowser      Boolean        @default(false)
-  hybridRag       Boolean        @default(false)
-  mcp             Boolean        @default(false)
-  mcpSchema       Json?
-  image           String
-  knowledgeBase   String?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  assignedToUsers AssignGpt[]
-  conversations   Conversation[]
+  id                  String               @id @default(cuid())
+  userId              String
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name                String               @db.VarChar(100)
+  description         String               @db.VarChar(500)
+  model               ModelEnum
+  instruction         String               @db.Text
+  webBrowser          Boolean              @default(false)
+  hybridRag           Boolean              @default(false)
+  image               String
+  knowledgeBase       String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  assignedToUsers     AssignGpt[]
+  conversations       Conversation[]
+  composioConnections ComposioConnection[]
+}
+
+model ComposioConnection {
+  id           String   @id @default(cuid())
+  gptId        String
+  appName      String
+  connectionId String
+  status       String   @default("active")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  gpt          Gpt      @relation(fields: [gptId], references: [id], onDelete: Cascade)
+
+  @@unique([gptId, appName])
+  @@index([gptId])
+  @@map("composio_connection")
 }
 
 model Invitation {

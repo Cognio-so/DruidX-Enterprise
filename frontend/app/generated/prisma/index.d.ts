@@ -39,6 +39,11 @@ export type Verification = $Result.DefaultSelection<Prisma.$VerificationPayload>
  */
 export type Gpt = $Result.DefaultSelection<Prisma.$GptPayload>
 /**
+ * Model ComposioConnection
+ * 
+ */
+export type ComposioConnection = $Result.DefaultSelection<Prisma.$ComposioConnectionPayload>
+/**
  * Model Invitation
  * 
  */
@@ -272,6 +277,16 @@ export class PrismaClient<
   get gpt(): Prisma.GptDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.composioConnection`: Exposes CRUD operations for the **ComposioConnection** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ComposioConnections
+    * const composioConnections = await prisma.composioConnection.findMany()
+    * ```
+    */
+  get composioConnection(): Prisma.ComposioConnectionDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.invitation`: Exposes CRUD operations for the **Invitation** model.
     * Example usage:
     * ```ts
@@ -368,8 +383,8 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 6.17.0
-   * Query Engine version: c0aafc03b8ef6cdced8654b9a817999e02457d6a
+   * Prisma Client JS version: 6.17.1
+   * Query Engine version: 272a37d34178c2894197e17273bf937f25acdeac
    */
   export type PrismaVersion = {
     client: string
@@ -755,6 +770,7 @@ export namespace Prisma {
     Account: 'Account',
     Verification: 'Verification',
     Gpt: 'Gpt',
+    ComposioConnection: 'ComposioConnection',
     Invitation: 'Invitation',
     AssignGpt: 'AssignGpt',
     Conversation: 'Conversation',
@@ -777,7 +793,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "session" | "account" | "verification" | "gpt" | "invitation" | "assignGpt" | "conversation" | "message"
+      modelProps: "user" | "session" | "account" | "verification" | "gpt" | "composioConnection" | "invitation" | "assignGpt" | "conversation" | "message"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1148,6 +1164,80 @@ export namespace Prisma {
           count: {
             args: Prisma.GptCountArgs<ExtArgs>
             result: $Utils.Optional<GptCountAggregateOutputType> | number
+          }
+        }
+      }
+      ComposioConnection: {
+        payload: Prisma.$ComposioConnectionPayload<ExtArgs>
+        fields: Prisma.ComposioConnectionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ComposioConnectionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComposioConnectionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ComposioConnectionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComposioConnectionPayload>
+          }
+          findFirst: {
+            args: Prisma.ComposioConnectionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComposioConnectionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ComposioConnectionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComposioConnectionPayload>
+          }
+          findMany: {
+            args: Prisma.ComposioConnectionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComposioConnectionPayload>[]
+          }
+          create: {
+            args: Prisma.ComposioConnectionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComposioConnectionPayload>
+          }
+          createMany: {
+            args: Prisma.ComposioConnectionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ComposioConnectionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComposioConnectionPayload>[]
+          }
+          delete: {
+            args: Prisma.ComposioConnectionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComposioConnectionPayload>
+          }
+          update: {
+            args: Prisma.ComposioConnectionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComposioConnectionPayload>
+          }
+          deleteMany: {
+            args: Prisma.ComposioConnectionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ComposioConnectionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ComposioConnectionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComposioConnectionPayload>[]
+          }
+          upsert: {
+            args: Prisma.ComposioConnectionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComposioConnectionPayload>
+          }
+          aggregate: {
+            args: Prisma.ComposioConnectionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateComposioConnection>
+          }
+          groupBy: {
+            args: Prisma.ComposioConnectionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ComposioConnectionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ComposioConnectionCountArgs<ExtArgs>
+            result: $Utils.Optional<ComposioConnectionCountAggregateOutputType> | number
           }
         }
       }
@@ -1548,6 +1638,7 @@ export namespace Prisma {
     account?: AccountOmit
     verification?: VerificationOmit
     gpt?: GptOmit
+    composioConnection?: ComposioConnectionOmit
     invitation?: InvitationOmit
     assignGpt?: AssignGptOmit
     conversation?: ConversationOmit
@@ -1701,11 +1792,13 @@ export namespace Prisma {
   export type GptCountOutputType = {
     assignedToUsers: number
     conversations: number
+    composioConnections: number
   }
 
   export type GptCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     assignedToUsers?: boolean | GptCountOutputTypeCountAssignedToUsersArgs
     conversations?: boolean | GptCountOutputTypeCountConversationsArgs
+    composioConnections?: boolean | GptCountOutputTypeCountComposioConnectionsArgs
   }
 
   // Custom InputTypes
@@ -1731,6 +1824,13 @@ export namespace Prisma {
    */
   export type GptCountOutputTypeCountConversationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ConversationWhereInput
+  }
+
+  /**
+   * GptCountOutputType without action
+   */
+  export type GptCountOutputTypeCountComposioConnectionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ComposioConnectionWhereInput
   }
 
 
@@ -6328,7 +6428,6 @@ export namespace Prisma {
     instruction: string | null
     webBrowser: boolean | null
     hybridRag: boolean | null
-    mcp: boolean | null
     image: string | null
     knowledgeBase: string | null
     createdAt: Date | null
@@ -6344,7 +6443,6 @@ export namespace Prisma {
     instruction: string | null
     webBrowser: boolean | null
     hybridRag: boolean | null
-    mcp: boolean | null
     image: string | null
     knowledgeBase: string | null
     createdAt: Date | null
@@ -6360,8 +6458,6 @@ export namespace Prisma {
     instruction: number
     webBrowser: number
     hybridRag: number
-    mcp: number
-    mcpSchema: number
     image: number
     knowledgeBase: number
     createdAt: number
@@ -6379,7 +6475,6 @@ export namespace Prisma {
     instruction?: true
     webBrowser?: true
     hybridRag?: true
-    mcp?: true
     image?: true
     knowledgeBase?: true
     createdAt?: true
@@ -6395,7 +6490,6 @@ export namespace Prisma {
     instruction?: true
     webBrowser?: true
     hybridRag?: true
-    mcp?: true
     image?: true
     knowledgeBase?: true
     createdAt?: true
@@ -6411,8 +6505,6 @@ export namespace Prisma {
     instruction?: true
     webBrowser?: true
     hybridRag?: true
-    mcp?: true
-    mcpSchema?: true
     image?: true
     knowledgeBase?: true
     createdAt?: true
@@ -6501,8 +6593,6 @@ export namespace Prisma {
     instruction: string
     webBrowser: boolean
     hybridRag: boolean
-    mcp: boolean
-    mcpSchema: JsonValue | null
     image: string
     knowledgeBase: string | null
     createdAt: Date
@@ -6535,8 +6625,6 @@ export namespace Prisma {
     instruction?: boolean
     webBrowser?: boolean
     hybridRag?: boolean
-    mcp?: boolean
-    mcpSchema?: boolean
     image?: boolean
     knowledgeBase?: boolean
     createdAt?: boolean
@@ -6544,6 +6632,7 @@ export namespace Prisma {
     user?: boolean | UserDefaultArgs<ExtArgs>
     assignedToUsers?: boolean | Gpt$assignedToUsersArgs<ExtArgs>
     conversations?: boolean | Gpt$conversationsArgs<ExtArgs>
+    composioConnections?: boolean | Gpt$composioConnectionsArgs<ExtArgs>
     _count?: boolean | GptCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["gpt"]>
 
@@ -6556,8 +6645,6 @@ export namespace Prisma {
     instruction?: boolean
     webBrowser?: boolean
     hybridRag?: boolean
-    mcp?: boolean
-    mcpSchema?: boolean
     image?: boolean
     knowledgeBase?: boolean
     createdAt?: boolean
@@ -6574,8 +6661,6 @@ export namespace Prisma {
     instruction?: boolean
     webBrowser?: boolean
     hybridRag?: boolean
-    mcp?: boolean
-    mcpSchema?: boolean
     image?: boolean
     knowledgeBase?: boolean
     createdAt?: boolean
@@ -6592,19 +6677,18 @@ export namespace Prisma {
     instruction?: boolean
     webBrowser?: boolean
     hybridRag?: boolean
-    mcp?: boolean
-    mcpSchema?: boolean
     image?: boolean
     knowledgeBase?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type GptOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "description" | "model" | "instruction" | "webBrowser" | "hybridRag" | "mcp" | "mcpSchema" | "image" | "knowledgeBase" | "createdAt" | "updatedAt", ExtArgs["result"]["gpt"]>
+  export type GptOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "description" | "model" | "instruction" | "webBrowser" | "hybridRag" | "image" | "knowledgeBase" | "createdAt" | "updatedAt", ExtArgs["result"]["gpt"]>
   export type GptInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     assignedToUsers?: boolean | Gpt$assignedToUsersArgs<ExtArgs>
     conversations?: boolean | Gpt$conversationsArgs<ExtArgs>
+    composioConnections?: boolean | Gpt$composioConnectionsArgs<ExtArgs>
     _count?: boolean | GptCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type GptIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -6620,6 +6704,7 @@ export namespace Prisma {
       user: Prisma.$UserPayload<ExtArgs>
       assignedToUsers: Prisma.$AssignGptPayload<ExtArgs>[]
       conversations: Prisma.$ConversationPayload<ExtArgs>[]
+      composioConnections: Prisma.$ComposioConnectionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -6630,8 +6715,6 @@ export namespace Prisma {
       instruction: string
       webBrowser: boolean
       hybridRag: boolean
-      mcp: boolean
-      mcpSchema: Prisma.JsonValue | null
       image: string
       knowledgeBase: string | null
       createdAt: Date
@@ -7033,6 +7116,7 @@ export namespace Prisma {
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     assignedToUsers<T extends Gpt$assignedToUsersArgs<ExtArgs> = {}>(args?: Subset<T, Gpt$assignedToUsersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssignGptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     conversations<T extends Gpt$conversationsArgs<ExtArgs> = {}>(args?: Subset<T, Gpt$conversationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    composioConnections<T extends Gpt$composioConnectionsArgs<ExtArgs> = {}>(args?: Subset<T, Gpt$composioConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ComposioConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7070,8 +7154,6 @@ export namespace Prisma {
     readonly instruction: FieldRef<"Gpt", 'String'>
     readonly webBrowser: FieldRef<"Gpt", 'Boolean'>
     readonly hybridRag: FieldRef<"Gpt", 'Boolean'>
-    readonly mcp: FieldRef<"Gpt", 'Boolean'>
-    readonly mcpSchema: FieldRef<"Gpt", 'Json'>
     readonly image: FieldRef<"Gpt", 'String'>
     readonly knowledgeBase: FieldRef<"Gpt", 'String'>
     readonly createdAt: FieldRef<"Gpt", 'DateTime'>
@@ -7520,6 +7602,30 @@ export namespace Prisma {
   }
 
   /**
+   * Gpt.composioConnections
+   */
+  export type Gpt$composioConnectionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComposioConnection
+     */
+    select?: ComposioConnectionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ComposioConnection
+     */
+    omit?: ComposioConnectionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComposioConnectionInclude<ExtArgs> | null
+    where?: ComposioConnectionWhereInput
+    orderBy?: ComposioConnectionOrderByWithRelationInput | ComposioConnectionOrderByWithRelationInput[]
+    cursor?: ComposioConnectionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ComposioConnectionScalarFieldEnum | ComposioConnectionScalarFieldEnum[]
+  }
+
+  /**
    * Gpt without action
    */
   export type GptDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -7535,6 +7641,1090 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: GptInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ComposioConnection
+   */
+
+  export type AggregateComposioConnection = {
+    _count: ComposioConnectionCountAggregateOutputType | null
+    _min: ComposioConnectionMinAggregateOutputType | null
+    _max: ComposioConnectionMaxAggregateOutputType | null
+  }
+
+  export type ComposioConnectionMinAggregateOutputType = {
+    id: string | null
+    gptId: string | null
+    appName: string | null
+    connectionId: string | null
+    status: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ComposioConnectionMaxAggregateOutputType = {
+    id: string | null
+    gptId: string | null
+    appName: string | null
+    connectionId: string | null
+    status: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ComposioConnectionCountAggregateOutputType = {
+    id: number
+    gptId: number
+    appName: number
+    connectionId: number
+    status: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ComposioConnectionMinAggregateInputType = {
+    id?: true
+    gptId?: true
+    appName?: true
+    connectionId?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ComposioConnectionMaxAggregateInputType = {
+    id?: true
+    gptId?: true
+    appName?: true
+    connectionId?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ComposioConnectionCountAggregateInputType = {
+    id?: true
+    gptId?: true
+    appName?: true
+    connectionId?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ComposioConnectionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ComposioConnection to aggregate.
+     */
+    where?: ComposioConnectionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ComposioConnections to fetch.
+     */
+    orderBy?: ComposioConnectionOrderByWithRelationInput | ComposioConnectionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ComposioConnectionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ComposioConnections from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ComposioConnections.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ComposioConnections
+    **/
+    _count?: true | ComposioConnectionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ComposioConnectionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ComposioConnectionMaxAggregateInputType
+  }
+
+  export type GetComposioConnectionAggregateType<T extends ComposioConnectionAggregateArgs> = {
+        [P in keyof T & keyof AggregateComposioConnection]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateComposioConnection[P]>
+      : GetScalarType<T[P], AggregateComposioConnection[P]>
+  }
+
+
+
+
+  export type ComposioConnectionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ComposioConnectionWhereInput
+    orderBy?: ComposioConnectionOrderByWithAggregationInput | ComposioConnectionOrderByWithAggregationInput[]
+    by: ComposioConnectionScalarFieldEnum[] | ComposioConnectionScalarFieldEnum
+    having?: ComposioConnectionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ComposioConnectionCountAggregateInputType | true
+    _min?: ComposioConnectionMinAggregateInputType
+    _max?: ComposioConnectionMaxAggregateInputType
+  }
+
+  export type ComposioConnectionGroupByOutputType = {
+    id: string
+    gptId: string
+    appName: string
+    connectionId: string
+    status: string
+    createdAt: Date
+    updatedAt: Date
+    _count: ComposioConnectionCountAggregateOutputType | null
+    _min: ComposioConnectionMinAggregateOutputType | null
+    _max: ComposioConnectionMaxAggregateOutputType | null
+  }
+
+  type GetComposioConnectionGroupByPayload<T extends ComposioConnectionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ComposioConnectionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ComposioConnectionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ComposioConnectionGroupByOutputType[P]>
+            : GetScalarType<T[P], ComposioConnectionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ComposioConnectionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gptId?: boolean
+    appName?: boolean
+    connectionId?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    gpt?: boolean | GptDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["composioConnection"]>
+
+  export type ComposioConnectionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gptId?: boolean
+    appName?: boolean
+    connectionId?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    gpt?: boolean | GptDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["composioConnection"]>
+
+  export type ComposioConnectionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gptId?: boolean
+    appName?: boolean
+    connectionId?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    gpt?: boolean | GptDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["composioConnection"]>
+
+  export type ComposioConnectionSelectScalar = {
+    id?: boolean
+    gptId?: boolean
+    appName?: boolean
+    connectionId?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ComposioConnectionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "gptId" | "appName" | "connectionId" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["composioConnection"]>
+  export type ComposioConnectionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    gpt?: boolean | GptDefaultArgs<ExtArgs>
+  }
+  export type ComposioConnectionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    gpt?: boolean | GptDefaultArgs<ExtArgs>
+  }
+  export type ComposioConnectionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    gpt?: boolean | GptDefaultArgs<ExtArgs>
+  }
+
+  export type $ComposioConnectionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ComposioConnection"
+    objects: {
+      gpt: Prisma.$GptPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      gptId: string
+      appName: string
+      connectionId: string
+      status: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["composioConnection"]>
+    composites: {}
+  }
+
+  type ComposioConnectionGetPayload<S extends boolean | null | undefined | ComposioConnectionDefaultArgs> = $Result.GetResult<Prisma.$ComposioConnectionPayload, S>
+
+  type ComposioConnectionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ComposioConnectionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ComposioConnectionCountAggregateInputType | true
+    }
+
+  export interface ComposioConnectionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ComposioConnection'], meta: { name: 'ComposioConnection' } }
+    /**
+     * Find zero or one ComposioConnection that matches the filter.
+     * @param {ComposioConnectionFindUniqueArgs} args - Arguments to find a ComposioConnection
+     * @example
+     * // Get one ComposioConnection
+     * const composioConnection = await prisma.composioConnection.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ComposioConnectionFindUniqueArgs>(args: SelectSubset<T, ComposioConnectionFindUniqueArgs<ExtArgs>>): Prisma__ComposioConnectionClient<$Result.GetResult<Prisma.$ComposioConnectionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ComposioConnection that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ComposioConnectionFindUniqueOrThrowArgs} args - Arguments to find a ComposioConnection
+     * @example
+     * // Get one ComposioConnection
+     * const composioConnection = await prisma.composioConnection.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ComposioConnectionFindUniqueOrThrowArgs>(args: SelectSubset<T, ComposioConnectionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ComposioConnectionClient<$Result.GetResult<Prisma.$ComposioConnectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ComposioConnection that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComposioConnectionFindFirstArgs} args - Arguments to find a ComposioConnection
+     * @example
+     * // Get one ComposioConnection
+     * const composioConnection = await prisma.composioConnection.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ComposioConnectionFindFirstArgs>(args?: SelectSubset<T, ComposioConnectionFindFirstArgs<ExtArgs>>): Prisma__ComposioConnectionClient<$Result.GetResult<Prisma.$ComposioConnectionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ComposioConnection that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComposioConnectionFindFirstOrThrowArgs} args - Arguments to find a ComposioConnection
+     * @example
+     * // Get one ComposioConnection
+     * const composioConnection = await prisma.composioConnection.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ComposioConnectionFindFirstOrThrowArgs>(args?: SelectSubset<T, ComposioConnectionFindFirstOrThrowArgs<ExtArgs>>): Prisma__ComposioConnectionClient<$Result.GetResult<Prisma.$ComposioConnectionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ComposioConnections that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComposioConnectionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ComposioConnections
+     * const composioConnections = await prisma.composioConnection.findMany()
+     * 
+     * // Get first 10 ComposioConnections
+     * const composioConnections = await prisma.composioConnection.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const composioConnectionWithIdOnly = await prisma.composioConnection.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ComposioConnectionFindManyArgs>(args?: SelectSubset<T, ComposioConnectionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ComposioConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ComposioConnection.
+     * @param {ComposioConnectionCreateArgs} args - Arguments to create a ComposioConnection.
+     * @example
+     * // Create one ComposioConnection
+     * const ComposioConnection = await prisma.composioConnection.create({
+     *   data: {
+     *     // ... data to create a ComposioConnection
+     *   }
+     * })
+     * 
+     */
+    create<T extends ComposioConnectionCreateArgs>(args: SelectSubset<T, ComposioConnectionCreateArgs<ExtArgs>>): Prisma__ComposioConnectionClient<$Result.GetResult<Prisma.$ComposioConnectionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ComposioConnections.
+     * @param {ComposioConnectionCreateManyArgs} args - Arguments to create many ComposioConnections.
+     * @example
+     * // Create many ComposioConnections
+     * const composioConnection = await prisma.composioConnection.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ComposioConnectionCreateManyArgs>(args?: SelectSubset<T, ComposioConnectionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ComposioConnections and returns the data saved in the database.
+     * @param {ComposioConnectionCreateManyAndReturnArgs} args - Arguments to create many ComposioConnections.
+     * @example
+     * // Create many ComposioConnections
+     * const composioConnection = await prisma.composioConnection.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ComposioConnections and only return the `id`
+     * const composioConnectionWithIdOnly = await prisma.composioConnection.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ComposioConnectionCreateManyAndReturnArgs>(args?: SelectSubset<T, ComposioConnectionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ComposioConnectionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ComposioConnection.
+     * @param {ComposioConnectionDeleteArgs} args - Arguments to delete one ComposioConnection.
+     * @example
+     * // Delete one ComposioConnection
+     * const ComposioConnection = await prisma.composioConnection.delete({
+     *   where: {
+     *     // ... filter to delete one ComposioConnection
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ComposioConnectionDeleteArgs>(args: SelectSubset<T, ComposioConnectionDeleteArgs<ExtArgs>>): Prisma__ComposioConnectionClient<$Result.GetResult<Prisma.$ComposioConnectionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ComposioConnection.
+     * @param {ComposioConnectionUpdateArgs} args - Arguments to update one ComposioConnection.
+     * @example
+     * // Update one ComposioConnection
+     * const composioConnection = await prisma.composioConnection.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ComposioConnectionUpdateArgs>(args: SelectSubset<T, ComposioConnectionUpdateArgs<ExtArgs>>): Prisma__ComposioConnectionClient<$Result.GetResult<Prisma.$ComposioConnectionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ComposioConnections.
+     * @param {ComposioConnectionDeleteManyArgs} args - Arguments to filter ComposioConnections to delete.
+     * @example
+     * // Delete a few ComposioConnections
+     * const { count } = await prisma.composioConnection.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ComposioConnectionDeleteManyArgs>(args?: SelectSubset<T, ComposioConnectionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ComposioConnections.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComposioConnectionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ComposioConnections
+     * const composioConnection = await prisma.composioConnection.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ComposioConnectionUpdateManyArgs>(args: SelectSubset<T, ComposioConnectionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ComposioConnections and returns the data updated in the database.
+     * @param {ComposioConnectionUpdateManyAndReturnArgs} args - Arguments to update many ComposioConnections.
+     * @example
+     * // Update many ComposioConnections
+     * const composioConnection = await prisma.composioConnection.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ComposioConnections and only return the `id`
+     * const composioConnectionWithIdOnly = await prisma.composioConnection.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ComposioConnectionUpdateManyAndReturnArgs>(args: SelectSubset<T, ComposioConnectionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ComposioConnectionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ComposioConnection.
+     * @param {ComposioConnectionUpsertArgs} args - Arguments to update or create a ComposioConnection.
+     * @example
+     * // Update or create a ComposioConnection
+     * const composioConnection = await prisma.composioConnection.upsert({
+     *   create: {
+     *     // ... data to create a ComposioConnection
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ComposioConnection we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ComposioConnectionUpsertArgs>(args: SelectSubset<T, ComposioConnectionUpsertArgs<ExtArgs>>): Prisma__ComposioConnectionClient<$Result.GetResult<Prisma.$ComposioConnectionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ComposioConnections.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComposioConnectionCountArgs} args - Arguments to filter ComposioConnections to count.
+     * @example
+     * // Count the number of ComposioConnections
+     * const count = await prisma.composioConnection.count({
+     *   where: {
+     *     // ... the filter for the ComposioConnections we want to count
+     *   }
+     * })
+    **/
+    count<T extends ComposioConnectionCountArgs>(
+      args?: Subset<T, ComposioConnectionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ComposioConnectionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ComposioConnection.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComposioConnectionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ComposioConnectionAggregateArgs>(args: Subset<T, ComposioConnectionAggregateArgs>): Prisma.PrismaPromise<GetComposioConnectionAggregateType<T>>
+
+    /**
+     * Group by ComposioConnection.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComposioConnectionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ComposioConnectionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ComposioConnectionGroupByArgs['orderBy'] }
+        : { orderBy?: ComposioConnectionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ComposioConnectionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetComposioConnectionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ComposioConnection model
+   */
+  readonly fields: ComposioConnectionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ComposioConnection.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ComposioConnectionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    gpt<T extends GptDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GptDefaultArgs<ExtArgs>>): Prisma__GptClient<$Result.GetResult<Prisma.$GptPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ComposioConnection model
+   */
+  interface ComposioConnectionFieldRefs {
+    readonly id: FieldRef<"ComposioConnection", 'String'>
+    readonly gptId: FieldRef<"ComposioConnection", 'String'>
+    readonly appName: FieldRef<"ComposioConnection", 'String'>
+    readonly connectionId: FieldRef<"ComposioConnection", 'String'>
+    readonly status: FieldRef<"ComposioConnection", 'String'>
+    readonly createdAt: FieldRef<"ComposioConnection", 'DateTime'>
+    readonly updatedAt: FieldRef<"ComposioConnection", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ComposioConnection findUnique
+   */
+  export type ComposioConnectionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComposioConnection
+     */
+    select?: ComposioConnectionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ComposioConnection
+     */
+    omit?: ComposioConnectionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComposioConnectionInclude<ExtArgs> | null
+    /**
+     * Filter, which ComposioConnection to fetch.
+     */
+    where: ComposioConnectionWhereUniqueInput
+  }
+
+  /**
+   * ComposioConnection findUniqueOrThrow
+   */
+  export type ComposioConnectionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComposioConnection
+     */
+    select?: ComposioConnectionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ComposioConnection
+     */
+    omit?: ComposioConnectionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComposioConnectionInclude<ExtArgs> | null
+    /**
+     * Filter, which ComposioConnection to fetch.
+     */
+    where: ComposioConnectionWhereUniqueInput
+  }
+
+  /**
+   * ComposioConnection findFirst
+   */
+  export type ComposioConnectionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComposioConnection
+     */
+    select?: ComposioConnectionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ComposioConnection
+     */
+    omit?: ComposioConnectionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComposioConnectionInclude<ExtArgs> | null
+    /**
+     * Filter, which ComposioConnection to fetch.
+     */
+    where?: ComposioConnectionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ComposioConnections to fetch.
+     */
+    orderBy?: ComposioConnectionOrderByWithRelationInput | ComposioConnectionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ComposioConnections.
+     */
+    cursor?: ComposioConnectionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ComposioConnections from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ComposioConnections.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ComposioConnections.
+     */
+    distinct?: ComposioConnectionScalarFieldEnum | ComposioConnectionScalarFieldEnum[]
+  }
+
+  /**
+   * ComposioConnection findFirstOrThrow
+   */
+  export type ComposioConnectionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComposioConnection
+     */
+    select?: ComposioConnectionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ComposioConnection
+     */
+    omit?: ComposioConnectionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComposioConnectionInclude<ExtArgs> | null
+    /**
+     * Filter, which ComposioConnection to fetch.
+     */
+    where?: ComposioConnectionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ComposioConnections to fetch.
+     */
+    orderBy?: ComposioConnectionOrderByWithRelationInput | ComposioConnectionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ComposioConnections.
+     */
+    cursor?: ComposioConnectionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ComposioConnections from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ComposioConnections.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ComposioConnections.
+     */
+    distinct?: ComposioConnectionScalarFieldEnum | ComposioConnectionScalarFieldEnum[]
+  }
+
+  /**
+   * ComposioConnection findMany
+   */
+  export type ComposioConnectionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComposioConnection
+     */
+    select?: ComposioConnectionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ComposioConnection
+     */
+    omit?: ComposioConnectionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComposioConnectionInclude<ExtArgs> | null
+    /**
+     * Filter, which ComposioConnections to fetch.
+     */
+    where?: ComposioConnectionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ComposioConnections to fetch.
+     */
+    orderBy?: ComposioConnectionOrderByWithRelationInput | ComposioConnectionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ComposioConnections.
+     */
+    cursor?: ComposioConnectionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ComposioConnections from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ComposioConnections.
+     */
+    skip?: number
+    distinct?: ComposioConnectionScalarFieldEnum | ComposioConnectionScalarFieldEnum[]
+  }
+
+  /**
+   * ComposioConnection create
+   */
+  export type ComposioConnectionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComposioConnection
+     */
+    select?: ComposioConnectionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ComposioConnection
+     */
+    omit?: ComposioConnectionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComposioConnectionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ComposioConnection.
+     */
+    data: XOR<ComposioConnectionCreateInput, ComposioConnectionUncheckedCreateInput>
+  }
+
+  /**
+   * ComposioConnection createMany
+   */
+  export type ComposioConnectionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ComposioConnections.
+     */
+    data: ComposioConnectionCreateManyInput | ComposioConnectionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ComposioConnection createManyAndReturn
+   */
+  export type ComposioConnectionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComposioConnection
+     */
+    select?: ComposioConnectionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ComposioConnection
+     */
+    omit?: ComposioConnectionOmit<ExtArgs> | null
+    /**
+     * The data used to create many ComposioConnections.
+     */
+    data: ComposioConnectionCreateManyInput | ComposioConnectionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComposioConnectionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ComposioConnection update
+   */
+  export type ComposioConnectionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComposioConnection
+     */
+    select?: ComposioConnectionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ComposioConnection
+     */
+    omit?: ComposioConnectionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComposioConnectionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ComposioConnection.
+     */
+    data: XOR<ComposioConnectionUpdateInput, ComposioConnectionUncheckedUpdateInput>
+    /**
+     * Choose, which ComposioConnection to update.
+     */
+    where: ComposioConnectionWhereUniqueInput
+  }
+
+  /**
+   * ComposioConnection updateMany
+   */
+  export type ComposioConnectionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ComposioConnections.
+     */
+    data: XOR<ComposioConnectionUpdateManyMutationInput, ComposioConnectionUncheckedUpdateManyInput>
+    /**
+     * Filter which ComposioConnections to update
+     */
+    where?: ComposioConnectionWhereInput
+    /**
+     * Limit how many ComposioConnections to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ComposioConnection updateManyAndReturn
+   */
+  export type ComposioConnectionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComposioConnection
+     */
+    select?: ComposioConnectionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ComposioConnection
+     */
+    omit?: ComposioConnectionOmit<ExtArgs> | null
+    /**
+     * The data used to update ComposioConnections.
+     */
+    data: XOR<ComposioConnectionUpdateManyMutationInput, ComposioConnectionUncheckedUpdateManyInput>
+    /**
+     * Filter which ComposioConnections to update
+     */
+    where?: ComposioConnectionWhereInput
+    /**
+     * Limit how many ComposioConnections to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComposioConnectionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ComposioConnection upsert
+   */
+  export type ComposioConnectionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComposioConnection
+     */
+    select?: ComposioConnectionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ComposioConnection
+     */
+    omit?: ComposioConnectionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComposioConnectionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ComposioConnection to update in case it exists.
+     */
+    where: ComposioConnectionWhereUniqueInput
+    /**
+     * In case the ComposioConnection found by the `where` argument doesn't exist, create a new ComposioConnection with this data.
+     */
+    create: XOR<ComposioConnectionCreateInput, ComposioConnectionUncheckedCreateInput>
+    /**
+     * In case the ComposioConnection was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ComposioConnectionUpdateInput, ComposioConnectionUncheckedUpdateInput>
+  }
+
+  /**
+   * ComposioConnection delete
+   */
+  export type ComposioConnectionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComposioConnection
+     */
+    select?: ComposioConnectionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ComposioConnection
+     */
+    omit?: ComposioConnectionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComposioConnectionInclude<ExtArgs> | null
+    /**
+     * Filter which ComposioConnection to delete.
+     */
+    where: ComposioConnectionWhereUniqueInput
+  }
+
+  /**
+   * ComposioConnection deleteMany
+   */
+  export type ComposioConnectionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ComposioConnections to delete
+     */
+    where?: ComposioConnectionWhereInput
+    /**
+     * Limit how many ComposioConnections to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ComposioConnection without action
+   */
+  export type ComposioConnectionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComposioConnection
+     */
+    select?: ComposioConnectionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ComposioConnection
+     */
+    omit?: ComposioConnectionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComposioConnectionInclude<ExtArgs> | null
   }
 
 
@@ -11956,8 +13146,6 @@ export namespace Prisma {
     instruction: 'instruction',
     webBrowser: 'webBrowser',
     hybridRag: 'hybridRag',
-    mcp: 'mcp',
-    mcpSchema: 'mcpSchema',
     image: 'image',
     knowledgeBase: 'knowledgeBase',
     createdAt: 'createdAt',
@@ -11965,6 +13153,19 @@ export namespace Prisma {
   };
 
   export type GptScalarFieldEnum = (typeof GptScalarFieldEnum)[keyof typeof GptScalarFieldEnum]
+
+
+  export const ComposioConnectionScalarFieldEnum: {
+    id: 'id',
+    gptId: 'gptId',
+    appName: 'appName',
+    connectionId: 'connectionId',
+    status: 'status',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ComposioConnectionScalarFieldEnum = (typeof ComposioConnectionScalarFieldEnum)[keyof typeof ComposioConnectionScalarFieldEnum]
 
 
   export const InvitationScalarFieldEnum: {
@@ -12028,14 +13229,6 @@ export namespace Prisma {
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
-  export const NullableJsonNullValueInput: {
-    DbNull: typeof DbNull,
-    JsonNull: typeof JsonNull
-  };
-
-  export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
-
-
   export const QueryMode: {
     default: 'default',
     insensitive: 'insensitive'
@@ -12050,15 +13243,6 @@ export namespace Prisma {
   };
 
   export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
-
-
-  export const JsonNullValueFilter: {
-    DbNull: typeof DbNull,
-    JsonNull: typeof JsonNull,
-    AnyNull: typeof AnyNull
-  };
-
-  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
   /**
@@ -12112,20 +13296,6 @@ export namespace Prisma {
    * Reference to a field of type 'ModelEnum[]'
    */
   export type ListEnumModelEnumFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ModelEnum[]'>
-    
-
-
-  /**
-   * Reference to a field of type 'Json'
-   */
-  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-  /**
-   * Reference to a field of type 'QueryMode'
-   */
-  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -12496,8 +13666,6 @@ export namespace Prisma {
     instruction?: StringFilter<"Gpt"> | string
     webBrowser?: BoolFilter<"Gpt"> | boolean
     hybridRag?: BoolFilter<"Gpt"> | boolean
-    mcp?: BoolFilter<"Gpt"> | boolean
-    mcpSchema?: JsonNullableFilter<"Gpt">
     image?: StringFilter<"Gpt"> | string
     knowledgeBase?: StringNullableFilter<"Gpt"> | string | null
     createdAt?: DateTimeFilter<"Gpt"> | Date | string
@@ -12505,6 +13673,7 @@ export namespace Prisma {
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     assignedToUsers?: AssignGptListRelationFilter
     conversations?: ConversationListRelationFilter
+    composioConnections?: ComposioConnectionListRelationFilter
   }
 
   export type GptOrderByWithRelationInput = {
@@ -12516,8 +13685,6 @@ export namespace Prisma {
     instruction?: SortOrder
     webBrowser?: SortOrder
     hybridRag?: SortOrder
-    mcp?: SortOrder
-    mcpSchema?: SortOrderInput | SortOrder
     image?: SortOrder
     knowledgeBase?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -12525,6 +13692,7 @@ export namespace Prisma {
     user?: UserOrderByWithRelationInput
     assignedToUsers?: AssignGptOrderByRelationAggregateInput
     conversations?: ConversationOrderByRelationAggregateInput
+    composioConnections?: ComposioConnectionOrderByRelationAggregateInput
   }
 
   export type GptWhereUniqueInput = Prisma.AtLeast<{
@@ -12539,8 +13707,6 @@ export namespace Prisma {
     instruction?: StringFilter<"Gpt"> | string
     webBrowser?: BoolFilter<"Gpt"> | boolean
     hybridRag?: BoolFilter<"Gpt"> | boolean
-    mcp?: BoolFilter<"Gpt"> | boolean
-    mcpSchema?: JsonNullableFilter<"Gpt">
     image?: StringFilter<"Gpt"> | string
     knowledgeBase?: StringNullableFilter<"Gpt"> | string | null
     createdAt?: DateTimeFilter<"Gpt"> | Date | string
@@ -12548,6 +13714,7 @@ export namespace Prisma {
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     assignedToUsers?: AssignGptListRelationFilter
     conversations?: ConversationListRelationFilter
+    composioConnections?: ComposioConnectionListRelationFilter
   }, "id">
 
   export type GptOrderByWithAggregationInput = {
@@ -12559,8 +13726,6 @@ export namespace Prisma {
     instruction?: SortOrder
     webBrowser?: SortOrder
     hybridRag?: SortOrder
-    mcp?: SortOrder
-    mcpSchema?: SortOrderInput | SortOrder
     image?: SortOrder
     knowledgeBase?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -12582,12 +13747,76 @@ export namespace Prisma {
     instruction?: StringWithAggregatesFilter<"Gpt"> | string
     webBrowser?: BoolWithAggregatesFilter<"Gpt"> | boolean
     hybridRag?: BoolWithAggregatesFilter<"Gpt"> | boolean
-    mcp?: BoolWithAggregatesFilter<"Gpt"> | boolean
-    mcpSchema?: JsonNullableWithAggregatesFilter<"Gpt">
     image?: StringWithAggregatesFilter<"Gpt"> | string
     knowledgeBase?: StringNullableWithAggregatesFilter<"Gpt"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Gpt"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Gpt"> | Date | string
+  }
+
+  export type ComposioConnectionWhereInput = {
+    AND?: ComposioConnectionWhereInput | ComposioConnectionWhereInput[]
+    OR?: ComposioConnectionWhereInput[]
+    NOT?: ComposioConnectionWhereInput | ComposioConnectionWhereInput[]
+    id?: StringFilter<"ComposioConnection"> | string
+    gptId?: StringFilter<"ComposioConnection"> | string
+    appName?: StringFilter<"ComposioConnection"> | string
+    connectionId?: StringFilter<"ComposioConnection"> | string
+    status?: StringFilter<"ComposioConnection"> | string
+    createdAt?: DateTimeFilter<"ComposioConnection"> | Date | string
+    updatedAt?: DateTimeFilter<"ComposioConnection"> | Date | string
+    gpt?: XOR<GptScalarRelationFilter, GptWhereInput>
+  }
+
+  export type ComposioConnectionOrderByWithRelationInput = {
+    id?: SortOrder
+    gptId?: SortOrder
+    appName?: SortOrder
+    connectionId?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    gpt?: GptOrderByWithRelationInput
+  }
+
+  export type ComposioConnectionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    gptId_appName?: ComposioConnectionGptIdAppNameCompoundUniqueInput
+    AND?: ComposioConnectionWhereInput | ComposioConnectionWhereInput[]
+    OR?: ComposioConnectionWhereInput[]
+    NOT?: ComposioConnectionWhereInput | ComposioConnectionWhereInput[]
+    gptId?: StringFilter<"ComposioConnection"> | string
+    appName?: StringFilter<"ComposioConnection"> | string
+    connectionId?: StringFilter<"ComposioConnection"> | string
+    status?: StringFilter<"ComposioConnection"> | string
+    createdAt?: DateTimeFilter<"ComposioConnection"> | Date | string
+    updatedAt?: DateTimeFilter<"ComposioConnection"> | Date | string
+    gpt?: XOR<GptScalarRelationFilter, GptWhereInput>
+  }, "id" | "gptId_appName">
+
+  export type ComposioConnectionOrderByWithAggregationInput = {
+    id?: SortOrder
+    gptId?: SortOrder
+    appName?: SortOrder
+    connectionId?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ComposioConnectionCountOrderByAggregateInput
+    _max?: ComposioConnectionMaxOrderByAggregateInput
+    _min?: ComposioConnectionMinOrderByAggregateInput
+  }
+
+  export type ComposioConnectionScalarWhereWithAggregatesInput = {
+    AND?: ComposioConnectionScalarWhereWithAggregatesInput | ComposioConnectionScalarWhereWithAggregatesInput[]
+    OR?: ComposioConnectionScalarWhereWithAggregatesInput[]
+    NOT?: ComposioConnectionScalarWhereWithAggregatesInput | ComposioConnectionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ComposioConnection"> | string
+    gptId?: StringWithAggregatesFilter<"ComposioConnection"> | string
+    appName?: StringWithAggregatesFilter<"ComposioConnection"> | string
+    connectionId?: StringWithAggregatesFilter<"ComposioConnection"> | string
+    status?: StringWithAggregatesFilter<"ComposioConnection"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"ComposioConnection"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ComposioConnection"> | Date | string
   }
 
   export type InvitationWhereInput = {
@@ -13245,8 +14474,6 @@ export namespace Prisma {
     instruction: string
     webBrowser?: boolean
     hybridRag?: boolean
-    mcp?: boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image: string
     knowledgeBase?: string | null
     createdAt?: Date | string
@@ -13254,6 +14481,7 @@ export namespace Prisma {
     user: UserCreateNestedOneWithoutGptInput
     assignedToUsers?: AssignGptCreateNestedManyWithoutGptInput
     conversations?: ConversationCreateNestedManyWithoutGptInput
+    composioConnections?: ComposioConnectionCreateNestedManyWithoutGptInput
   }
 
   export type GptUncheckedCreateInput = {
@@ -13265,14 +14493,13 @@ export namespace Prisma {
     instruction: string
     webBrowser?: boolean
     hybridRag?: boolean
-    mcp?: boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image: string
     knowledgeBase?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutGptInput
+    composioConnections?: ComposioConnectionUncheckedCreateNestedManyWithoutGptInput
   }
 
   export type GptUpdateInput = {
@@ -13283,8 +14510,6 @@ export namespace Prisma {
     instruction?: StringFieldUpdateOperationsInput | string
     webBrowser?: BoolFieldUpdateOperationsInput | boolean
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
-    mcp?: BoolFieldUpdateOperationsInput | boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -13292,6 +14517,7 @@ export namespace Prisma {
     user?: UserUpdateOneRequiredWithoutGptNestedInput
     assignedToUsers?: AssignGptUpdateManyWithoutGptNestedInput
     conversations?: ConversationUpdateManyWithoutGptNestedInput
+    composioConnections?: ComposioConnectionUpdateManyWithoutGptNestedInput
   }
 
   export type GptUncheckedUpdateInput = {
@@ -13303,14 +14529,13 @@ export namespace Prisma {
     instruction?: StringFieldUpdateOperationsInput | string
     webBrowser?: BoolFieldUpdateOperationsInput | boolean
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
-    mcp?: BoolFieldUpdateOperationsInput | boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutGptNestedInput
+    composioConnections?: ComposioConnectionUncheckedUpdateManyWithoutGptNestedInput
   }
 
   export type GptCreateManyInput = {
@@ -13322,8 +14547,6 @@ export namespace Prisma {
     instruction: string
     webBrowser?: boolean
     hybridRag?: boolean
-    mcp?: boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image: string
     knowledgeBase?: string | null
     createdAt?: Date | string
@@ -13338,8 +14561,6 @@ export namespace Prisma {
     instruction?: StringFieldUpdateOperationsInput | string
     webBrowser?: BoolFieldUpdateOperationsInput | boolean
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
-    mcp?: BoolFieldUpdateOperationsInput | boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -13355,10 +14576,77 @@ export namespace Prisma {
     instruction?: StringFieldUpdateOperationsInput | string
     webBrowser?: BoolFieldUpdateOperationsInput | boolean
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
-    mcp?: BoolFieldUpdateOperationsInput | boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ComposioConnectionCreateInput = {
+    id?: string
+    appName: string
+    connectionId: string
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    gpt: GptCreateNestedOneWithoutComposioConnectionsInput
+  }
+
+  export type ComposioConnectionUncheckedCreateInput = {
+    id?: string
+    gptId: string
+    appName: string
+    connectionId: string
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ComposioConnectionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    appName?: StringFieldUpdateOperationsInput | string
+    connectionId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    gpt?: GptUpdateOneRequiredWithoutComposioConnectionsNestedInput
+  }
+
+  export type ComposioConnectionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gptId?: StringFieldUpdateOperationsInput | string
+    appName?: StringFieldUpdateOperationsInput | string
+    connectionId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ComposioConnectionCreateManyInput = {
+    id?: string
+    gptId: string
+    appName: string
+    connectionId: string
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ComposioConnectionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    appName?: StringFieldUpdateOperationsInput | string
+    connectionId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ComposioConnectionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gptId?: StringFieldUpdateOperationsInput | string
+    appName?: StringFieldUpdateOperationsInput | string
+    connectionId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -13997,28 +15285,15 @@ export namespace Prisma {
     notIn?: $Enums.ModelEnum[] | ListEnumModelEnumFieldRefInput<$PrismaModel>
     not?: NestedEnumModelEnumFilter<$PrismaModel> | $Enums.ModelEnum
   }
-  export type JsonNullableFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
 
-  export type JsonNullableFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  export type ComposioConnectionListRelationFilter = {
+    every?: ComposioConnectionWhereInput
+    some?: ComposioConnectionWhereInput
+    none?: ComposioConnectionWhereInput
+  }
+
+  export type ComposioConnectionOrderByRelationAggregateInput = {
+    _count?: SortOrder
   }
 
   export type GptCountOrderByAggregateInput = {
@@ -14030,8 +15305,6 @@ export namespace Prisma {
     instruction?: SortOrder
     webBrowser?: SortOrder
     hybridRag?: SortOrder
-    mcp?: SortOrder
-    mcpSchema?: SortOrder
     image?: SortOrder
     knowledgeBase?: SortOrder
     createdAt?: SortOrder
@@ -14047,7 +15320,6 @@ export namespace Prisma {
     instruction?: SortOrder
     webBrowser?: SortOrder
     hybridRag?: SortOrder
-    mcp?: SortOrder
     image?: SortOrder
     knowledgeBase?: SortOrder
     createdAt?: SortOrder
@@ -14063,7 +15335,6 @@ export namespace Prisma {
     instruction?: SortOrder
     webBrowser?: SortOrder
     hybridRag?: SortOrder
-    mcp?: SortOrder
     image?: SortOrder
     knowledgeBase?: SortOrder
     createdAt?: SortOrder
@@ -14079,31 +15350,45 @@ export namespace Prisma {
     _min?: NestedEnumModelEnumFilter<$PrismaModel>
     _max?: NestedEnumModelEnumFilter<$PrismaModel>
   }
-  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
 
-  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedJsonNullableFilter<$PrismaModel>
-    _max?: NestedJsonNullableFilter<$PrismaModel>
+  export type GptScalarRelationFilter = {
+    is?: GptWhereInput
+    isNot?: GptWhereInput
+  }
+
+  export type ComposioConnectionGptIdAppNameCompoundUniqueInput = {
+    gptId: string
+    appName: string
+  }
+
+  export type ComposioConnectionCountOrderByAggregateInput = {
+    id?: SortOrder
+    gptId?: SortOrder
+    appName?: SortOrder
+    connectionId?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ComposioConnectionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    gptId?: SortOrder
+    appName?: SortOrder
+    connectionId?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ComposioConnectionMinOrderByAggregateInput = {
+    id?: SortOrder
+    gptId?: SortOrder
+    appName?: SortOrder
+    connectionId?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type InvitationCountOrderByAggregateInput = {
@@ -14149,11 +15434,6 @@ export namespace Prisma {
     updatedAt?: SortOrder
     acceptedAt?: SortOrder
     acceptedBy?: SortOrder
-  }
-
-  export type GptScalarRelationFilter = {
-    is?: GptWhereInput
-    isNot?: GptWhereInput
   }
 
   export type AssignGptUserIdGptIdCompoundUniqueInput = {
@@ -14549,6 +15829,13 @@ export namespace Prisma {
     connect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
   }
 
+  export type ComposioConnectionCreateNestedManyWithoutGptInput = {
+    create?: XOR<ComposioConnectionCreateWithoutGptInput, ComposioConnectionUncheckedCreateWithoutGptInput> | ComposioConnectionCreateWithoutGptInput[] | ComposioConnectionUncheckedCreateWithoutGptInput[]
+    connectOrCreate?: ComposioConnectionCreateOrConnectWithoutGptInput | ComposioConnectionCreateOrConnectWithoutGptInput[]
+    createMany?: ComposioConnectionCreateManyGptInputEnvelope
+    connect?: ComposioConnectionWhereUniqueInput | ComposioConnectionWhereUniqueInput[]
+  }
+
   export type AssignGptUncheckedCreateNestedManyWithoutGptInput = {
     create?: XOR<AssignGptCreateWithoutGptInput, AssignGptUncheckedCreateWithoutGptInput> | AssignGptCreateWithoutGptInput[] | AssignGptUncheckedCreateWithoutGptInput[]
     connectOrCreate?: AssignGptCreateOrConnectWithoutGptInput | AssignGptCreateOrConnectWithoutGptInput[]
@@ -14561,6 +15848,13 @@ export namespace Prisma {
     connectOrCreate?: ConversationCreateOrConnectWithoutGptInput | ConversationCreateOrConnectWithoutGptInput[]
     createMany?: ConversationCreateManyGptInputEnvelope
     connect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+  }
+
+  export type ComposioConnectionUncheckedCreateNestedManyWithoutGptInput = {
+    create?: XOR<ComposioConnectionCreateWithoutGptInput, ComposioConnectionUncheckedCreateWithoutGptInput> | ComposioConnectionCreateWithoutGptInput[] | ComposioConnectionUncheckedCreateWithoutGptInput[]
+    connectOrCreate?: ComposioConnectionCreateOrConnectWithoutGptInput | ComposioConnectionCreateOrConnectWithoutGptInput[]
+    createMany?: ComposioConnectionCreateManyGptInputEnvelope
+    connect?: ComposioConnectionWhereUniqueInput | ComposioConnectionWhereUniqueInput[]
   }
 
   export type EnumModelEnumFieldUpdateOperationsInput = {
@@ -14603,6 +15897,20 @@ export namespace Prisma {
     deleteMany?: ConversationScalarWhereInput | ConversationScalarWhereInput[]
   }
 
+  export type ComposioConnectionUpdateManyWithoutGptNestedInput = {
+    create?: XOR<ComposioConnectionCreateWithoutGptInput, ComposioConnectionUncheckedCreateWithoutGptInput> | ComposioConnectionCreateWithoutGptInput[] | ComposioConnectionUncheckedCreateWithoutGptInput[]
+    connectOrCreate?: ComposioConnectionCreateOrConnectWithoutGptInput | ComposioConnectionCreateOrConnectWithoutGptInput[]
+    upsert?: ComposioConnectionUpsertWithWhereUniqueWithoutGptInput | ComposioConnectionUpsertWithWhereUniqueWithoutGptInput[]
+    createMany?: ComposioConnectionCreateManyGptInputEnvelope
+    set?: ComposioConnectionWhereUniqueInput | ComposioConnectionWhereUniqueInput[]
+    disconnect?: ComposioConnectionWhereUniqueInput | ComposioConnectionWhereUniqueInput[]
+    delete?: ComposioConnectionWhereUniqueInput | ComposioConnectionWhereUniqueInput[]
+    connect?: ComposioConnectionWhereUniqueInput | ComposioConnectionWhereUniqueInput[]
+    update?: ComposioConnectionUpdateWithWhereUniqueWithoutGptInput | ComposioConnectionUpdateWithWhereUniqueWithoutGptInput[]
+    updateMany?: ComposioConnectionUpdateManyWithWhereWithoutGptInput | ComposioConnectionUpdateManyWithWhereWithoutGptInput[]
+    deleteMany?: ComposioConnectionScalarWhereInput | ComposioConnectionScalarWhereInput[]
+  }
+
   export type AssignGptUncheckedUpdateManyWithoutGptNestedInput = {
     create?: XOR<AssignGptCreateWithoutGptInput, AssignGptUncheckedCreateWithoutGptInput> | AssignGptCreateWithoutGptInput[] | AssignGptUncheckedCreateWithoutGptInput[]
     connectOrCreate?: AssignGptCreateOrConnectWithoutGptInput | AssignGptCreateOrConnectWithoutGptInput[]
@@ -14629,6 +15937,34 @@ export namespace Prisma {
     update?: ConversationUpdateWithWhereUniqueWithoutGptInput | ConversationUpdateWithWhereUniqueWithoutGptInput[]
     updateMany?: ConversationUpdateManyWithWhereWithoutGptInput | ConversationUpdateManyWithWhereWithoutGptInput[]
     deleteMany?: ConversationScalarWhereInput | ConversationScalarWhereInput[]
+  }
+
+  export type ComposioConnectionUncheckedUpdateManyWithoutGptNestedInput = {
+    create?: XOR<ComposioConnectionCreateWithoutGptInput, ComposioConnectionUncheckedCreateWithoutGptInput> | ComposioConnectionCreateWithoutGptInput[] | ComposioConnectionUncheckedCreateWithoutGptInput[]
+    connectOrCreate?: ComposioConnectionCreateOrConnectWithoutGptInput | ComposioConnectionCreateOrConnectWithoutGptInput[]
+    upsert?: ComposioConnectionUpsertWithWhereUniqueWithoutGptInput | ComposioConnectionUpsertWithWhereUniqueWithoutGptInput[]
+    createMany?: ComposioConnectionCreateManyGptInputEnvelope
+    set?: ComposioConnectionWhereUniqueInput | ComposioConnectionWhereUniqueInput[]
+    disconnect?: ComposioConnectionWhereUniqueInput | ComposioConnectionWhereUniqueInput[]
+    delete?: ComposioConnectionWhereUniqueInput | ComposioConnectionWhereUniqueInput[]
+    connect?: ComposioConnectionWhereUniqueInput | ComposioConnectionWhereUniqueInput[]
+    update?: ComposioConnectionUpdateWithWhereUniqueWithoutGptInput | ComposioConnectionUpdateWithWhereUniqueWithoutGptInput[]
+    updateMany?: ComposioConnectionUpdateManyWithWhereWithoutGptInput | ComposioConnectionUpdateManyWithWhereWithoutGptInput[]
+    deleteMany?: ComposioConnectionScalarWhereInput | ComposioConnectionScalarWhereInput[]
+  }
+
+  export type GptCreateNestedOneWithoutComposioConnectionsInput = {
+    create?: XOR<GptCreateWithoutComposioConnectionsInput, GptUncheckedCreateWithoutComposioConnectionsInput>
+    connectOrCreate?: GptCreateOrConnectWithoutComposioConnectionsInput
+    connect?: GptWhereUniqueInput
+  }
+
+  export type GptUpdateOneRequiredWithoutComposioConnectionsNestedInput = {
+    create?: XOR<GptCreateWithoutComposioConnectionsInput, GptUncheckedCreateWithoutComposioConnectionsInput>
+    connectOrCreate?: GptCreateOrConnectWithoutComposioConnectionsInput
+    upsert?: GptUpsertWithoutComposioConnectionsInput
+    connect?: GptWhereUniqueInput
+    update?: XOR<XOR<GptUpdateToOneWithWhereWithoutComposioConnectionsInput, GptUpdateWithoutComposioConnectionsInput>, GptUncheckedUpdateWithoutComposioConnectionsInput>
   }
 
   export type UserCreateNestedOneWithoutAssignedGptsInput = {
@@ -14910,29 +16246,6 @@ export namespace Prisma {
     _min?: NestedEnumModelEnumFilter<$PrismaModel>
     _max?: NestedEnumModelEnumFilter<$PrismaModel>
   }
-  export type NestedJsonNullableFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
-        Required<NestedJsonNullableFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
-
-  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-  }
 
   export type NestedEnumMessageRoleFilter<$PrismaModel = never> = {
     equals?: $Enums.MessageRole | EnumMessageRoleFieldRefInput<$PrismaModel>
@@ -15031,14 +16344,13 @@ export namespace Prisma {
     instruction: string
     webBrowser?: boolean
     hybridRag?: boolean
-    mcp?: boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image: string
     knowledgeBase?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptCreateNestedManyWithoutGptInput
     conversations?: ConversationCreateNestedManyWithoutGptInput
+    composioConnections?: ComposioConnectionCreateNestedManyWithoutGptInput
   }
 
   export type GptUncheckedCreateWithoutUserInput = {
@@ -15049,14 +16361,13 @@ export namespace Prisma {
     instruction: string
     webBrowser?: boolean
     hybridRag?: boolean
-    mcp?: boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image: string
     knowledgeBase?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutGptInput
+    composioConnections?: ComposioConnectionUncheckedCreateNestedManyWithoutGptInput
   }
 
   export type GptCreateOrConnectWithoutUserInput = {
@@ -15217,8 +16528,6 @@ export namespace Prisma {
     instruction?: StringFilter<"Gpt"> | string
     webBrowser?: BoolFilter<"Gpt"> | boolean
     hybridRag?: BoolFilter<"Gpt"> | boolean
-    mcp?: BoolFilter<"Gpt"> | boolean
-    mcpSchema?: JsonNullableFilter<"Gpt">
     image?: StringFilter<"Gpt"> | string
     knowledgeBase?: StringNullableFilter<"Gpt"> | string | null
     createdAt?: DateTimeFilter<"Gpt"> | Date | string
@@ -15552,6 +16861,34 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ComposioConnectionCreateWithoutGptInput = {
+    id?: string
+    appName: string
+    connectionId: string
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ComposioConnectionUncheckedCreateWithoutGptInput = {
+    id?: string
+    appName: string
+    connectionId: string
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ComposioConnectionCreateOrConnectWithoutGptInput = {
+    where: ComposioConnectionWhereUniqueInput
+    create: XOR<ComposioConnectionCreateWithoutGptInput, ComposioConnectionUncheckedCreateWithoutGptInput>
+  }
+
+  export type ComposioConnectionCreateManyGptInputEnvelope = {
+    data: ComposioConnectionCreateManyGptInput | ComposioConnectionCreateManyGptInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutGptInput = {
     update: XOR<UserUpdateWithoutGptInput, UserUncheckedUpdateWithoutGptInput>
     create: XOR<UserCreateWithoutGptInput, UserUncheckedCreateWithoutGptInput>
@@ -15631,6 +16968,119 @@ export namespace Prisma {
     data: XOR<ConversationUpdateManyMutationInput, ConversationUncheckedUpdateManyWithoutGptInput>
   }
 
+  export type ComposioConnectionUpsertWithWhereUniqueWithoutGptInput = {
+    where: ComposioConnectionWhereUniqueInput
+    update: XOR<ComposioConnectionUpdateWithoutGptInput, ComposioConnectionUncheckedUpdateWithoutGptInput>
+    create: XOR<ComposioConnectionCreateWithoutGptInput, ComposioConnectionUncheckedCreateWithoutGptInput>
+  }
+
+  export type ComposioConnectionUpdateWithWhereUniqueWithoutGptInput = {
+    where: ComposioConnectionWhereUniqueInput
+    data: XOR<ComposioConnectionUpdateWithoutGptInput, ComposioConnectionUncheckedUpdateWithoutGptInput>
+  }
+
+  export type ComposioConnectionUpdateManyWithWhereWithoutGptInput = {
+    where: ComposioConnectionScalarWhereInput
+    data: XOR<ComposioConnectionUpdateManyMutationInput, ComposioConnectionUncheckedUpdateManyWithoutGptInput>
+  }
+
+  export type ComposioConnectionScalarWhereInput = {
+    AND?: ComposioConnectionScalarWhereInput | ComposioConnectionScalarWhereInput[]
+    OR?: ComposioConnectionScalarWhereInput[]
+    NOT?: ComposioConnectionScalarWhereInput | ComposioConnectionScalarWhereInput[]
+    id?: StringFilter<"ComposioConnection"> | string
+    gptId?: StringFilter<"ComposioConnection"> | string
+    appName?: StringFilter<"ComposioConnection"> | string
+    connectionId?: StringFilter<"ComposioConnection"> | string
+    status?: StringFilter<"ComposioConnection"> | string
+    createdAt?: DateTimeFilter<"ComposioConnection"> | Date | string
+    updatedAt?: DateTimeFilter<"ComposioConnection"> | Date | string
+  }
+
+  export type GptCreateWithoutComposioConnectionsInput = {
+    id?: string
+    name: string
+    description: string
+    model: $Enums.ModelEnum
+    instruction: string
+    webBrowser?: boolean
+    hybridRag?: boolean
+    image: string
+    knowledgeBase?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutGptInput
+    assignedToUsers?: AssignGptCreateNestedManyWithoutGptInput
+    conversations?: ConversationCreateNestedManyWithoutGptInput
+  }
+
+  export type GptUncheckedCreateWithoutComposioConnectionsInput = {
+    id?: string
+    userId: string
+    name: string
+    description: string
+    model: $Enums.ModelEnum
+    instruction: string
+    webBrowser?: boolean
+    hybridRag?: boolean
+    image: string
+    knowledgeBase?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutGptInput
+  }
+
+  export type GptCreateOrConnectWithoutComposioConnectionsInput = {
+    where: GptWhereUniqueInput
+    create: XOR<GptCreateWithoutComposioConnectionsInput, GptUncheckedCreateWithoutComposioConnectionsInput>
+  }
+
+  export type GptUpsertWithoutComposioConnectionsInput = {
+    update: XOR<GptUpdateWithoutComposioConnectionsInput, GptUncheckedUpdateWithoutComposioConnectionsInput>
+    create: XOR<GptCreateWithoutComposioConnectionsInput, GptUncheckedCreateWithoutComposioConnectionsInput>
+    where?: GptWhereInput
+  }
+
+  export type GptUpdateToOneWithWhereWithoutComposioConnectionsInput = {
+    where?: GptWhereInput
+    data: XOR<GptUpdateWithoutComposioConnectionsInput, GptUncheckedUpdateWithoutComposioConnectionsInput>
+  }
+
+  export type GptUpdateWithoutComposioConnectionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    model?: EnumModelEnumFieldUpdateOperationsInput | $Enums.ModelEnum
+    instruction?: StringFieldUpdateOperationsInput | string
+    webBrowser?: BoolFieldUpdateOperationsInput | boolean
+    hybridRag?: BoolFieldUpdateOperationsInput | boolean
+    image?: StringFieldUpdateOperationsInput | string
+    knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutGptNestedInput
+    assignedToUsers?: AssignGptUpdateManyWithoutGptNestedInput
+    conversations?: ConversationUpdateManyWithoutGptNestedInput
+  }
+
+  export type GptUncheckedUpdateWithoutComposioConnectionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    model?: EnumModelEnumFieldUpdateOperationsInput | $Enums.ModelEnum
+    instruction?: StringFieldUpdateOperationsInput | string
+    webBrowser?: BoolFieldUpdateOperationsInput | boolean
+    hybridRag?: BoolFieldUpdateOperationsInput | boolean
+    image?: StringFieldUpdateOperationsInput | string
+    knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutGptNestedInput
+  }
+
   export type UserCreateWithoutAssignedGptsInput = {
     id?: string
     name: string
@@ -15680,14 +17130,13 @@ export namespace Prisma {
     instruction: string
     webBrowser?: boolean
     hybridRag?: boolean
-    mcp?: boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image: string
     knowledgeBase?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutGptInput
     conversations?: ConversationCreateNestedManyWithoutGptInput
+    composioConnections?: ComposioConnectionCreateNestedManyWithoutGptInput
   }
 
   export type GptUncheckedCreateWithoutAssignedToUsersInput = {
@@ -15699,13 +17148,12 @@ export namespace Prisma {
     instruction: string
     webBrowser?: boolean
     hybridRag?: boolean
-    mcp?: boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image: string
     knowledgeBase?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     conversations?: ConversationUncheckedCreateNestedManyWithoutGptInput
+    composioConnections?: ComposioConnectionUncheckedCreateNestedManyWithoutGptInput
   }
 
   export type GptCreateOrConnectWithoutAssignedToUsersInput = {
@@ -15779,14 +17227,13 @@ export namespace Prisma {
     instruction?: StringFieldUpdateOperationsInput | string
     webBrowser?: BoolFieldUpdateOperationsInput | boolean
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
-    mcp?: BoolFieldUpdateOperationsInput | boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutGptNestedInput
     conversations?: ConversationUpdateManyWithoutGptNestedInput
+    composioConnections?: ComposioConnectionUpdateManyWithoutGptNestedInput
   }
 
   export type GptUncheckedUpdateWithoutAssignedToUsersInput = {
@@ -15798,13 +17245,12 @@ export namespace Prisma {
     instruction?: StringFieldUpdateOperationsInput | string
     webBrowser?: BoolFieldUpdateOperationsInput | boolean
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
-    mcp?: BoolFieldUpdateOperationsInput | boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     conversations?: ConversationUncheckedUpdateManyWithoutGptNestedInput
+    composioConnections?: ComposioConnectionUncheckedUpdateManyWithoutGptNestedInput
   }
 
   export type UserCreateWithoutConversationsInput = {
@@ -15856,14 +17302,13 @@ export namespace Prisma {
     instruction: string
     webBrowser?: boolean
     hybridRag?: boolean
-    mcp?: boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image: string
     knowledgeBase?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutGptInput
     assignedToUsers?: AssignGptCreateNestedManyWithoutGptInput
+    composioConnections?: ComposioConnectionCreateNestedManyWithoutGptInput
   }
 
   export type GptUncheckedCreateWithoutConversationsInput = {
@@ -15875,13 +17320,12 @@ export namespace Prisma {
     instruction: string
     webBrowser?: boolean
     hybridRag?: boolean
-    mcp?: boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image: string
     knowledgeBase?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
+    composioConnections?: ComposioConnectionUncheckedCreateNestedManyWithoutGptInput
   }
 
   export type GptCreateOrConnectWithoutConversationsInput = {
@@ -15979,14 +17423,13 @@ export namespace Prisma {
     instruction?: StringFieldUpdateOperationsInput | string
     webBrowser?: BoolFieldUpdateOperationsInput | boolean
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
-    mcp?: BoolFieldUpdateOperationsInput | boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutGptNestedInput
     assignedToUsers?: AssignGptUpdateManyWithoutGptNestedInput
+    composioConnections?: ComposioConnectionUpdateManyWithoutGptNestedInput
   }
 
   export type GptUncheckedUpdateWithoutConversationsInput = {
@@ -15998,13 +17441,12 @@ export namespace Prisma {
     instruction?: StringFieldUpdateOperationsInput | string
     webBrowser?: BoolFieldUpdateOperationsInput | boolean
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
-    mcp?: BoolFieldUpdateOperationsInput | boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
+    composioConnections?: ComposioConnectionUncheckedUpdateManyWithoutGptNestedInput
   }
 
   export type MessageUpsertWithWhereUniqueWithoutConversationInput = {
@@ -16124,8 +17566,6 @@ export namespace Prisma {
     instruction: string
     webBrowser?: boolean
     hybridRag?: boolean
-    mcp?: boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image: string
     knowledgeBase?: string | null
     createdAt?: Date | string
@@ -16234,14 +17674,13 @@ export namespace Prisma {
     instruction?: StringFieldUpdateOperationsInput | string
     webBrowser?: BoolFieldUpdateOperationsInput | boolean
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
-    mcp?: BoolFieldUpdateOperationsInput | boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUpdateManyWithoutGptNestedInput
     conversations?: ConversationUpdateManyWithoutGptNestedInput
+    composioConnections?: ComposioConnectionUpdateManyWithoutGptNestedInput
   }
 
   export type GptUncheckedUpdateWithoutUserInput = {
@@ -16252,14 +17691,13 @@ export namespace Prisma {
     instruction?: StringFieldUpdateOperationsInput | string
     webBrowser?: BoolFieldUpdateOperationsInput | boolean
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
-    mcp?: BoolFieldUpdateOperationsInput | boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutGptNestedInput
+    composioConnections?: ComposioConnectionUncheckedUpdateManyWithoutGptNestedInput
   }
 
   export type GptUncheckedUpdateManyWithoutUserInput = {
@@ -16270,8 +17708,6 @@ export namespace Prisma {
     instruction?: StringFieldUpdateOperationsInput | string
     webBrowser?: BoolFieldUpdateOperationsInput | boolean
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
-    mcp?: BoolFieldUpdateOperationsInput | boolean
-    mcpSchema?: NullableJsonNullValueInput | InputJsonValue
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -16344,6 +17780,15 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type ComposioConnectionCreateManyGptInput = {
+    id?: string
+    appName: string
+    connectionId: string
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type AssignGptUpdateWithoutGptInput = {
     id?: StringFieldUpdateOperationsInput | string
     assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -16390,6 +17835,33 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     sessionId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ComposioConnectionUpdateWithoutGptInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    appName?: StringFieldUpdateOperationsInput | string
+    connectionId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ComposioConnectionUncheckedUpdateWithoutGptInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    appName?: StringFieldUpdateOperationsInput | string
+    connectionId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ComposioConnectionUncheckedUpdateManyWithoutGptInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    appName?: StringFieldUpdateOperationsInput | string
+    connectionId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

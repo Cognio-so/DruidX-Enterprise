@@ -21,7 +21,6 @@ import { Gpt } from "@/data/get-gpts";
 import {
   Bot,
   Calendar,
-  CircuitBoard,
   FileSearch,
   Globe,
   MessageCircle,
@@ -177,11 +176,6 @@ export function GptCard({ gpt }: GptCardProps) {
             {gpt.hybridRag && (
               <div className="flex items-center gap-0.5 sm:gap-1">
                 <FileSearch className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600 flex-shrink-0" />
-              </div>
-            )}
-            {gpt.mcp && (
-              <div className="flex items-center gap-0.5 sm:gap-1">
-                <CircuitBoard className="w-3 h-3 sm:w-4 sm:h-4 text-orange-600 flex-shrink-0" />
               </div>
             )}
             <span className="text-purple-500 font-medium text-xs sm:text-sm truncate max-w-[80px] sm:max-w-[120px] md:max-w-none">

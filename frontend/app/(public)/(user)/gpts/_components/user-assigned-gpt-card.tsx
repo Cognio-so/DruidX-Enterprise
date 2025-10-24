@@ -13,7 +13,6 @@ import { UserAssignedGpt } from "@/data/get-user-assigned-gpts";
 import {
   Bot,
   Calendar,
-  CircuitBoard,
   FileSearch,
   Globe,
   MessageCircle,

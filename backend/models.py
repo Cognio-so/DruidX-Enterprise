@@ -13,6 +13,7 @@ class ChatRequest(BaseModel):
     rag: Optional[bool] = False  # Add RAG toggle
     deep_search: Optional[bool] = False  # Add deep search toggle
     uploaded_doc: Optional[bool] = False  # Add uploaded doc indicator
+    composio_tools: Optional[List[str]] = []  # Add composio tools selection
 
 class ChatResponse(BaseModel):
     message: str

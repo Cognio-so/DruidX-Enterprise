@@ -21,8 +21,6 @@ export async function GET(
         instruction: true,
         webBrowser: true,
         hybridRag: true,
-        mcp: true,
-        mcpSchema: true,
         image: true,
         knowledgeBase: true,
         createdAt: true,

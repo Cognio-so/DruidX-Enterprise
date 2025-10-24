@@ -64,8 +64,6 @@ export async function getGptById(id: string) {
         instruction: true,
         webBrowser: true,
         hybridRag: true,
-        mcp: true,
-        mcpSchema: true,
         image: true,
         knowledgeBase: true,
         createdAt: true,
@@ -85,7 +83,6 @@ export async function getGptById(id: string) {
       ...gpt,
       model: reverseModelMapping[gpt.model] || gpt.model,
       docs: gpt.knowledgeBase ? JSON.parse(gpt.knowledgeBase) : [],
-      mcpSchema: gpt.mcpSchema ? JSON.stringify(gpt.mcpSchema, null, 2) : "",
     };
 
     return {
@@ -109,8 +106,6 @@ export async function editGpt(data: {
   instructions: string;
   webSearch: boolean;
   hybridRag: boolean;
-  mcp: boolean;
-  mcpSchema?: string;
   docs: string[];
   imageUrl?: string;
 }) {
@@ -142,10 +137,6 @@ export async function editGpt(data: {
       instruction: validatedData.instructions,
       webBrowser: validatedData.webSearch,
       hybridRag: validatedData.hybridRag,
-      mcp: validatedData.mcp,
-      mcpSchema: validatedData.mcpSchema
-        ? JSON.parse(validatedData.mcpSchema)
-        : null,
       image: validatedData.imageUrl || "default-avatar.png",
       knowledgeBase:
         validatedData.docs.length > 0

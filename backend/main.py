@@ -307,6 +307,7 @@ async def stream_chat(session_id: str, request: ChatRequest):
     print(f"RAG enabled: {request.rag}")
     print(f"Deep search enabled: {request.deep_search}")
     print(f"Uploaded doc: {request.uploaded_doc}")
+    print(f"Composio tools: {request.composio_tools}")
     
     session = SessionManager.get_session(session_id)
     print(f"Previous last_route in session: {session.get('last_route')}")  
@@ -404,6 +405,7 @@ async def stream_chat(session_id: str, request: ChatRequest):
             mcp=gpt_config.get("mcp", False),
             mcp_schema=gpt_config.get("mcpSchema"),
             mcp_connections=session.get("mcp_connections", []),
+            enabled_composio_tools=request.composio_tools or [],  # Add composio tools from request
             last_route=session.get("last_route"), 
             session_id=session_id,  
             context={  
