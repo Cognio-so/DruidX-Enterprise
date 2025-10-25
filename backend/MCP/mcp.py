@@ -142,24 +142,26 @@ class MCPNode:
                 user_id=user_id, 
                 toolkits=connected_tools
             )
+            
             system_message = (
-                "You are an expert tool-calling assistant. Your only job is to "
-                "analyze the user's request and select the most appropriate tool "
-                "from the provided list. Respond *only* with the JSON for the "
-                "tool call. Do not add any conversational text. "
-                "For 'list last 10 emails', use a tool like 'list_messages' and set 'max_results' to 10."
-            )
-            print(f"🔧 Loaded {len(composio_tools)} MCP tools for GPT {gpt_id}")
+    "You are an expert tool-calling assistant. Your only job is to "
+    "analyze the user's request and select the most appropriate tool "
+    "from the available options to fulfill the request accurately and efficiently. "
+    "If the user wants to send content from previous node output, include that content in your tool parameters. "
+    "If the user just wants to perform an action without previous content, focus on the user query alone."
+)
+            # print(f"🔧 Loaded {len(composio_tools)} MCP tools for GPT {gpt_id}")
+            # print(f"composio_tools: {composio_tools}")
             completion = await asyncio.to_thread(
                 openai.chat.completions.create,
-                model="openai/gpt-4o",
+                model="openai/gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": system_message},
                     {"role": "user", "content": query}
                 ],
                 tools=composio_tools
             )
-        
+            # print(f"completion: {completion}")
             result = await asyncio.to_thread(
                 composio.provider.handle_tool_calls,
                 user_id=user_id,
@@ -183,6 +185,18 @@ async def mcp_node(state: GraphState) -> GraphState:
     """MCP Node for the graph workflow"""
     try:
         print("=== MCP NODE EXECUTION ===")
+        
+        # GET INTERMEDIATE RESULTS
+        intermediate_results = state.get("intermediate_results", [])
+        previous_output = ""
+        previous_node = "Unknown"
+        print(f"Intermediate Results:", intermediate_results)
+        if intermediate_results:
+            last_result = intermediate_results[-1]
+            previous_output = last_result.get("output", "")
+            previous_node = last_result.get("node", "Unknown")
+            print(f"🔧 DEBUG: Previous {previous_node} output: {len(previous_output)} chars")
+        
         mcp_tool_needed = state.get("mcp_tools_needed")
         if not mcp_tool_needed:
             route = state.get("route", "")
@@ -193,13 +207,35 @@ async def mcp_node(state: GraphState) -> GraphState:
         enabled_composio_tools = state.get("enabled_composio_tools", [])
         gpt_config = state.get("gpt_config", {})
         gpt_id = gpt_config.get("gpt_id")
-        user_query = state.get("resolved_query") or state.get("user_query", "")
+        user_query = state.get("user_query", "")
         chunk_callback = state.get("_chunk_callback")
+        
+        # CREATE INTELLIGENT USER MESSAGE
+        if intermediate_results and previous_output:
+            intelligent_user_message = f"""
+User Request: {user_query}
+
+Previous Node Output ({previous_node}):
+{previous_output}
+
+Instructions: 
+- Analyze the user request carefully
+- If the user wants to SEND, SHARE, or USE content from the previous node output, include that content in your tool parameters
+- If the user just wants to perform a simple action (like "send hello"), focus only on the user request
+- Be intelligent about when to use previous context vs. when to ignore it
+- Examples:
+  * "send the book list to slack" → Use the previous output (book list)
+  * "send hello to slack" → Don't use previous output, just send "hello"
+  * "send the email content to slack" → Use the previous output (email content)
+"""
+        else:
+            intelligent_user_message = user_query
         
         print(f"Enabled Composio Tools: {enabled_composio_tools}")
         print(f"MCP Tool Needed: {mcp_tool_needed}")
         print(f"GPT ID: {gpt_id}")
         print(f"User Query: {user_query}")
+        print(f"Intelligent User Message: {intelligent_user_message[:300]}...")
         
         if not enabled_composio_tools:
             print("No Composio tools enabled for this message")
@@ -235,18 +271,18 @@ async def mcp_node(state: GraphState) -> GraphState:
         result = await MCPNode.execute_mcp_action(
             gpt_id=gpt_id,
             connected_tools=connected_tools,
-            query=user_query,
+            query=intelligent_user_message,
             chunk_callback=None
         )
     
         raw_result_str = str(result)
-    
+        print(f"Raw MCP Node result: {raw_result_str[:4000]}...")
         system_prompt = (
             "You are an assistant that formats raw tool output into a clean, "
             "user-friendly response. The user's original request was: "
             f"'{user_query}'.\n"
             "Do not include headers, HTML, or raw JSON structures. "
-            "Summarize the key information clearly. For emails, list the sender, "
+            " For emails, list the sender, "
             "subject, and a brief preview."
         )
         
@@ -260,7 +296,7 @@ async def mcp_node(state: GraphState) -> GraphState:
             
             formatting_completion = await asyncio.to_thread(
                 openai.chat.completions.create,
-                model="alibaba/tongyi-deepresearch-30b-a3b:free", 
+                model="openai/gpt-4o-mini", 
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
@@ -268,7 +304,7 @@ async def mcp_node(state: GraphState) -> GraphState:
             )
             
             formatted_result = formatting_completion.choices[0].message.content
-            print(f"MCP Node formatted result: {formatted_result}")
+            # print(f"MCP Node formatted result: {formatted_result}")
             final_response = formatted_result
             
         except Exception as format_e:
