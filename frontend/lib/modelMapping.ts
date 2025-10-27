@@ -28,7 +28,7 @@ export const MODEL_MAPPING: ModelInfo[] = [
   { frontendValue: "grok_4_fast", displayName: "Grok 4 Fast", backendName: "grok-4-fast" },
   { frontendValue: "deepseek_v3_1", displayName: "DeepSeek V3.1", backendName: "deepseek-v3.1" },
   { frontendValue: "meta_llama_3_3_70b", displayName: "meta/llama 3.3 70b", backendName: "meta/llama-3.3-70b" },
-  { frontendValue: "kimi_k2_0905", displayName: "Kimi K2 0905", backendName: "kimi-k2-0905" },
+  { frontendValue: "kimi_k2_0905", displayName: "Kimi K2 0905", backendName: "moonshotai/kimi-k2-0905" },
 ];
 
 /**

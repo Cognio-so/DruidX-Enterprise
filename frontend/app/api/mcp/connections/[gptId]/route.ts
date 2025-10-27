@@ -30,7 +30,59 @@ export async function GET(
       });
 
       if (dbConnections.length > 0) {
-        // Transform database connections to match expected format
+        // Verify connections are still active in Composio
+        try {
+          const response = await fetch(`${backendUrl}/api/mcp/connections/${gptId}`);
+          if (response.ok) {
+            const composioData = await response.json();
+            const activeComposioConnections = composioData.connections || [];
+            
+            // Get active connection IDs from Composio
+            const activeConnectionIds = activeComposioConnections.map((conn: any) => conn.id);
+            
+            // Filter database connections to only include those still active in Composio
+            const validDbConnections = dbConnections.filter((dbConn: any) => 
+              activeConnectionIds.includes(dbConn.connectionId)
+            );
+            
+            // Remove stale connections from database
+            const staleConnections = dbConnections.filter((dbConn: any) => 
+              !activeConnectionIds.includes(dbConn.connectionId)
+            );
+            
+            if (staleConnections.length > 0) {
+              console.log(`Cleaning up ${staleConnections.length} stale connections from database`);
+              await (prisma as any).composioConnection.deleteMany({
+                where: {
+                  gptId,
+                  connectionId: {
+                    in: staleConnections.map((conn: any) => conn.connectionId)
+                  }
+                }
+              });
+            }
+            
+            // Transform valid database connections to match expected format
+            const connections = validDbConnections.map((conn: any) => ({
+              id: conn.connectionId,
+              connection_id: conn.connectionId,
+              app_name: conn.appName,
+              status: conn.status,
+              created_at: conn.createdAt.toISOString(),
+              updated_at: conn.updatedAt.toISOString(),
+            }));
+
+            return NextResponse.json({
+              connections,
+              source: "database_verified",
+            });
+          }
+        } catch (verifyError) {
+          console.error("Error verifying connections with Composio:", verifyError);
+          // If verification fails, still return database connections but mark as potentially stale
+        }
+        
+        // Fallback: return database connections without verification
         const connections = dbConnections.map((conn: any) => ({
           id: conn.connectionId,
           connection_id: conn.connectionId,

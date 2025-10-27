@@ -6,6 +6,8 @@ from typing import List, Dict, Any, Optional
 from graph_type import GraphState
 import asyncio
 import json
+from llm import get_llm
+from langchain_core.messages import SystemMessage, HumanMessage
 composio = Composio(api_key=os.getenv("COMPOSIO_API_KEY"))
 openai = OpenAI(
     api_key=os.getenv("OPENROUTER_API_KEY"),
@@ -14,18 +16,129 @@ openai = OpenAI(
 slack_auth_config_id = os.getenv("SLACK_AUTH_CONFIG_ID", "")
 gmail_auth_config_id = os.getenv("GMAIL_AUTH_CONFIG_ID", "")
 github_auth_config_id = os.getenv("GITHUB_AUTH_CONFIG_ID", "")
+# Add these new environment variable imports
+google_calendar_auth_config_id = os.getenv("GOOGLE_CALENDER_AUTH_CONFIG_ID", "")
+google_sheets_auth_config_id = os.getenv("GOOGLE_SHEETS_AUTH_CONFIG_ID", "")
+twitter_auth_config_id = os.getenv("TWITTER_AUTH_CONFIG_ID", "")
+google_drive_auth_config_id = os.getenv("GOOGLE_DRIVE_AUTH_CONFIG_ID", "")
+youtube_auth_config_id = os.getenv("YOUTUBE_AUTH_CONFIG_ID", "")
+figma_auth_config_id = os.getenv("FIGMA_AUTH_CONFIG_ID", "")
+microsoft_teams_auth_config_id = os.getenv("MICROSOFT_TEAMS_AUTH_CONFIG_ID", "")
+shopify_auth_config_id = os.getenv("SHOPIFY_AUTH_CONFIG_ID", "")
+linkedin_auth_config_id = os.getenv("LINKEDIN_AUTH_CONFIG_ID", "")
+google_maps_auth_config_id = os.getenv("GOOGLE_MAPS_AUTH_CONFIG_ID", "")
+google_meet_auth_config_id = os.getenv("GOOGLE_MEET_AUTH_CONFIG_ID", "")
+stripe_auth_config_id = os.getenv("STRIPE_AUTH_CONFIG_ID", "")
+whatsapp_auth_config_id = os.getenv("WHATSAPP_AUTH_CONFIG_ID", "")
+zoom_auth_config_id = os.getenv("ZOOM_AUTH_CONFIG_ID", "")
+google_ads_auth_config_id = os.getenv("GOOGLE_ADS_AUTH_CONFIG_ID", "")
+facebook_auth_config_id = os.getenv("FACEBOOK_AUTH_CONFIG_ID", "")
+canva_auth_config_id = os.getenv("CANVA_AUTH_CONFIG_ID", "")
+google_analytics_auth_config_id = os.getenv("GOOGLE_ANALYTICS_AUTH_CONFIG_ID", "")
+salesforce_auth_config_id = os.getenv("SALESFORCE_AUTH_CONFIG_ID", "")
+zoho_auth_config_id = os.getenv("ZOHO_AUTH_CONFIG_ID", "")
+notion_auth_config_id = os.getenv("NOTION_AUTH_CONFIG_ID", "")
+google_docs_auth_config_id = os.getenv("GOOGLE_DOCS_AUTH_CONFIG_ID", "")
 TOOL_CONFIGS = {
     "gmail": {
         "auth_config_id": gmail_auth_config_id,
         "tools": ["GMAIL"]
     },
     "github": {
-        "auth_config_id":github_auth_config_id, 
+        "auth_config_id": github_auth_config_id, 
         "tools": ["GITHUB"]
     },
     "slack": {
         "auth_config_id": slack_auth_config_id,
         "tools": ["SLACK"]
+    },
+    "google_calendar": {
+        "auth_config_id": google_calendar_auth_config_id,
+        "tools": ["GOOGLECALENDAR"]
+    },
+    "google_sheets": {
+        "auth_config_id": google_sheets_auth_config_id,
+        "tools": ["GOOGLESHEETS"]
+    },
+    "twitter": {
+        "auth_config_id": twitter_auth_config_id,
+        "tools": ["TWITTER"]
+    },
+    "google_drive": {
+        "auth_config_id": google_drive_auth_config_id,
+        "tools": ["GOOGLEDRIVE"]
+    },
+    "google_docs": {
+        "auth_config_id": google_docs_auth_config_id,
+        "tools": ["GOOGLEDOCS"]
+    },
+    "youtube": {
+        "auth_config_id": youtube_auth_config_id,
+        "tools": ["YOUTUBE"]
+    },
+    "figma": {
+        "auth_config_id": figma_auth_config_id,
+        "tools": ["FIGMA"]
+    },
+    "microsoft_teams": {
+        "auth_config_id": microsoft_teams_auth_config_id,
+        "tools": ["MICROSOFT_TEAMS"]
+    },
+    "shopify": {
+        "auth_config_id": shopify_auth_config_id,
+        "tools": ["SHOPIFY"]
+    },
+    "linkedin": {
+        "auth_config_id": linkedin_auth_config_id,
+        "tools": ["LINKEDIN"]
+    },
+    "google_maps": {
+        "auth_config_id": google_maps_auth_config_id,
+        "tools": ["GOOGLE_MAPS"]
+    },
+    "google_meet": {
+        "auth_config_id": google_meet_auth_config_id,
+        "tools": ["GOOGLEMEET"]
+    },
+    "stripe": {
+        "auth_config_id": stripe_auth_config_id,
+        "tools": ["STRIPE"]
+    },
+    "whatsapp": {
+        "auth_config_id": whatsapp_auth_config_id,
+        "tools": ["WHATSAPP"]
+    },
+    "zoom": {
+        "auth_config_id": zoom_auth_config_id,
+        "tools": ["ZOOM"]
+    },
+    "google_ads": {
+        "auth_config_id": google_ads_auth_config_id,
+        "tools": ["GOOGLEADS"]
+    },
+    "facebook": {
+        "auth_config_id": facebook_auth_config_id,
+        "tools": ["FACEBOOK"]
+    },
+    "canva": {
+        "auth_config_id": canva_auth_config_id,
+        "tools": ["CANVA"]
+    },
+    "google_analytics": {
+        "auth_config_id": google_analytics_auth_config_id,
+        "tools": ["GOOGLE_ANALYTICS"]
+    },
+    "salesforce": {
+        "auth_config_id": salesforce_auth_config_id,
+        "tools": ["SALESFORCE"]
+    },
+    "zoho": {
+        "auth_config_id": zoho_auth_config_id,
+        "tools": ["ZOHO"]
+    },
+    "notion": {
+        "auth_config_id": notion_auth_config_id,
+        "tools": ["NOTION"]
     }
 }
 
@@ -79,58 +192,81 @@ class MCPNode:
         """Get all active connections for a GPT - ASYNC for concurrent requests"""
         try:
             user_id = f"gpt_{gpt_id}"
+            print(f"=== FETCHING CONNECTIONS FOR GPT {gpt_id} (user_id: {user_id}) ===")
             connections_response = await asyncio.to_thread(
                 composio.connected_accounts.list,
                 user_ids=[user_id]
             )
-        
+            # print(f"Connections response: {connections_response}")
             if hasattr(connections_response, 'items'):
                 connections = connections_response.items
             elif hasattr(connections_response, 'get'):
                 connections = connections_response.get("items", [])
             else:
                 connections = []
-            
+
+            # Only include active connections
             active_connections = []
             for conn in connections:
-                if hasattr(conn, 'status'):
-                    status = conn.status
-                elif hasattr(conn, 'get'):
+                status = getattr(conn, 'status', None)
+                if status is None and hasattr(conn, 'get'):
                     status = conn.get("status")
-                else:
-                    status = None
-                
                 if status == "ACTIVE":
-                    app_name = ""
-                    if hasattr(conn, 'toolkit'):
-                        if hasattr(conn.toolkit, 'slug'):
-                            app_name = conn.toolkit.slug
-                        elif hasattr(conn.toolkit, 'get'):
-                            app_name = conn.toolkit.get("slug", "")
-                    elif hasattr(conn, 'get'):
-                        toolkit_data = conn.get("toolkit", {})
-                        app_name = toolkit_data.get("slug", "") if isinstance(toolkit_data, dict) else ""
-                    
-                    if hasattr(conn, '__dict__'):
-                        conn_dict = {
-                            "app_name": app_name, 
-                            "status": getattr(conn, 'status', ''),
-                            "id": getattr(conn, 'id', ''),
-                        }
-                    else:
-                        conn_dict = {
-                            "app_name": app_name,  
-                            "status": conn.get("status", ""),
-                            "id": conn.get("id", ""),
-                        }
-                    
-                    active_connections.append(conn_dict)
-            
+                    active_connections.append(conn)
             return active_connections
+        except Exception as e:
+            # Handle/log error as needed
+            return []
+
+    
+    @staticmethod
+    def disconnect_tool(gpt_id: str, connection_id: str) -> Dict[str, Any]:
+        """Disconnect a specific tool for a GPT"""
+        try:
+            print(f"=== DISCONNECTING TOOL ===")
+            print(f"GPT ID: {gpt_id}")
+            print(f"Connection ID: {connection_id}")
+            
+            # Delete the connection using Composio
+            # Try different parameter names that might be expected
+            try:
+                # First try with 'id' parameter
+                print(f"Trying delete with id parameter: {connection_id}")
+                composio.connected_accounts.delete(id=connection_id)
+                print(f"Successfully deleted connection with id parameter")
+            except TypeError as e1:
+                print(f"TypeError with id parameter: {e1}")
+                try:
+                    # Try with 'connection_id' parameter
+                    print(f"Trying delete with connection_id parameter: {connection_id}")
+                    composio.connected_accounts.delete(connection_id=connection_id)
+                    print(f"Successfully deleted connection with connection_id parameter")
+                except TypeError as e2:
+                    print(f"TypeError with connection_id parameter: {e2}")
+                    # Try as positional argument
+                    print(f"Trying delete as positional argument: {connection_id}")
+                    composio.connected_accounts.delete(connection_id)
+                    print(f"Successfully deleted connection as positional argument")
+            
+            print(f"Successfully deleted connection {connection_id}")
+            
+            return {
+                "success": True,
+                "message": "Tool disconnected successfully"
+            }
             
         except Exception as e:
-            print(f"Error fetching connections for GPT {gpt_id}: {e}")
-            return []
+            print(f"Error disconnecting tool: {e}")
+            # Check if the error is because the connection doesn't exist
+            error_str = str(e).lower()
+            if "not found" in error_str or "does not exist" in error_str or "404" in error_str:
+                print(f"Connection {connection_id} not found in Composio - treating as already disconnected")
+                return {
+                    "success": True,
+                    "message": "Tool was already disconnected"
+                }
+            else:
+                raise Exception(f"Failed to disconnect tool: {str(e)}")
     
     @staticmethod
     async def execute_mcp_action(gpt_id: str, connected_tools: List[str], query: str, chunk_callback=None) -> str:
@@ -175,10 +311,33 @@ class MCPNode:
             import traceback
             traceback.print_exc()
             return f"❌ Error executing MCP action: {e}"
+        
 TOOL_MAPPING = {
     "slack": "SLACK",
     "gmail": "GMAIL", 
-    "github": "GITHUB"
+    "github": "GITHUB",
+    "google_calendar": "GOOGLECALENDAR",
+    "google_sheets": "GOOGLESHEETS",
+    "twitter": "TWITTER",
+    "google_drive": "GOOGLEDRIVE",
+    "youtube": "YOUTUBE",
+    "figma": "FIGMA",
+    "microsoft_teams": "MICROSOFT_TEAMS",
+    "shopify": "SHOPIFY",
+    "linkedin": "LINKEDIN",
+    "google_maps": "GOOGLE_MAPS",
+    "google_meet": "GOOGLEMEET",
+    "stripe": "STRIPE",
+    "whatsapp": "WHATSAPP",
+    "zoom": "ZOOM",
+    "google_ads": "GOOGLEADS",
+    "facebook": "FACEBOOK",
+    "canva": "CANVA",
+    "google_analytics": "GOOGLE_ANALYTICS",
+    "salesforce": "SALESFORCE",
+    "zoho": "ZOHO",
+    "notion": "NOTION",
+    "google_docs": "GOOGLEDOCS"
 }
 
 async def mcp_node(state: GraphState) -> GraphState:
@@ -302,6 +461,7 @@ Instructions:
                     {"role": "user", "content": user_prompt}
                 ]
             )
+            
             
             formatted_result = formatting_completion.choices[0].message.content
             # print(f"MCP Node formatted result: {formatted_result}")

@@ -798,6 +798,34 @@ async def get_mcp_connections(gpt_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch connections: {str(e)}")
 
+@app.post("/api/mcp/disconnect")
+async def disconnect_tool(request: Request):
+    try:
+        data = await request.json()
+        gpt_id = data.get("gpt_id")
+        connection_id = data.get("connection_id")
+        
+        if not gpt_id or not connection_id:
+            return JSONResponse(
+                status_code=400,
+                content={"error": "Missing gpt_id or connection_id"}
+            )
+        
+        result = MCPNode.disconnect_tool(gpt_id, connection_id)
+        
+        if result["success"]:
+            return JSONResponse(content=result)
+        else:
+            return JSONResponse(
+                status_code=400,
+                content=result
+            )
+            
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Internal server error: {str(e)}"}
+        )
 @app.get("/api/mcp/callback")
 async def mcp_callback(request: Request):
     """Handle OAuth callback after authentication"""
