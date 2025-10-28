@@ -278,7 +278,7 @@ class MCPNode:
 
             # Create composio instance with toolkit versions if any were found
             if toolkit_versions:
-                composio_instance = Composio(
+                composio = Composio(
                     api_key=os.getenv("COMPOSIO_API_KEY"),
                     config={
                         "toolkitVersions": toolkit_versions
