@@ -8,6 +8,11 @@ import asyncio
 import json
 from llm import get_llm
 from langchain_core.messages import SystemMessage, HumanMessage
+import os
+
+# 🔧 Force the skip flag early — ensures it's visible before Composio initializes
+os.environ["COMPOSIO_DANGEROUSLY_SKIP_VERSION_CHECK"] = "true"
+
 composio = Composio(api_key=os.getenv("COMPOSIO_API_KEY"),
                     dangerously_skip_version_check=True )
 openai = OpenAI(
