@@ -136,8 +136,7 @@ async def set_gpt_config(session_id: str, gpt_config: dict):
     mcp_connections = gpt_config.get("mcpConnections", [])
     session["mcp_connections"] = mcp_connections
     
-    print(f"gpt config..........." , gpt_config)
-    print(f"mcp connections..........." , mcp_connections)
+   
     
     # Pre-process KB if available
     if session.get("kb"):
@@ -783,7 +782,7 @@ async def initiate_mcp_connection(request: dict):
         if not gpt_id or not app_name:
             raise HTTPException(status_code=400, detail="gpt_id and app_name are required")
         
-        result = MCPNode.initiate_connection(gpt_id, app_name, redirect_url)
+        result =await MCPNode.initiate_connection(gpt_id, app_name, redirect_url)
         return result
         
     except Exception as e:
@@ -811,7 +810,7 @@ async def disconnect_tool(request: Request):
                 content={"error": "Missing gpt_id or connection_id"}
             )
         
-        result = MCPNode.disconnect_tool(gpt_id, connection_id)
+        result =await MCPNode.disconnect_tool(gpt_id, connection_id)
         
         if result["success"]:
             return JSONResponse(content=result)
