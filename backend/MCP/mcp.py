@@ -10,8 +10,13 @@ from llm import get_llm
 from langchain_core.messages import SystemMessage, HumanMessage
 import os
 
-
-composio = Composio(api_key=os.getenv("COMPOSIO_API_KEY") )
+SLACK_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_SLACK", "20251201_01")  
+composio = Composio(api_key=os.getenv("COMPOSIO_API_KEY"),
+                    config={
+        "toolkitVersions": {
+            "SLACK": SLACK_VERSION  
+        } 
+        })
 # Python version - use snake_case
 # tool = composio.tools.get_raw_composio_tool_by_slug("SLACK")
 # print({
