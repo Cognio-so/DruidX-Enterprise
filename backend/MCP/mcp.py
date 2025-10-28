@@ -8,7 +8,8 @@ import asyncio
 import json
 from llm import get_llm
 from langchain_core.messages import SystemMessage, HumanMessage
-composio = Composio(api_key=os.getenv("COMPOSIO_API_KEY"))
+composio = Composio(api_key=os.getenv("COMPOSIO_API_KEY"),
+                    dangerously_skip_version_check=True )
 openai = OpenAI(
     api_key=os.getenv("OPENROUTER_API_KEY"),
     base_url="https://openrouter.ai/api/v1"
@@ -161,7 +162,7 @@ class MCPNode:
         return available_tools
     
     @staticmethod
-    def initiate_connection(gpt_id: str, app_name: str, redirect_url: str = None) -> Dict[str, Any]:
+    async def initiate_connection(gpt_id: str, app_name: str, redirect_url: str = None) -> Dict[str, Any]:
         """Initiate OAuth connection for a GPT to a specific app"""
         try:
             app_config = TOOL_CONFIGS.get(app_name.lower())
@@ -171,11 +172,12 @@ class MCPNode:
             user_id = f"gpt_{gpt_id}"
             auth_config_id = app_config["auth_config_id"]
         
-            connection_request = composio.connected_accounts.link(
-                user_id=user_id,
-                auth_config_id=auth_config_id,
-                callback_url=redirect_url or "http://localhost:3000/api/mcp/callback"
-            )
+            connection_request = await asyncio.to_thread(
+            composio.connected_accounts.link,
+            user_id=user_id,
+            auth_config_id=auth_config_id,
+            callback_url=redirect_url or "http://localhost:3000/api/mcp/callback"
+        )
             
             return {
                 "user_id": user_id,
@@ -192,7 +194,6 @@ class MCPNode:
         """Get all active connections for a GPT - ASYNC for concurrent requests"""
         try:
             user_id = f"gpt_{gpt_id}"
-            print(f"=== FETCHING CONNECTIONS FOR GPT {gpt_id} (user_id: {user_id}) ===")
             connections_response = await asyncio.to_thread(
                 composio.connected_accounts.list,
                 user_ids=[user_id]
@@ -205,7 +206,6 @@ class MCPNode:
             else:
                 connections = []
 
-            # Only include active connections
             active_connections = []
             for conn in connections:
                 status = getattr(conn, 'status', None)
@@ -220,35 +220,19 @@ class MCPNode:
 
     
     @staticmethod
-    def disconnect_tool(gpt_id: str, connection_id: str) -> Dict[str, Any]:
+    async def disconnect_tool(gpt_id: str, connection_id: str) -> Dict[str, Any]:
         """Disconnect a specific tool for a GPT"""
         try:
-            print(f"=== DISCONNECTING TOOL ===")
-            print(f"GPT ID: {gpt_id}")
-            print(f"Connection ID: {connection_id}")
-            
-            # Delete the connection using Composio
-            # Try different parameter names that might be expected
             try:
-                # First try with 'id' parameter
-                print(f"Trying delete with id parameter: {connection_id}")
-                composio.connected_accounts.delete(id=connection_id)
-                print(f"Successfully deleted connection with id parameter")
+                await asyncio.to_thread(
+                        composio.connected_accounts.delete,
+                        id=connection_id
+                    )
             except TypeError as e1:
-                print(f"TypeError with id parameter: {e1}")
                 try:
-                    # Try with 'connection_id' parameter
-                    print(f"Trying delete with connection_id parameter: {connection_id}")
                     composio.connected_accounts.delete(connection_id=connection_id)
-                    print(f"Successfully deleted connection with connection_id parameter")
                 except TypeError as e2:
-                    print(f"TypeError with connection_id parameter: {e2}")
-                    # Try as positional argument
-                    print(f"Trying delete as positional argument: {connection_id}")
                     composio.connected_accounts.delete(connection_id)
-                    print(f"Successfully deleted connection as positional argument")
-            
-            print(f"Successfully deleted connection {connection_id}")
             
             return {
                 "success": True,
@@ -256,8 +240,6 @@ class MCPNode:
             }
             
         except Exception as e:
-            print(f"Error disconnecting tool: {e}")
-            # Check if the error is because the connection doesn't exist
             error_str = str(e).lower()
             if "not found" in error_str or "does not exist" in error_str or "404" in error_str:
                 print(f"Connection {connection_id} not found in Composio - treating as already disconnected")
