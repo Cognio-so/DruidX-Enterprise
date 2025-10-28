@@ -11,8 +11,12 @@ from langchain_core.messages import SystemMessage, HumanMessage
 import os
 
 SLACK_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_SLACK", "20251201_01")  
-composio = Composio(api_key=os.getenv("COMPOSIO_API_KEY")
-        )
+composio = Composio(api_key=os.getenv("COMPOSIO_API_KEY"),
+                    config={
+        "toolkitVersions": {
+            "SLACK": SLACK_VERSION  
+        } 
+        })
 # Python version - use snake_case
 # tool = composio.tools.get_raw_composio_tool_by_slug("SLACK")
 # print({
@@ -267,25 +271,15 @@ class MCPNode:
         """Execute MCP action using connected tools - ASYNC for concurrent requests"""
         try:
             user_id = f"gpt_{gpt_id}"
-            toolkit_versions = {}
-            for toolkit in connected_tools:
-                try:
-                    if toolkit == "SLACK":
-                        tool = composio.tools.get_raw_composio_tool_by_slug("SLACK_SEND_MESSAGE")
-                        toolkit_versions[toolkit] = tool.version
-                except Exception as e:
-                    print(f"Warning: Could not get version for {toolkit}: {e}")
-
-            # Create composio instance with toolkit versions if any were found
-            if toolkit_versions:
-                composio = Composio(
-                    api_key=os.getenv("COMPOSIO_API_KEY"),
-                    config={
-                        "toolkitVersions": toolkit_versions
-                    }
-                )
-                
-             
+            # toolkit_versions = {}
+            # for toolkit in connected_tools:
+            #     try:
+            #         if toolkit == "SLACK":
+            #             tool = composio.tools.get_raw_composio_tool_by_slug("SLACK_SEND_MESSAGE")
+            #             toolkit_versions['SLACK'] = tool.version
+            #     except Exception as e:
+            #         print(f"Warning: Could not get version for {toolkit}: {e}")
+            # composio.toolkit_versions = toolkit_versions        
             composio_tools = await asyncio.to_thread(
                 composio.tools.get, 
                 user_id=user_id, 
