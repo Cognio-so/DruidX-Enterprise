@@ -11,12 +11,8 @@ from langchain_core.messages import SystemMessage, HumanMessage
 import os
 
 SLACK_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_SLACK", "20251201_01")  
-composio = Composio(api_key=os.getenv("COMPOSIO_API_KEY"),
-                    config={
-        "toolkitVersions": {
-            "SLACK": SLACK_VERSION  
-        } 
-        })
+composio = Composio(api_key=os.getenv("COMPOSIO_API_KEY")
+        )
 # Python version - use snake_case
 # tool = composio.tools.get_raw_composio_tool_by_slug("SLACK")
 # print({
@@ -276,10 +272,20 @@ class MCPNode:
                 try:
                     if toolkit == "SLACK":
                         tool = composio.tools.get_raw_composio_tool_by_slug("SLACK_SEND_MESSAGE")
-                        toolkit_versions['SLACK'] = tool.version
+                        toolkit_versions[toolkit] = tool.version
                 except Exception as e:
                     print(f"Warning: Could not get version for {toolkit}: {e}")
-            composio.toolkit_versions = toolkit_versions        
+
+            # Create composio instance with toolkit versions if any were found
+            if toolkit_versions:
+                composio_instance = Composio(
+                    api_key=os.getenv("COMPOSIO_API_KEY"),
+                    config={
+                        "toolkitVersions": toolkit_versions
+                    }
+                )
+                
+             
             composio_tools = await asyncio.to_thread(
                 composio.tools.get, 
                 user_id=user_id, 
