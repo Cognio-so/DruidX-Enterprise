@@ -14,7 +14,9 @@ SLACK_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_SLACK", "20251201_01")
 composio = Composio(api_key=os.getenv("COMPOSIO_API_KEY"),
                     config={
         "toolkitVersions": {
-            "SLACK": SLACK_VERSION  
+            "SLACK": SLACK_VERSION,
+            "GOOGLECALENDAR":"20251024_00"
+
         } 
         })
 # Python version - use snake_case
