@@ -12,15 +12,60 @@ import os
 
 SLACK_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_SLACK", "20251201_01")  
 CALENDAR_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_GOOGLECALENDAR", "20251024_00")
-# composio= Composio(api_key=os.getenv("COMPOSIO_API_KEY"),
-#                     config={
-#         "toolkitVersions": {
-#             "SLACK": SLACK_VERSION,
-#             "GOOGLECALENDAR": CALENDAR_VERSION
-
-#         } 
-#         })
-composio= Composio(api_key=os.getenv("COMPOSIO_API_KEY"))
+GITHUB_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_GITHUB", "20251024_00")
+GOOGLE_SHEETS_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_GOOGLESHEET", "20251027_00")
+TWITTER_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_TWITTER", "20251025_00")
+GOOGLE_DRIVE_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_GOOGLEDRIVE", "20251026_00")
+GOOGLE_DOCS_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_GOOGLEDOCS", "20251029_00")
+GMAIL_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_GMAIL", "20251024_00")
+YOUTUBE_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_YOUTUBE", "20251025_00")
+FIGMA_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_FIGMA", "20251024_00")
+MICROSOFT_TEAMS_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_MICROSOFTTEAMS", "20251027_00")
+SHOPIFY_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_SHOPIFY", "20251028_00")
+LINKEDIN_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_LINKEDIN", "20251026_00")
+GOOGLE_MAPS_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_GOOGLEMAPS", "20251024_00")
+GOOGLE_MEET_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_GOOGLEMEET", "20251025_00")
+STRIPE_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_STRIPE", "20251027_00")            
+WHATSAPP_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_WHATSAPP", "20251028_00")
+ZOOM_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_ZOOM", "20251026_00")
+GOOGLE_ADS_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_GOOGLEADS", "20251024_00")
+FACEBOOK_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_FACEBOOK", "20251025_00")
+CANVA_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_CANVA", "20251027_00")
+GOOGLE_ANALYTICS_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_GOOGLEANALYTICS", "20251028_00")
+SALESFORCE_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_SALESFORCE", "20251026_00")
+ZOHO_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_ZOHO", "20251024_00")
+NOTION_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_NOTION", "20251025_00")
+composio = Composio(api_key=os.getenv("COMPOSIO_API_KEY"),
+                    config={
+        "toolkitVersions": {
+            "GMAIL": GMAIL_VERSION,
+            "SLACK": SLACK_VERSION,
+            "GITHUB": GITHUB_VERSION,
+            "GOOGLECALENDAR": CALENDAR_VERSION,
+            "GOOGLESHEETS": GOOGLE_SHEETS_VERSION,
+            "TWITTER": TWITTER_VERSION,
+            "GOOGLEDRIVE": GOOGLE_DRIVE_VERSION,
+            "GOOGLEDOCS": GOOGLE_DOCS_VERSION,
+            "YOUTUBE": YOUTUBE_VERSION,
+            "FIGMA": FIGMA_VERSION,
+            "MICROSOFT_TEAMS": MICROSOFT_TEAMS_VERSION,
+            "SHOPIFY": SHOPIFY_VERSION,
+            "LINKEDIN": LINKEDIN_VERSION,
+            "GOOGLE_MAPS": GOOGLE_MAPS_VERSION,
+            "GOOGLEMEET": GOOGLE_MEET_VERSION,
+            "STRIPE": STRIPE_VERSION,
+            "WHATSAPP": WHATSAPP_VERSION,
+            "ZOOM": ZOOM_VERSION,
+            "GOOGLE_ADS": GOOGLE_ADS_VERSION,
+            "FACEBOOK": FACEBOOK_VERSION,
+            "CANVA": CANVA_VERSION,
+            "GOOGLE_ANALYTICS": GOOGLE_ANALYTICS_VERSION,
+            "SALESFORCE": SALESFORCE_VERSION,
+            "ZOHO": ZOHO_VERSION,
+            "NOTION": NOTION_VERSION,
+            
+        }
+        })
 # Python version - use snake_case
 # tool = composio.tools.get_raw_composio_tool_by_slug("SLACK")
 # print({
@@ -275,18 +320,17 @@ class MCPNode:
         """Execute MCP action using connected tools - ASYNC for concurrent requests"""
         try:
             user_id = f"gpt_{gpt_id}"
-        
-            print(f"tools name-----", connected_tools[0])
-            tool = composio.tools.get_raw_composio_tool_by_slug("GMAIL_ADD_LABEL_TO_EMAIL")
-            composio1=Composio(api_key=os.getenv("COMPOSIO_API_KEY"),
-                             config={
-        "toolkitVersions": {
-            connected_tools[0]: tool.version,
-
-        } 
-        })
+            # toolkit_versions = {}
+            # for toolkit in connected_tools:
+            #     try:
+            #         if toolkit == "SLACK":
+            #             tool = composio.tools.get_raw_composio_tool_by_slug("SLACK_SEND_MESSAGE")
+            #             toolkit_versions['SLACK'] = tool.version
+            #     except Exception as e:
+            #         print(f"Warning: Could not get version for {toolkit}: {e}")
+            # composio.toolkit_versions = toolkit_versions        
             composio_tools = await asyncio.to_thread(
-                composio1.tools.get, 
+                composio.tools.get, 
                 user_id=user_id, 
                 toolkits=connected_tools
             )
@@ -311,7 +355,7 @@ class MCPNode:
             )
             # print(f"completion: {completion}")
             result = await asyncio.to_thread(
-                composio1.provider.handle_tool_calls,
+                composio.provider.handle_tool_calls,
                 user_id=user_id,
                 response=completion,
                 
