@@ -275,17 +275,9 @@ class MCPNode:
         """Execute MCP action using connected tools - ASYNC for concurrent requests"""
         try:
             user_id = f"gpt_{gpt_id}"
-            # toolkit_versions = {}
-            # for toolkit in connected_tools:
-            #     try:
-            #         if toolkit == "SLACK":
-            #             tool = composio.tools.get_raw_composio_tool_by_slug("SLACK_SEND_MESSAGE")
-            #             toolkit_versions['SLACK'] = tool.version
-            #     except Exception as e:
-            #         print(f"Warning: Could not get version for {toolkit}: {e}")
-            # composio.toolkit_versions = toolkit_versions
+        
             print(f"tools name-----", connected_tools[0])
-            tool = composio.tools.get_raw_composio_tool_by_slug("GOOGLECALENDAR_ACL_PATCH")
+            tool = composio.tools.get_raw_composio_tool_by_slug("GMAIL_ADD_LABEL_TO_EMAIL")
             composio1=Composio(api_key=os.getenv("COMPOSIO_API_KEY"),
                              config={
         "toolkitVersions": {
