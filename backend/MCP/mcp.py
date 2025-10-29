@@ -320,15 +320,33 @@ class MCPNode:
         """Execute MCP action using connected tools - ASYNC for concurrent requests"""
         try:
             user_id = f"gpt_{gpt_id}"
-            # toolkit_versions = {}
-            # for toolkit in connected_tools:
-            #     try:
-            #         if toolkit == "SLACK":
-            #             tool = composio.tools.get_raw_composio_tool_by_slug("SLACK_SEND_MESSAGE")
-            #             toolkit_versions['SLACK'] = tool.version
-            #     except Exception as e:
-            #         print(f"Warning: Could not get version for {toolkit}: {e}")
-            # composio.toolkit_versions = toolkit_versions        
+            
+            # Get current date and time information
+            from datetime import datetime, timezone, timedelta
+            import calendar
+            
+            now = datetime.now(timezone.utc)
+            current_date = now.strftime("%Y-%m-%d")
+            current_time = now.strftime("%H:%M:%S UTC")
+            current_day = now.strftime("%A")
+            current_week = now.isocalendar()[1]  # ISO week number
+            current_year = now.year
+            current_month = now.strftime("%B")
+            
+            # Get this week's dates
+            start_of_week = now - timedelta(days=now.weekday())
+            end_of_week = start_of_week + timedelta(days=6)
+            week_dates = []
+            for i in range(7):
+                day = start_of_week + timedelta(days=i)
+                week_dates.append(f"{day.strftime('%A')} {day.strftime('%Y-%m-%d')}")
+            
+            # Get next few days for context
+            next_days = []
+            for i in range(1, 8):
+                future_day = now + timedelta(days=i)
+                next_days.append(f"{future_day.strftime('%A')} {future_day.strftime('%Y-%m-%d')}")
+            
             composio_tools = await asyncio.to_thread(
                 composio.tools.get, 
                 user_id=user_id, 
@@ -340,7 +358,13 @@ class MCPNode:
     "analyze the user's request and select the most appropriate tool "
     "from the available options to fulfill the request accurately and efficiently. "
     "If the user wants to send content from previous node output, include that content in your tool parameters. "
-    "If the user just wants to perform an action without previous content, focus on the user query alone."
+    "If the user just wants to perform an action without previous content, focus on the user query alone. "
+    f"\n\nCURRENT DATE/TIME CONTEXT:\n"
+    f"Today is {current_day}, {current_date} at {current_time}\n"
+    f"Current year: {current_year}, Current month: {current_month}, Week {current_week}\n"
+    f"This week's dates: {', '.join(week_dates)}\n"
+    f"Next 7 days: {', '.join(next_days)}\n"
+    f"When scheduling meetings or performing any task which requires date or time , use these actual dates, time etc. and information unless user has explicitly has mentioned date or time or anything."
 )
             # print(f"🔧 Loaded {len(composio_tools)} MCP tools for GPT {gpt_id}")
             # print(f"composio_tools: {composio_tools}")

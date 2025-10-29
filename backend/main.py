@@ -377,7 +377,7 @@ async def stream_chat(session_id: str, request: ChatRequest):
             # print(f"🔥 DIRECT CHUNK CALLBACK: {chunk_content[:50]}...")
             
             # Add a small delay to make streaming smoother
-            await asyncio.sleep(0.05)  # 50ms delay between chunks
+            await asyncio.sleep(0.001)  # 50ms delay between chunks
             
             await queue.put({
                 "type": "content",
