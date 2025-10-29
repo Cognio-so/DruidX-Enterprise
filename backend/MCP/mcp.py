@@ -11,11 +11,12 @@ from langchain_core.messages import SystemMessage, HumanMessage
 import os
 
 SLACK_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_SLACK", "20251201_01")  
+CALENDAR_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_GOOGLECALENDAR", "20251024_00")
 composio = Composio(api_key=os.getenv("COMPOSIO_API_KEY"),
                     config={
         "toolkitVersions": {
             "SLACK": SLACK_VERSION,
-            "GOOGLECALENDAR":"20251024_00"
+            "GOOGLECALENDAR": CALENDAR_VERSION
 
         } 
         })
