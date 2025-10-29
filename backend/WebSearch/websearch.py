@@ -8,8 +8,10 @@ from pathlib import Path
 from langchain_core.messages import SystemMessage, HumanMessage
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 load_dotenv()
-google_api_key=os.getenv("GOOGLE_API_KEY", "")
+# google_api_key=os.getenv("GOOGLE_API_KEY", "")
+from llm import get_llm
 _tavily: Optional[AsyncTavilyClient] = None
 from prompt_cache import normalize_prefix
 
@@ -180,11 +182,19 @@ Now synthesize them into a clear, structured answer with:
     print(f"[WebSearch] Chunk callback type: {type(chunk_callback)}")
     full_response = ""
     if not is_web_search:
-        llm=ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash-lite",
-                temperature=0.3,
-                google_api_key=google_api_key,
-            )
+        # llm=ChatGoogleGenerativeAI(
+        #         model="gemini-2.5-flash-lite",
+        #         temperature=0.3,
+        #         google_api_key=google_api_key,
+        #     )
+
+        llm = ChatGroq(
+        model="openai/gpt-oss-20b",  
+        temperature=0.9,
+        streaming=True,
+        reasoning_effort="low",
+        groq_api_key=os.getenv("GROQ_API_KEY")
+    )
         system_msg = SystemMessage(content=STATIC_SYS_WEBSEARCH_BASIC)
         human_msg = HumanMessage(content=user_prompt)
 
@@ -198,11 +208,18 @@ Now synthesize them into a clear, structured answer with:
                     await chunk_callback(chunk.content)
         
     else:    
-        llm=ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash-lite",
-                temperature=0.3,
-                google_api_key=google_api_key,
-            )
+        # llm=ChatGoogleGenerativeAI(
+        #         model="gemini-2.5-flash-lite",
+        #         temperature=0.3,
+        #         google_api_key=google_api_key,
+        #     )
+        llm = ChatGroq(
+        model="openai/gpt-oss-20b",  
+        temperature=0.9,
+        streaming=True,
+        reasoning_effort="low",
+        groq_api_key=os.getenv("GROQ_API_KEY")
+    )
         system_msg = SystemMessage(content=STATIC_SYS_WEBSEARCH)
         human_msg = HumanMessage(content=user_prompt)
 

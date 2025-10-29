@@ -6,17 +6,26 @@ from io import BytesIO
 import uuid
 from fastapi import UploadFile
 from models import DocumentInfo
-
+import fitz
 def extract_text_from_pdf(file_content: bytes) -> str:
-    """Extract text from PDF file"""
+    """Extract text from PDF file using PyMuPDF (fitz)"""
     try:
-        pdf_reader = pypdf.PdfReader(BytesIO(file_content))
+        # Open PDF from bytes
+        doc = fitz.open(stream=file_content, filetype="pdf")
         text = ""
-        for page in pdf_reader.pages:
-            text += page.extract_text() + "\n"
-        return text
+        
+        # Extract text from all pages
+        for page_num in range(len(doc)):
+            page = doc[page_num]
+            page_text = page.get_text()
+            if page_text.strip():  # Only add non-empty pages
+                text += page_text + "\n"
+        
+        doc.close()
+        return text.strip()
+        
     except Exception as e:
-        print(f"Error reading PDF: {e}")
+        print(f"Error reading PDF with PyMuPDF: {e}")
         return ""
 
 def extract_text_from_docx(file_content: bytes) -> str:

@@ -13,6 +13,7 @@ You must base your decision on:
   - Personal opinions or feelings
   - Acknowledgments and social niceties
   - **Text content processing**: When user provides text content directly in the query and asks to summarize, analyze, or process it (no uploaded documents)
+  - when uncertain route to SimpleLLM.
   
 - **RAG** → ONLY when:
   - Query explicitly references uploaded content ("in the document", "from the file", "in the PDF", "analyze this document")

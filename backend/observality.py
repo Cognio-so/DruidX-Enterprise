@@ -121,3 +121,23 @@ def trace_llm_call(func: Callable) -> Callable:
         return func(*args, **kwargs)
     
     return wrapper
+import time
+def track_llm_usage(func: Callable) -> Callable:
+    """Decorator to track LLM usage and caching effectiveness"""
+    @wraps(func)
+    async def async_wrapper(*args, **kwargs):
+        # Track before call
+        start_time = time.time()
+        
+        result = await func(*args, **kwargs)
+        
+        # Track after call
+        end_time = time.time()
+        duration = end_time - start_time
+        
+        # Log usage (you can extend this to track costs)
+        print(f"LLM call completed in {duration:.2f}s")
+        
+        return result
+    
+    return async_wrapper    

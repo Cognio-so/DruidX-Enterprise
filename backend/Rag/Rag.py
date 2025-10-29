@@ -214,7 +214,7 @@ async def send_status_update(state: GraphState, message: str, progress: int = No
         })
 async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clear_existing: bool = False, is_kb: bool = False, is_user_doc: bool = False):
     EMBEDDING_MODEL = OpenAIEmbeddings(model="text-embedding-3-small")
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1200, chunk_overlap=200)
     chunked_docs = text_splitter.create_documents(doc)
 
     if is_kb and name in KB_EMBEDDING_CACHE:
@@ -558,9 +558,9 @@ async def _process_user_docs(state, docs, user_query, rag):
     collection_name = cache_data["collection_name"]
     is_hybrid = cache_data["is_hybrid"]
     if is_hybrid:
-        res = await _hybrid_search_rrf(collection_name, user_query, limit=6, k=60)
+        res = await _hybrid_search_rrf(collection_name, user_query, limit=20, k=60)
     else:
-        res = await _search_collection(collection_name, user_query, limit=6)
+        res = await _search_collection(collection_name, user_query, limit=20)
     
     return ("user", res)
 
@@ -762,7 +762,7 @@ async def Rag(state: GraphState) -> GraphState:
     - STANDARD: "This is a standard query - use conversation context only if directly relevant"
 
     **Output Formatting:**
-    - For summaries: Use clear paragraphs with key points highlighted. Give detailed summary only.
+    - For summaries: Use clear paragraphs with key points highlighted. Give very detailed summary only.
     - For searches: Present findings with specific references.
     - For comparisons: Use structured comparison format (tables if useful).
     - For analysis: Provide detailed breakdown with clear sections.
@@ -778,7 +778,7 @@ async def Rag(state: GraphState) -> GraphState:
         HumanMessage(content=dynamic_prompt)
     ]
 
-    llm=get_llm(llm_model,0.3)
+    llm=get_llm(llm_model,0.8)
     await send_status_update(state, "🤖 Generating response from retrieved information...", 90)
    
     print(f"model named used in rag.....", llm_model)

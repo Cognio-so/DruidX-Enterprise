@@ -10,6 +10,8 @@ from typing import List
 from langchain_google_genai import ChatGoogleGenerativeAI
 import os
 from prompt_cache import normalize_prefix
+from llm import get_llm
+from langchain_groq import ChatGroq
 
 def load_base_prompt() -> str:
     path = os.path.join(os.path.dirname(__file__), "orchestrator.md")
@@ -96,9 +98,14 @@ async def summarizer(state, keep_last=2):
     user_prompt = f"Summarize this conversation:\n\n{full_old_text}"
 
     try:
-        from langchain_google_genai import ChatGoogleGenerativeAI
-        google_api_key = os.getenv("GOOGLE_API_KEY", "")
-        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", temperature=0.3, api_key=google_api_key)
+        # from langchain_google_genai import ChatGoogleGenerativeAI
+        # google_api_key = os.getenv("GOOGLE_API_KEY", "")
+        # llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", temperature=0.3, api_key=google_api_key)
+        llm = ChatGroq(
+        model="openai/gpt-oss-20b",  
+        temperature=0.4,
+        groq_api_key=os.getenv("GROQ_API_KEY")
+    )
         result = await llm.ainvoke([
             SystemMessage(content=system_prompt),
             HumanMessage(content=user_prompt)
@@ -224,13 +231,19 @@ async def analyze_query(
 
         messages = [system_msg, HumanMessage(content=dynamic_context)]
 
-        google_api_key = os.getenv("GOOGLE_API_KEY", "")
-        chat = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash-lite",
-            temperature=0.3,
-            api_key=google_api_key,
-        )
+        # google_api_key = os.getenv("GOOGLE_API_KEY", "")
+        # chat = ChatGoogleGenerativeAI(
+        #     model="gemini-2.5-flash-lite",
+        #     temperature=0.3,
+        #     api_key=google_api_key,
+        # )
 
+        chat = ChatGroq(
+        model="openai/gpt-oss-120b",  
+        temperature=0.4,
+        groq_api_key=os.getenv("GROQ_API_KEY")
+    )
+        # chat= get_llm("google/gemini-2.5-flash-lite", 0.3)
         response = await chat.ainvoke(messages)
         content = (response.content or "").strip()
         print(f"[Analyzer Raw Output] {content}")
@@ -326,13 +339,18 @@ Guidelines:
 """
 
     try:
-        google_api_key = os.getenv("GOOGLE_API_KEY", "")
-        llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash-lite",
-            temperature=0.3,
-            api_key=google_api_key,
-        )
-
+        # google_api_key = os.getenv("GOOGLE_API_KEY", "")
+        # llm = ChatGoogleGenerativeAI(
+        #     model="gemini-2.5-flash-lite",
+        #     temperature=0.3,
+        #     api_key=google_api_key,
+        # )
+        # llm= get_llm("google/gemini-2.5-flash-lite", 0.3)
+        llm = ChatGroq(
+        model="openai/gpt-oss-120b",  
+        temperature=0.4,
+        groq_api_key=os.getenv("GROQ_API_KEY")
+    )
         system_msg = SystemMessage(content=STATIC_SYS_REWRITE)
         human_msg = HumanMessage(content=prompt)
         print("🚀 Sending rewrite prompt to LLM with cached prefix...")
