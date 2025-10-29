@@ -12,14 +12,15 @@ import os
 
 SLACK_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_SLACK", "20251201_01")  
 CALENDAR_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_GOOGLECALENDAR", "20251024_00")
-composio = Composio(api_key=os.getenv("COMPOSIO_API_KEY"),
-                    config={
-        "toolkitVersions": {
-            "SLACK": SLACK_VERSION,
-            "GOOGLECALENDAR": CALENDAR_VERSION
+# composio= Composio(api_key=os.getenv("COMPOSIO_API_KEY"),
+#                     config={
+#         "toolkitVersions": {
+#             "SLACK": SLACK_VERSION,
+#             "GOOGLECALENDAR": CALENDAR_VERSION
 
-        } 
-        })
+#         } 
+#         })
+composio= Composio(api_key=os.getenv("COMPOSIO_API_KEY"))
 # Python version - use snake_case
 # tool = composio.tools.get_raw_composio_tool_by_slug("SLACK")
 # print({
@@ -282,9 +283,18 @@ class MCPNode:
             #             toolkit_versions['SLACK'] = tool.version
             #     except Exception as e:
             #         print(f"Warning: Could not get version for {toolkit}: {e}")
-            # composio.toolkit_versions = toolkit_versions        
+            # composio.toolkit_versions = toolkit_versions
+            print(f"tools name-----", connected_tools[0])
+            tool = composio.tools.get_raw_composio_tool_by_slug("GOOGLECALENDAR_ACL_PATCH")
+            composio1=Composio(api_key=os.getenv("COMPOSIO_API_KEY"),
+                             config={
+        "toolkitVersions": {
+            connected_tools[0]: tool.version,
+
+        } 
+        })
             composio_tools = await asyncio.to_thread(
-                composio.tools.get, 
+                composio1.tools.get, 
                 user_id=user_id, 
                 toolkits=connected_tools
             )
@@ -309,7 +319,7 @@ class MCPNode:
             )
             # print(f"completion: {completion}")
             result = await asyncio.to_thread(
-                composio.provider.handle_tool_calls,
+                composio1.provider.handle_tool_calls,
                 user_id=user_id,
                 response=completion,
                 
