@@ -9,8 +9,8 @@ from langchain_core.messages import BaseMessage
 from langchain_core.tools import StructuredTool
 from langchain_tavily import TavilySearch
 from langchain_openai import ChatOpenAI
-from langchain_anthropic import ChatAnthropic
-from langchain_google_genai import ChatGoogleGenerativeAI
+# from langchain_anthropic import ChatAnthropic
+# from langchain_google_genai import ChatGoogleGenerativeAI
 
 # LangGraph imports
 from langgraph.graph import StateGraph
@@ -144,18 +144,7 @@ def get_llm(model_name: str, temperature: float = 0.5):
         LLM instance
     """
     try:
-        if "gemini" in model_name.lower():
-            google_api_key = os.getenv("GOOGLE_API_KEY")
-            if not google_api_key:
-                raise ValueError("Google API key is required for Gemini models.")
-            return ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash-lite-preview-06-17",
-                temperature=temperature,
-                google_api_key=google_api_key
-            )
-
-
-        elif "gpt" in model_name.lower():
+        if "gpt" in model_name.lower():
             openai_api_key = os.getenv("OPENAI_API_KEY")
             if not openai_api_key:
                 raise ValueError("OpenAI API key is required for GPT models.")
@@ -164,16 +153,27 @@ def get_llm(model_name: str, temperature: float = 0.5):
                 temperature=temperature,
                 api_key=openai_api_key
             )
-        
-        elif "claude" in model_name.lower():
-            anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
-            if not anthropic_api_key:
-                raise ValueError("Anthropic API key is required for Claude models.")
-            return ChatAnthropic(
-                model="claude-3-5-sonnet-20240620",
-                temperature=temperature,
-                api_key=anthropic_api_key
-            )
+
+        # elif "gemini" in model_name.lower():
+        #     google_api_key = os.getenv("GOOGLE_API_KEY")
+        #     if not google_api_key:
+        #         raise ValueError("Google API key is required for Gemini models.")
+        #     return ChatGoogleGenerativeAI(
+        #         model="gemini-2.5-flash-lite-preview-06-17",
+        #         temperature=temperature,
+        #         google_api_key=google_api_key
+        #     )
+
+
+        # elif "claude" in model_name.lower():
+        #     anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+        #     if not anthropic_api_key:
+        #         raise ValueError("Anthropic API key is required for Claude models.")
+        #     return ChatAnthropic(
+        #         model="claude-3-5-sonnet-20240620",
+        #         temperature=temperature,
+        #         api_key=anthropic_api_key
+        #     )
         
         
         else:
