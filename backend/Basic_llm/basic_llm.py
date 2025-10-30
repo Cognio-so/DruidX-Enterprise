@@ -78,25 +78,23 @@ async def SimpleLLm(state: GraphState) -> GraphState:
     session_id = state.get("session_id", "default")
     
     try:
-        print(f"SimpleLLM processing query: {user_query}")
-        print(f"Using model: {llm_model}")
-        print(f"Past messages count: {len(past_messages)}")
-        
+       
         kb_chunks = []
         if kb_docs and session_id:
             print(f"[SimpleLLM-KB] Checking for KB availability...")
-            kb_chunks = await _quick_kb_search(session_id, user_query, limit=4)
+            kb_chunks = await _quick_kb_search(session_id, user_query, limit=2)
             print(f"[SimpleLLM-KB] Retrieved {len(kb_chunks)} KB chunks")
         from langchain_groq import ChatGroq
         from llm import get_llm
+        chat=get_llm(llm_model, temperature=0.9)
         # chat = get_llm("openai/gpt-oss-120b", 0.8)
-        chat= ChatGroq(
-        model="openai/gpt-oss-20b",  
-        temperature=0.9,
-        streaming=True,
-        reasoning_effort="medium",
-        groq_api_key=os.getenv("GROQ_API_KEY")
-    )
+    #     chat= ChatGroq(
+    #     model="openai/gpt-oss-20b",  
+    #     temperature=0.9,
+    #     streaming=True,
+    #     reasoning_effort="medium",
+    #     groq_api_key=os.getenv("GROQ_API_KEY")
+    # )
         
         # Build conversation history
         formatted_history = []
@@ -173,9 +171,7 @@ Remember: Only use context sources when they genuinely help answer the user's qu
         system_msg = SystemMessage(content=enhanced_prompt)
         messages = [system_msg] + formatted_history + [HumanMessage(content=f"CURRENT USER INPUT: {user_query}")]
 
-        print(f"Sending messages to LLM: {len(messages)} messages")
-        print(f"Current query: {user_query}")
-        print(f"Available context: KB={len(kb_chunks)} chunks, Custom={bool(custom_system_prompt)}, History={len(past_messages)} messages")
+       
     
         full_response = ""
         async for chunk in chat.astream(messages):

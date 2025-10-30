@@ -309,10 +309,7 @@ Follow these permanent rules:
             f"Summary:\n{summary[:300]}\n\nRecent Conversation:\n{recent_text[:300]}"
             if summary or recent_text else f"Current User Query: {user_query}\n\nNo previous conversation available."
         )
-        print(f"🧾 Using Summary (first 200 chars): {summary[:200]}...")
-        print(f"💬 Using Last 2 Messages:\n{recent_text or '(none)'}")
-        print(f"🎯 Current User Query: {user_query}")
-
+    
     else:
         
         last_result = intermediate_results[-1]
@@ -557,8 +554,6 @@ async def orchestrator(state: GraphState) -> GraphState:
     if state.get("route") == "END":
         await summarizer(state, keep_last=2)
     print(f"Orchestrator routing to: {route}")
-    print(f"Orchestrator output state keys: {list(state.keys())}")
-    print(f"Route set in state: {state.get('route')}")
     return state
 
 def route_decision(state: GraphState) -> str:

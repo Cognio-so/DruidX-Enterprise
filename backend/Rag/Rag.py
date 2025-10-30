@@ -214,7 +214,7 @@ async def send_status_update(state: GraphState, message: str, progress: int = No
         })
 async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clear_existing: bool = False, is_kb: bool = False, is_user_doc: bool = False):
     EMBEDDING_MODEL = OpenAIEmbeddings(model="text-embedding-3-small")
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1200, chunk_overlap=200)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     chunked_docs = text_splitter.create_documents(doc)
 
     if is_kb and name in KB_EMBEDDING_CACHE:
@@ -585,9 +585,9 @@ async def _process_kb_docs(state, kb_docs, user_query, rag):
     
 
     if is_hybrid:
-        res = await _hybrid_search_intersection(collection_name, user_query, limit=6)
+        res = await _hybrid_search_intersection(collection_name, user_query, limit=5)
     else:
-        res = await _hybrid_search_rrf(collection_name, user_query, limit=6, k=60)
+        res = await _hybrid_search_rrf(collection_name, user_query, limit=5, k=60)
     
     print(f"[RAG] Retrieved {len(res)} chunks from KB")
     return ("kb", res)
