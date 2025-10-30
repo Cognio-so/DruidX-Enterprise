@@ -191,8 +191,6 @@ Now synthesize them into a clear, structured answer with:
         llm = ChatGroq(
         model="openai/gpt-oss-20b",  
         temperature=0.9,
-        streaming=True,
-        reasoning_effort="low",
         groq_api_key=os.getenv("GROQ_API_KEY")
     )
         system_msg = SystemMessage(content=STATIC_SYS_WEBSEARCH_BASIC)
@@ -216,8 +214,6 @@ Now synthesize them into a clear, structured answer with:
         llm = ChatGroq(
         model="openai/gpt-oss-20b",  
         temperature=0.9,
-        streaming=True,
-        reasoning_effort="low",
         groq_api_key=os.getenv("GROQ_API_KEY")
     )
         system_msg = SystemMessage(content=STATIC_SYS_WEBSEARCH)

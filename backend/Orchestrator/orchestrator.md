@@ -267,33 +267,34 @@ For complex queries that require multiple steps, plan the execution order as a f
    - Check: query contains action words (send, create, schedule, etc.)
    - If yes → **mcp**
 
-3. **Is it a factual/informational query?**
-   - Check: "what/who/when/where/how/why/explain/tell me"
-   - Check: mentions real entities, people, tech, concepts
-   - If yes → **web_search**
+3. **Is it text content processing (user pasted/provided text in the message)?**
+   - Check: user provides text content directly in query (e.g., a paragraph/article/email/code)
+   - Check: asks to summarize, analyze, or process the provided text
+   - If yes → **simple_llm**
+   - Note: Prefer SimpleLLM even if the text mentions real entities or concepts.
 
-4. **Is it a follow-up to WebSearch?**
+4. **Is it document-related?**
+   - Check: query explicitly mentions document/file OR last_route = RAG
+   - If yes → **rag**
+   - CRITICAL: If user provides text directly in the query (not uploaded docs), use **simple_llm** instead.
+
+5. **Is it a follow-up to WebSearch?**
    - Check: last_route = WebSearch
    - Check: query continues same topic (even if vague/short)
    - If yes → **web_search**
 
-5. **Is it document-related?**
-   - Check: query explicitly mentions document/file OR last_route = RAG
-   - If yes → **rag**
-
-6. **Is it text content processing?**
-   - Check: user provides text content directly in query
-   - Check: asks to summarize, analyze, or process the text
-   - If yes → **simple_llm**
+6. **Is it a factual/informational query with no pasted text and not a follow-up?**
+   - Check: "what/who/when/where/how/why/explain/tell me"
+   - Check: mentions real entities, people, tech, concepts
+   - If yes → **web_search**
 
 7. **Is it pure casual conversation?**
    - Check: greeting/thanks/meta/opinion
    - Check: NO factual info needed
    - If yes → **simple_llm**
 
-8. **Default: web_search**
-   - When unsure, prefer web_search over simple_llm
-
+8. **Default: simple_llm**
+   - When unsure, prefer **simple_llm** over **web_search**
 ---
 
 # Output Format:
@@ -325,9 +326,9 @@ Return VALID JSON ONLY:
 
 1. **Follow-ups continue the same route** (WebSearch→WebSearch, RAG→RAG, MCP→MCP)
 2. **Pronouns/vague queries after WebSearch → WebSearch** (NOT SimpleLLM)
-3. **Factual questions ALWAYS → WebSearch** (NOT SimpleLLM)
-4. **SimpleLLM is ONLY for greetings/meta/thanks** (NOT for follow-ups)
-5. **When uncertain: choose WebSearch over SimpleLLM**
+3. **Factual questions → WebSearch only when there is NO user-pasted text content**
+4. **SimpleLLM handles pasted text content by default (summarize/analyze/transform)**
+5. **When uncertain: choose SimpleLLM over WebSearch**
 6. **MCP routing requires both enabled tools AND action patterns**
 7. **Complex queries can have multiple execution steps - plan accordingly**
 8. **Context is passed to tools** - you just route correctly

@@ -458,22 +458,11 @@ async def stream_chat(session_id: str, request: ChatRequest):
                     yield f"data: {chunk_data}\n\n"
                 
                 await graph_task
-                
-                # Use the final state from graph execution instead of the original state
                 if final_state:
-                    # Extract the actual state from the last node result
                     for node_name, node_state in final_state.items():
                         if isinstance(node_state, dict) and 'img_urls' in node_state:
                             state.update(node_state)
                             break
-                
-                # Debug: Check what's actually in the state
-                print(f"🔥 FINAL STATE DEBUG:")
-                print(f"🔥 State keys: {list(state.keys())}")
-                print(f"🔥 img_urls in state: {state.get('img_urls', [])}")
-                print(f"🔥 response in state: {state.get('response', '')}")
-                
-                # Send final completion message with image URLs
                 final_chunk = {
                     "type": "content",
                     "data": {
