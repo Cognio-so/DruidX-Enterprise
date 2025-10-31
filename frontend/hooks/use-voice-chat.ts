@@ -153,7 +153,17 @@ export function useVoiceChat({
       });
 
       room.on(RoomEvent.ParticipantConnected, (participant) => {
-        console.log("Participant connected:", participant.identity);
+        console.log("Participant connected:", {
+          identity: participant.identity,
+          isAgent: participant.identity?.includes("agent") || participant.identity?.includes("assistant"),
+          audioTracks: Array.from(participant.audioTrackPublications.values()).length,
+          videoTracks: Array.from(participant.videoTrackPublications.values()).length
+        });
+        
+        // Check if this is the agent
+        if (participant.identity?.includes("agent") || participant.identity?.includes("assistant")) {
+          console.log("✅ Agent participant detected in room!");
+        }
       });
 
       room.on(RoomEvent.ParticipantDisconnected, (participant) => {
@@ -254,11 +264,22 @@ export function useVoiceChat({
       });
 
       room.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
+        console.log("Track subscribed:", {
+          kind: track.kind,
+          participant: participant?.identity,
+          isAgent: participant?.identity?.includes("agent") || participant?.identity?.includes("assistant"),
+          trackSid: track.sid
+        });
+        
         if (track.kind === "audio" && participant && participant.identity !== room.localParticipant.identity && track.sid) {
+          console.log("🎤 Setting up audio playback for participant:", participant.identity);
           const audioElement = new Audio();
           track.attach(audioElement);
           audioElementsRef.current.set(track.sid, audioElement);
-          audioElement.play().catch(console.error);
+          audioElement.play().catch((err) => {
+            console.error("Error playing audio:", err);
+          });
+          console.log("✅ Audio playback set up successfully");
         }
       });
 

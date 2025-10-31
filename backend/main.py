@@ -886,6 +886,18 @@ async def _ensure_agent_worker_running():
                 os.makedirs(log_dir, exist_ok=True)
                 log_file = os.path.join(log_dir, "agent_worker.log")
                 
+                # Prepare environment variables - ensure LiveKit vars are available
+                env = os.environ.copy()
+                required_env_vars = ["LIVEKIT_URL", "LIVEKIT_API_KEY", "LIVEKIT_API_SECRET"]
+                missing_vars = [var for var in required_env_vars if not env.get(var)]
+                if missing_vars:
+                    print(f"[AGENT WORKER] WARNING: Missing environment variables: {missing_vars}")
+                
+                print(f"[AGENT WORKER] Environment check:")
+                print(f"  LIVEKIT_URL: {'✅ Set' if env.get('LIVEKIT_URL') else '❌ Missing'}")
+                print(f"  LIVEKIT_API_KEY: {'✅ Set' if env.get('LIVEKIT_API_KEY') else '❌ Missing'}")
+                print(f"  LIVEKIT_API_SECRET: {'✅ Set' if env.get('LIVEKIT_API_SECRET') else '❌ Missing'}")
+                
                 # Run the agent script directly with "console" argument
                 # This bypasses the uv check and runs agents.cli.run_app() directly
                 with open(log_file, "w") as f:
@@ -894,26 +906,39 @@ async def _ensure_agent_worker_running():
                         cwd=backend_dir,
                         stdout=f,
                         stderr=subprocess.STDOUT,
-                        env=os.environ.copy(),
+                        env=env,
                         startupinfo=startupinfo if platform.system() == "Windows" else None
                     )
                 
-                print(f"Agent worker started with PID: {_agent_worker_process.pid}")
-                print(f"Agent worker logs: {log_file}")
+                print(f"[AGENT WORKER] Started with PID: {_agent_worker_process.pid}")
+                print(f"[AGENT WORKER] Logs: {log_file}")
                 
                 # Wait a bit to check if it started successfully
                 await asyncio.sleep(3)
                 if _agent_worker_process.poll() is not None:
-                    print(f"Agent worker process exited immediately with code: {_agent_worker_process.returncode}")
+                    print(f"[AGENT WORKER] ERROR: Process exited immediately with code: {_agent_worker_process.returncode}")
                     # Read the log file to see what went wrong
                     try:
                         with open(log_file, "r") as f:
                             log_content = f.read()
                             if log_content:
-                                print(f"Agent worker error log:\n{log_content}")
+                                print(f"[AGENT WORKER] Error log:\n{log_content}")
+                            else:
+                                print(f"[AGENT WORKER] Log file is empty - process may have failed silently")
                     except Exception as log_err:
-                        print(f"Could not read log file: {log_err}")
+                        print(f"[AGENT WORKER] Could not read log file: {log_err}")
                     _agent_worker_process = None
+                else:
+                    print(f"[AGENT WORKER] ✅ Process is running (PID: {_agent_worker_process.pid})")
+                    # Try to read initial logs to verify connection
+                    try:
+                        await asyncio.sleep(2)  # Wait a bit more for initial logs
+                        with open(log_file, "r") as f:
+                            initial_logs = f.read()
+                            if initial_logs:
+                                print(f"[AGENT WORKER] Initial logs:\n{initial_logs[:500]}")  # First 500 chars
+                    except Exception:
+                        pass
                     
             except Exception as e:
                 print(f"Error starting agent worker: {e}")
