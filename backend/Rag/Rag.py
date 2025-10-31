@@ -2,7 +2,7 @@ from graph_type import GraphState
 from langchain_core.prompts import ChatPromptTemplate
 from typing import Optional, Dict, Any
 from langchain_core.messages import SystemMessage, HumanMessage
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_openai import ChatOpenAI
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_groq import ChatGroq
 import uuid  
@@ -18,6 +18,7 @@ from prompt_cache import normalize_prefix
 QDRANT_URL = os.getenv("QDRANT_URL", ":memory:")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 from llm import get_llm, stream_with_token_tracking, _extract_usage
+from embeddings import embed_chunks_parallel, embed_query
 
 try:
     if QDRANT_URL == ":memory:":
@@ -213,7 +214,6 @@ async def send_status_update(state: GraphState, message: str, progress: int = No
             }
         })
 async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clear_existing: bool = False, is_kb: bool = False, is_user_doc: bool = False):
-    EMBEDDING_MODEL = OpenAIEmbeddings(model="text-embedding-3-small")
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     chunked_docs = text_splitter.create_documents(doc)
 
@@ -222,7 +222,9 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
         embeddings = KB_EMBEDDING_CACHE[name]["embeddings"]
         chunked_docs = KB_EMBEDDING_CACHE[name]["chunked_docs"]
     else:
-        embeddings = await EMBEDDING_MODEL.aembed_documents([doc.page_content for doc in chunked_docs])
+        # Use parallel batch embedding for efficient processing
+        chunk_texts = [doc.page_content for doc in chunked_docs]
+        embeddings = await embed_chunks_parallel(chunk_texts, batch_size=200)
         
         if is_kb:
             KB_EMBEDDING_CACHE[name] = {
@@ -289,8 +291,7 @@ async def _search_collection(collection_name: str, query: str, limit: int) -> Li
     """
     Helper function to perform a semantic search on a Qdrant collection and return the text of the top results.
     """
-    EMBEDDING_MODEL = OpenAIEmbeddings(model="text-embedding-3-small")
-    query_embedding = await EMBEDDING_MODEL.aembed_query(query)
+    query_embedding = await embed_query(query)
     
     search_results = await asyncio.to_thread(
         QDRANT_CLIENT.search,
@@ -358,9 +359,7 @@ async def _hybrid_search_rrf(collection_name: str, query: str, limit: int, k: in
     Returns:
         List of top documents based on RRF fusion
     """
-    EMBEDDING_MODEL = OpenAIEmbeddings(model="text-embedding-3-small")
-
-    query_embedding =await EMBEDDING_MODEL.aembed_query(query)
+    query_embedding = await embed_query(query)
     vector_results =await asyncio.to_thread(
         QDRANT_CLIENT.search,
         collection_name=collection_name,
@@ -406,9 +405,7 @@ async def _hybrid_search_intersection(collection_name: str, query: str, limit: i
     - High precision tasks
     - Queries where you want strict agreement between semantic and keyword retrieval
     """
-
-    EMBEDDING_MODEL = OpenAIEmbeddings(model="text-embedding-3-small")
-    query_embedding =await EMBEDDING_MODEL.aembed_query(query)
+    query_embedding = await embed_query(query)
     vector_results =await asyncio.to_thread(
         QDRANT_CLIENT.search,
         collection_name=collection_name,

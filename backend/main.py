@@ -12,7 +12,6 @@ from datetime import datetime, timedelta
 import json
 import httpx
 import subprocess
-from typing import Optional
 
 try:
     from livekit.api import AccessToken, VideoGrants
@@ -195,64 +194,75 @@ async def add_documents_by_url(session_id: str, request: dict):
     print(f"Documents to process: {len(documents)}")
     print(f"Document type: {doc_type}")
     
-    processed_docs = []
-    for i, doc in enumerate(documents):
-        print(f"Processing document {i+1}: {doc}")
-        file_url = doc["file_url"]
-        file_type = doc.get("file_type", "")
-        filename = doc["filename"]
-    
-        print(f"Fetching content from URL: {file_url}")
-        print(f"File type: {file_type}")
-        # Fetch content from URL
+    # Process documents in parallel
+    async def process_single_document(doc: dict, index: int) -> Optional[dict]:
+        """Process a single document (extract content from URL)"""
         try:
+            file_url = doc["file_url"]
+            file_type = doc.get("file_type", "")
+            filename = doc["filename"]
+            
+            print(f"[Parallel] Processing document {index + 1}/{len(documents)}: {filename}")
+            
+            # Fetch content from URL
             async with httpx.AsyncClient() as client:
-                print(f"Fetching content from URL: {doc['file_url']}")
-                response = await client.get(doc["file_url"], timeout=30.0)
+                response = await client.get(file_url, timeout=30.0)
                 response.raise_for_status()
                 file_content = response.content
-                print(f"Downloaded {len(file_content)} bytes")
-        
-                if file_type == "application/pdf" or filename.lower().endswith('.pdf'):
-                    print(f"[Document Processor] Processing PDF: {filename}")
-                    content = extract_text_from_pdf(file_content)
-                    if not content.strip():
-                        print(f"⚠️ Warning: PDF {filename} appears to be empty or unreadable")
-                elif file_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" or filename.lower().endswith('.docx'):
-                    print(f"[Document Processor] Processing DOCX: {filename}")
-                    content = extract_text_from_docx(file_content)
-                    if not content.strip():
-                        print(f"⚠️ Warning: DOCX {filename} appears to be empty or unreadable")
-                elif file_type == "application/json" or filename.lower().endswith('.json'):
-                    print(f"[Document Processor] Processing JSON: {filename}")
-                    content = extract_text_from_json(file_content)
-                    if not content.strip():
-                        print(f"⚠️ Warning: JSON {filename} appears to be empty or unreadable")
-                else:
-                    print(f"[Document Processor] Processing as text: {filename}")
-                    content = extract_text_from_txt(file_content)
-                    if not content.strip():
-                        print(f"⚠️ Warning: Text file {filename} appears to be empty or unreadable")
-                
-                if content.strip():  # Only add documents with actual content
-                    processed_doc = {
-                        "id": doc["id"],
-                        "filename": doc["filename"],
-                        "content": content,
-                        "file_type": doc["file_type"],
-                        "file_url": doc["file_url"],
-                        "size": doc["size"]
-                    }
-                    processed_docs.append(processed_doc)
-                    print(f"✅ Successfully processed document: {doc['filename']} ({len(content)} chars)")
-                else:
-                    print(f"❌ Skipping document {doc['filename']}: No readable content extracted")
+                print(f"[Parallel] Downloaded {len(file_content)} bytes from {filename}")
+            
+            # Extract text based on file type
+            if file_type == "application/pdf" or filename.lower().endswith('.pdf'):
+                content = extract_text_from_pdf(file_content)
+                if not content.strip():
+                    print(f"⚠️ Warning: PDF {filename} appears to be empty or unreadable")
+            elif file_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" or filename.lower().endswith('.docx'):
+                content = extract_text_from_docx(file_content)
+                if not content.strip():
+                    print(f"⚠️ Warning: DOCX {filename} appears to be empty or unreadable")
+            elif file_type == "application/json" or filename.lower().endswith('.json'):
+                content = extract_text_from_json(file_content)
+                if not content.strip():
+                    print(f"⚠️ Warning: JSON {filename} appears to be empty or unreadable")
+            else:
+                content = extract_text_from_txt(file_content)
+                if not content.strip():
+                    print(f"⚠️ Warning: Text file {filename} appears to be empty or unreadable")
+            
+            if content.strip():  # Only return documents with actual content
+                processed_doc = {
+                    "id": doc["id"],
+                    "filename": doc["filename"],
+                    "content": content,
+                    "file_type": doc["file_type"],
+                    "file_url": doc["file_url"],
+                    "size": doc["size"]
+                }
+                print(f"✅ [Parallel] Successfully processed: {filename} ({len(content)} chars)")
+                return processed_doc
+            else:
+                print(f"❌ [Parallel] Skipping {filename}: No readable content extracted")
+                return None
         except Exception as e:
-            print(f"❌ Error fetching {doc['filename']}: {e}")
+            print(f"❌ [Parallel] Error processing {doc.get('filename', 'unknown')}: {e}")
             import traceback
             traceback.print_exc()
+            return None
     
-    print(f"Total processed documents: {len(processed_docs)}")
+    # Process all documents in parallel
+    print(f"[Parallel] Starting parallel processing of {len(documents)} documents...")
+    doc_tasks = [process_single_document(doc, i) for i, doc in enumerate(documents)]
+    results = await asyncio.gather(*doc_tasks, return_exceptions=True)
+    
+    # Collect successful results (filter out None and exceptions)
+    processed_docs = []
+    for i, result in enumerate(results):
+        if isinstance(result, Exception):
+            print(f"❌ [Parallel] Document {i + 1} raised exception: {result}")
+        elif result is not None:
+            processed_docs.append(result)
+    
+    print(f"✅ [Parallel] Total processed documents: {len(processed_docs)}/{len(documents)}")
     
     # Add to session
     if doc_type == "user":
