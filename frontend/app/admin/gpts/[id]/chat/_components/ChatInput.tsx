@@ -2,14 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowUp, Globe, Paperclip, Sparkle, Telescope, X, Phone, PhoneOff, AudioLines, XCircle, AlertCircle } from "lucide-react";
+import { ArrowUp, Globe, Paperclip, Sparkle, Telescope, X, Phone, PhoneOff, AudioLines, XCircle } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { getModelsForFrontend, frontendToBackend, getDisplayName } from "@/lib/modelMapping";
 import { ComposioToolSelector } from "./ComposioToolSelector";
 import { useVoiceChat } from "@/hooks/use-voice-chat";
 import { LiveWaveform } from "@/components/ui/live-waveform";
 import { cn } from "@/lib/utils";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface VoiceMessage {
   id: string;
@@ -76,21 +75,6 @@ export default function ChatInput({
     gptId,
     onMessage: onVoiceMessage,
   });
-
-  // Check HTTPS in production
-  const [showHttpsWarning, setShowHttpsWarning] = useState(false);
-  
-  useEffect(() => {
-    // Check if we're in production and not using HTTPS
-    const isProduction = process.env.NODE_ENV === 'production' || 
-                         window.location.hostname !== 'localhost' && 
-                         window.location.hostname !== '127.0.0.1';
-    const isSecure = window.location.protocol === 'https:' || window.isSecureContext;
-    
-    if (isProduction && !isSecure) {
-      setShowHttpsWarning(true);
-    }
-  }, []);
 
   // Notify parent when voice connection changes
   useEffect(() => {
@@ -236,24 +220,6 @@ export default function ChatInput({
 
   return (
     <div className={`w-full max-w-4xl mx-auto ${hasMessages ? "" : "px-4"}`}>
-      {/* HTTPS Warning */}
-      {showHttpsWarning && (
-        <Alert variant="destructive" className="mb-3">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Voice features require HTTPS. Please use a secure connection (https://) to enable microphone access.
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      {/* Voice Connection Error */}
-      {error && !connected && (
-        <Alert variant="destructive" className="mb-3">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
       {uploadedDocs.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-2">
           {uploadedDocs.map((doc, index) => (

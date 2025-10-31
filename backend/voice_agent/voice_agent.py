@@ -319,8 +319,7 @@ class VoiceAssistant:
 
     async def start(self, ctx: agents.JobContext) -> None:
         """Start the agent in the provided room context with error handling"""
-        logger.info(f"🎯 Starting voice assistant for room: {ctx.room.name}")
-        logger.info(f"Room has {len(ctx.room.remote_participants)} remote participants")
+        logger.info(f"Starting voice assistant for room: {ctx.room.name}")
         
         # Initialize session if not already done, with retry
         retry_count = 0
@@ -472,15 +471,12 @@ class VoiceAssistant:
 async def entrypoint(ctx: agents.JobContext):
     """Enhanced entrypoint with improved error handling"""
     try:
-        logger.info(f"🚀 Agent entrypoint called for room: {ctx.room.name}")
-        logger.info(f"Room participants: {[p.identity for p in ctx.room.remote_participants.values()]}")
-        logger.info(f"Room name: {ctx.room.name}, Room SID: {ctx.room.sid}")
+        logger.info(f"Agent entrypoint called for room: {ctx.room.name}")
         # Don't access ctx.room.url - may not exist in all contexts
         assistant = VoiceAssistant()
-        logger.info("Starting assistant run...")
         await assistant.run(ctx)
     except Exception as e:
-        logger.critical(f"❌ Critical error in entrypoint: {str(e)}")
+        logger.critical(f"Critical error in entrypoint: {str(e)}")
         import traceback
         traceback.print_exc()
         raise  # Re-raise to let LiveKit know the job failed
