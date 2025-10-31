@@ -263,11 +263,12 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
                 vector=embedding,
                 payload={"text": doc.page_content,
                          "page": doc.metadata.get("page", 0),
+                         "chunk_index":i,
                         "heading": await extract_heading(doc.page_content)
                          },
                 
             )
-            for doc, embedding in zip(chunked_docs, embeddings)
+            for i, (doc, embedding) in enumerate(zip(chunked_docs, embeddings))
         ]
     )
     if is_hybrid:
@@ -604,8 +605,8 @@ async def hierarchical_summarize(state, batch_size: int = 10):
     gpt_config = state.get("gpt_config", {})
     custom_prompt = gpt_config.get("instruction", "").strip()
 
-    map_llm = get_llm("google/gemini-2.5-flash-lite", 0.9)
-    reduce_llm = get_llm(llm_model, 0.8)
+    map_llm = get_llm("google/gemini-2.5-flash-lite", 0.2)
+    reduce_llm = get_llm(llm_model, 0.3)
     total_tokens = sum(len(c["text"].split()) for c in chunks)
     if total_tokens < 1200:
         mode = "brief"
