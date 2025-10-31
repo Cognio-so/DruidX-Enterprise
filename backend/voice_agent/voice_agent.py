@@ -300,8 +300,27 @@ class VoiceAssistant:
                         # Return partial result while search continues in background
                         return "I'm looking into that now. Here's what I know so far..."
 
+    async def _send_transcription(self, ctx: agents.JobContext, text: str, role: str = "user"):
+        """Send transcription as data packet to room"""
+        try:
+            import json
+            from livekit.protocol import DataPacket_Kind
+            data = json.dumps({"type": "transcription", "text": text, "role": role}).encode()
+            await ctx.room.local_participant.publish_data(
+                data, 
+                reliable=True, 
+                topic="transcription"
+            )
+            logger.info(f"Sent transcription: {role} - {text[:50]}")
+        except Exception as e:
+            logger.error(f"Error sending transcription: {e}")
+            import traceback
+            traceback.print_exc()
+
     async def start(self, ctx: agents.JobContext) -> None:
         """Start the agent in the provided room context with error handling"""
+        logger.info(f"Starting voice assistant for room: {ctx.room.name}")
+        
         # Initialize session if not already done, with retry
         retry_count = 0
         while not self.session and retry_count < 2:
@@ -320,11 +339,29 @@ class VoiceAssistant:
         if self.enable_parallel_tts:
             await self._setup_parallel_tts_for_web_search()
                 
-        # Create agent instance
+        # Create agent instance with transcription hooks
         self.agent_instance = self._create_agent()
         
+        # Hook into STT events to capture user transcriptions
+        original_on_user_speech_committed = None
+        if hasattr(self.session, 'on_user_speech_committed'):
+            original_on_user_speech_committed = self.session.on_user_speech_committed
+            
+            async def on_user_speech(text: str):
+                await self._send_transcription(ctx, text, "user")
+                if original_on_user_speech_committed:
+                    await original_on_user_speech_committed(text)
+            
+            self.session.on_user_speech_committed = on_user_speech
+        
         try:
-            # Start the session
+            logger.info("Connecting agent to room...")
+            # Connect to the room first
+            await ctx.connect()
+            logger.info("Agent connected to room successfully")
+            
+            # Start the session after connecting
+            logger.info("Starting agent session...")
             await self.session.start(
                 room=ctx.room,
                 agent=self.agent_instance,
@@ -333,21 +370,21 @@ class VoiceAssistant:
                     noise_cancellation=noise_cancellation.BVC(),
                 ),
             )
+            logger.info("Agent session started successfully")
             
-            # Connect to the room
-            await ctx.connect()
-            
-            # Generate initial greeting with retry
+            # Generate initial greeting with retry and send transcription
+            greeting_text = "Hello! I'm your voice assistant. How can I help you today?"
+            logger.info("Generating initial greeting...")
             await self._generate_greeting_with_retry()
+            await self._send_transcription(ctx, greeting_text, "assistant")
+            logger.info("Initial greeting sent successfully")
             
         except Exception as e:
             logger.error(f"Error starting assistant: {str(e)}")
-            # Try to recover by reconnecting
-            try:
-                logger.info("Attempting to reconnect...")
-                await ctx.connect()
-            except Exception as reconnect_error:
-                logger.error(f"Reconnect failed: {str(reconnect_error)}")
+            import traceback
+            traceback.print_exc()
+            # Re-raise to let the caller know it failed
+            raise
     
     async def _generate_greeting_with_retry(self, max_attempts=1):
         """Generate initial greeting with retry mechanism"""
@@ -404,7 +441,7 @@ class VoiceAssistant:
         
         # Keep the session running until terminated
         try:
-            logger.info("🎤 Agent is now listening. Press Ctrl+B to toggle between Text/Audio mode.")
+            logger.info("Agent is now listening. Press Ctrl+B to toggle between Text/Audio mode.")
             
             # Use a simple loop to keep the session alive with health checks
             while True:
@@ -416,10 +453,10 @@ class VoiceAssistant:
                     # Try to continue despite the error
         
         except KeyboardInterrupt:
-            logger.info("\n👋 Session terminated by user. Goodbye!")
+            logger.info("\nSession terminated by user. Goodbye!")
         
         except Exception as e:
-            logger.error(f"\n❌ Error in main loop: {str(e)}")
+            logger.error(f"\nError in main loop: {str(e)}")
         
         finally:
             # Clean up
@@ -434,10 +471,15 @@ class VoiceAssistant:
 async def entrypoint(ctx: agents.JobContext):
     """Enhanced entrypoint with improved error handling"""
     try:
+        logger.info(f"Agent entrypoint called for room: {ctx.room.name}")
+        # Don't access ctx.room.url - may not exist in all contexts
         assistant = VoiceAssistant()
         await assistant.run(ctx)
     except Exception as e:
         logger.critical(f"Critical error in entrypoint: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise  # Re-raise to let LiveKit know the job failed
 
 
 if __name__ == "__main__":

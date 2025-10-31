@@ -5,10 +5,27 @@ from pydantic import BaseModel
 from typing import List, Dict, Any, Optional, Callable
 import asyncio
 import os
+import sys
+import platform
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import httpx
+import subprocess
+from typing import Optional
+
+try:
+    from livekit.api import AccessToken, VideoGrants
+    from livekit import api as livekit_api
+    LIVEKIT_AVAILABLE = True
+except ImportError:
+    try:
+        from livekit_api import AccessToken, VideoGrants
+        import livekit_api
+        LIVEKIT_AVAILABLE = True
+    except ImportError:
+        LIVEKIT_AVAILABLE = False
+        print("Warning: livekit package not available. Voice features will be disabled.")
 from document_processor import extract_text_from_pdf, extract_text_from_docx, extract_text_from_txt, extract_text_from_json
 from graph import graph
 from graph_type import GraphState
@@ -42,6 +59,11 @@ app.add_middleware(
 )
 
 sessions: Dict[str, Dict[str, Any]] = {}
+
+# Agent worker process management
+_agent_worker_process: Optional[subprocess.Popen] = None
+_agent_worker_lock = asyncio.Lock()
+_active_voice_rooms: Dict[str, Dict[str, Any]] = {}  # Track active voice rooms
 
 
 class SessionManager:
@@ -823,13 +845,270 @@ async def mcp_callback(request: Request):
     
     return {"status": "success", "connection_request_id": connection_request_id}
 
+async def _ensure_agent_worker_running():
+    """Ensure the agent worker process is running"""
+    global _agent_worker_process
+    
+    async with _agent_worker_lock:
+        if _agent_worker_process is not None:
+            # Check if process is still alive
+            if _agent_worker_process.poll() is None:
+                return  # Already running
+            else:
+                print("Agent worker process died, restarting...")
+                _agent_worker_process = None
+        
+        if _agent_worker_process is None:
+            try:
+                # Get the voice agent script path
+                backend_dir = os.path.dirname(os.path.abspath(__file__))
+                voice_agent_path = os.path.join(backend_dir, "voice_agent", "voice_agent.py")
+                
+                if not os.path.exists(voice_agent_path):
+                    print(f"Warning: Voice agent script not found at {voice_agent_path}")
+                    return
+                
+                # Start the agent worker in background
+                print("Starting LiveKit agent worker...")
+                
+                # Determine Python executable
+                python_exec = sys.executable
+                
+                # Start agent worker process (non-blocking)
+                startupinfo = None
+                if platform.system() == "Windows":
+                    startupinfo = subprocess.STARTUPINFO()
+                    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                    startupinfo.wShowWindow = subprocess.SW_HIDE
+                
+                # Create log file for agent worker
+                log_dir = os.path.join(backend_dir, "logs")
+                os.makedirs(log_dir, exist_ok=True)
+                log_file = os.path.join(log_dir, "agent_worker.log")
+                
+                # Run the agent script directly with "console" argument
+                # This bypasses the uv check and runs agents.cli.run_app() directly
+                with open(log_file, "w") as f:
+                    _agent_worker_process = subprocess.Popen(
+                        [python_exec, voice_agent_path, "console"],
+                        cwd=backend_dir,
+                        stdout=f,
+                        stderr=subprocess.STDOUT,
+                        env=os.environ.copy(),
+                        startupinfo=startupinfo if platform.system() == "Windows" else None
+                    )
+                
+                print(f"Agent worker started with PID: {_agent_worker_process.pid}")
+                print(f"Agent worker logs: {log_file}")
+                
+                # Wait a bit to check if it started successfully
+                await asyncio.sleep(3)
+                if _agent_worker_process.poll() is not None:
+                    print(f"Agent worker process exited immediately with code: {_agent_worker_process.returncode}")
+                    # Read the log file to see what went wrong
+                    try:
+                        with open(log_file, "r") as f:
+                            log_content = f.read()
+                            if log_content:
+                                print(f"Agent worker error log:\n{log_content}")
+                    except Exception as log_err:
+                        print(f"Could not read log file: {log_err}")
+                    _agent_worker_process = None
+                    
+            except Exception as e:
+                print(f"Error starting agent worker: {e}")
+                import traceback
+                traceback.print_exc()
+                _agent_worker_process = None
+
+async def _stop_agent_worker():
+    """Stop the agent worker process"""
+    global _agent_worker_process
+    
+    async with _agent_worker_lock:
+        if _agent_worker_process is not None:
+            try:
+                print("Stopping agent worker process...")
+                # Terminate the process gracefully
+                _agent_worker_process.terminate()
+                
+                # Wait up to 5 seconds for graceful shutdown
+                try:
+                    _agent_worker_process.wait(timeout=5)
+                    print("Agent worker process terminated gracefully")
+                except subprocess.TimeoutExpired:
+                    # Force kill if it doesn't terminate
+                    print("Agent worker didn't terminate, forcing kill...")
+                    _agent_worker_process.kill()
+                    _agent_worker_process.wait()
+                    print("Agent worker process killed")
+                
+                _agent_worker_process = None
+            except Exception as e:
+                print(f"Error stopping agent worker: {e}")
+                # Try to kill if terminate failed
+                try:
+                    if _agent_worker_process and _agent_worker_process.poll() is None:
+                        _agent_worker_process.kill()
+                        _agent_worker_process.wait()
+                except:
+                    pass
+                _agent_worker_process = None
+
+@app.post("/api/voice/connect")
+async def voice_connect(request: dict):
+    """Create LiveKit room and generate access token for voice connection"""
+    if not LIVEKIT_AVAILABLE:
+        raise HTTPException(status_code=503, detail="LiveKit package not installed. Please install livekit-api.")
+    
+    session_id = request.get("sessionId")
+    gpt_id = request.get("gptId")
+    
+    if not session_id:
+        raise HTTPException(status_code=400, detail="Session ID is required")
+    
+    try:
+        # Ensure agent worker is running
+        await _ensure_agent_worker_running()
+        
+        livekit_url = os.getenv("LIVEKIT_URL")
+        livekit_api_key = os.getenv("LIVEKIT_API_KEY")
+        livekit_api_secret = os.getenv("LIVEKIT_API_SECRET")
+        
+        if not livekit_url:
+            raise HTTPException(
+                status_code=500,
+                detail="LIVEKIT_URL environment variable is not set"
+            )
+        if not livekit_api_key:
+            raise HTTPException(
+                status_code=500,
+                detail="LIVEKIT_API_KEY environment variable is not set"
+            )
+        if not livekit_api_secret:
+            raise HTTPException(
+                status_code=500,
+                detail="LIVEKIT_API_SECRET environment variable is not set"
+            )
+        
+        room_name = f"voice-{session_id}"
+        participant_identity = f"user-{session_id}"
+        
+        # Track this voice room as active
+        _active_voice_rooms[room_name] = {
+            "session_id": session_id,
+            "gpt_id": gpt_id,
+            "room_name": room_name,
+            "created_at": datetime.now().isoformat()
+        }
+        
+        token = AccessToken(livekit_api_key, livekit_api_secret) \
+            .with_identity(participant_identity) \
+            .with_name(participant_identity) \
+            .with_grants(VideoGrants(
+                room_join=True,
+                room=room_name,
+                can_publish=True,
+                can_subscribe=True,
+                can_publish_data=True
+            )) \
+            .with_ttl(timedelta(hours=2)) \
+            .to_jwt()
+        
+        return {
+            "token": token,
+            "url": livekit_url,
+            "roomName": room_name
+        }
+    except Exception as e:
+        print(f"Error creating voice connection: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to create voice connection: {str(e)}")
+
+@app.post("/api/voice/disconnect")
+async def voice_disconnect(request: dict):
+    """Disconnect from LiveKit room and stop agent worker if no active rooms"""
+    if not LIVEKIT_AVAILABLE:
+        return {"message": "Voice disconnected"}
+    
+    session_id = request.get("sessionId")
+    room_name = request.get("roomName")
+    
+    try:
+        # Remove room from active tracking
+        if room_name and room_name in _active_voice_rooms:
+            del _active_voice_rooms[room_name]
+            print(f"Removed room {room_name} from active rooms. Remaining: {len(_active_voice_rooms)}")
+        
+        # Delete the LiveKit room
+        if room_name:
+            livekit_api_key = os.getenv("LIVEKIT_API_KEY")
+            livekit_api_secret = os.getenv("LIVEKIT_API_SECRET")
+            
+            if livekit_api_key and livekit_api_secret:
+                try:
+                    lk_api = livekit_api.LiveKitAPI(livekit_api_key, livekit_api_secret)
+                    # Get room info before deleting to check participants
+                    try:
+                        room_info = await lk_api.get_room(room_name)
+                        if room_info:
+                            # Delete the room which will disconnect all participants
+                            await lk_api.delete_room(room_name)
+                            print(f"Deleted LiveKit room: {room_name}")
+                    except Exception as room_err:
+                        # Room might not exist or already deleted
+                        print(f"Room {room_name} may not exist or already deleted: {room_err}")
+                        pass
+                except AttributeError:
+                    # Fallback for older API versions
+                    try:
+                        await lk_api.delete_room(room_name)
+                    except:
+                        pass
+                except Exception as api_err:
+                    print(f"Error deleting room via API: {api_err}")
+        
+        # Check if there are any remaining active voice rooms
+        # If no active rooms, stop the agent worker
+        if len(_active_voice_rooms) == 0:
+            print("No active voice rooms remaining. Stopping agent worker...")
+            await _stop_agent_worker()
+        else:
+            print(f"Agent worker kept running. {len(_active_voice_rooms)} active voice room(s) remaining.")
+        
+        return {"message": "Voice disconnected successfully"}
+    except Exception as e:
+        print(f"Error disconnecting voice: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Even on error, try to remove from tracking and stop worker if needed
+        if room_name and room_name in _active_voice_rooms:
+            del _active_voice_rooms[room_name]
+        
+        if len(_active_voice_rooms) == 0:
+            await _stop_agent_worker()
+        
+        return {"message": "Voice disconnected"}
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup on application shutdown"""
+    print("Application shutting down. Cleaning up agent worker...")
+    await _stop_agent_worker()
+    print("Cleanup complete.")
+
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy",
         "openai_configured": bool(os.getenv("OPENAI_API_KEY")),
-        "timestamp": datetime.now().isoformat()
+        "livekit_configured": bool(os.getenv("LIVEKIT_API_KEY")),
+        "timestamp": datetime.now().isoformat(),
+        "active_voice_rooms": len(_active_voice_rooms),
+        "agent_worker_running": _agent_worker_process is not None and _agent_worker_process.poll() is None
     }
 
 if __name__ == "__main__":

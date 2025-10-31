@@ -2,10 +2,20 @@
 
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowUp, Globe, Paperclip, Sparkle, Telescope, X } from "lucide-react";
+import { ArrowUp, Globe, Paperclip, Sparkle, Telescope, X, Phone, PhoneOff, AudioLines, XCircle } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { getModelsForFrontend, frontendToBackend, getDisplayName } from "@/lib/modelMapping";
 import { ComposioToolSelector } from "./ComposioToolSelector";
+import { useVoiceChat } from "@/hooks/use-voice-chat";
+import { LiveWaveform } from "@/components/ui/live-waveform";
+import { cn } from "@/lib/utils";
+
+interface VoiceMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+}
 
 interface ChatInputProps {
   onSendMessage: (message: string, options: {
@@ -23,6 +33,9 @@ interface ChatInputProps {
   hybridRag?: boolean;
   defaultModel?: string;
   gptId?: string;
+  sessionId?: string | null;
+  onVoiceMessage?: (message: VoiceMessage) => void;
+  onVoiceConnectionChange?: (connected: boolean) => void;
 }
 
 interface UploadedDoc {
@@ -42,6 +55,9 @@ export default function ChatInput({
   hybridRag = false,
   defaultModel,
   gptId,
+  sessionId,
+  onVoiceMessage,
+  onVoiceConnectionChange,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [selectedModel, setSelectedModel] = useState("gpt_4o");
@@ -52,6 +68,26 @@ export default function ChatInput({
   const [composioTools, setComposioTools] = useState<string[]>([]);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Voice chat integration
+  const { connected, connecting, error, connect, disconnect, audioStream } = useVoiceChat({
+    sessionId: sessionId || null,
+    gptId,
+    onMessage: onVoiceMessage,
+  });
+
+  // Notify parent when voice connection changes
+  useEffect(() => {
+    onVoiceConnectionChange?.(connected);
+  }, [connected, onVoiceConnectionChange]);
+
+  const handleVoiceToggle = async () => {
+    if (connected) {
+      await disconnect();
+    } else {
+      await connect();
+    }
+  };
 
   useEffect(() => {
     if (defaultModel) {
@@ -215,20 +251,37 @@ export default function ChatInput({
 
       <div className="relative bg-muted/20 rounded-3xl shadow-sm border border-border overflow-hidden">
         <div className="p-3">
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Ask anything..."
-            disabled={isLoading}
-            className="w-full min-h-[50px] resize-none outline-none text-lg leading-snug bg-transparent placeholder:text-muted-foreground disabled:opacity-50"
-            rows={2}
-          />
+          {connected ? (
+            <div className="w-full min-h-[50px] flex items-center justify-center">
+              <LiveWaveform 
+                stream={audioStream} 
+                active={connected}
+                height={80}
+                barWidth={3}
+                barGap={2}
+                mode="static"
+                fadeEdges={true}
+                barColor="primary"
+                historySize={120}
+                className="w-full"
+              />
+            </div>
+          ) : (
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask anything..."
+              disabled={isLoading || connecting}
+              className="w-full min-h-[50px] resize-none outline-none text-lg leading-snug bg-transparent placeholder:text-muted-foreground disabled:opacity-50"
+              rows={2}
+            />
+          )}
         </div>
 
         <div className="flex items-center justify-between px-3 py-2">
           <div className="flex items-center gap-2">
-            <Select value={selectedModel} onValueChange={handleModelChange} disabled={isLoading}>
+            <Select value={selectedModel} onValueChange={handleModelChange} disabled={isLoading || connected}>
               <SelectTrigger className="h-7 px-2 rounded-full text-sm border-border bg-muted hover:bg-accent focus:ring-0 focus:ring-offset-0">
                 <div className="flex items-center gap-2">
                   <Sparkle className="size-4 text-primary" />
@@ -253,7 +306,7 @@ export default function ChatInput({
               size="icon"
               className="h-7 w-7 rounded-full"
               onClick={() => setWebSearch(!webSearch)}
-              disabled={isLoading}
+              disabled={isLoading || connected}
             >
               <Globe className="h-3.5 w-3.5" />
             </Button>
@@ -262,7 +315,7 @@ export default function ChatInput({
               size="icon"
               className="h-7 w-7 rounded-full"
               onClick={() => setDeepSearch(!deepSearch)}
-              disabled={isLoading}
+              disabled={isLoading || connected}
             >
               <Telescope className="size-4"/>
             </Button>
@@ -271,12 +324,29 @@ export default function ChatInput({
               <ComposioToolSelector
                 gptId={gptId}
                 onToolsChange={setComposioTools}
-                disabled={isLoading}
+                disabled={isLoading || connected}
               />
             )}
           </div>
 
           <div className="flex items-center gap-1.5">
+            <Button
+              variant={connected ? "default" : "outline"}
+              size="icon"
+              className={cn(
+                "h-7 w-7 rounded-full",
+                connected && "bg-primary hover:bg-primary/90 text-white"
+              )}
+              onClick={handleVoiceToggle}
+              disabled={isLoading || connecting}
+              title={connected ? "Disconnect voice" : "Connect voice"}
+            >
+              {connected ? (
+                <XCircle className="h-3.5 w-3.5 " />
+              ) : (
+                <AudioLines className="h-3.5 w-3.5" />
+              )}
+            </Button>
             <input
               ref={fileInputRef}
               type="file"
@@ -288,7 +358,7 @@ export default function ChatInput({
               variant="outline"
               size="icon"
               className="h-7 w-7 rounded-full"
-              disabled={isLoading || isUploading}
+              disabled={isLoading || isUploading || connected}
               onClick={() => fileInputRef.current?.click()}
             >
               <Paperclip className="h-3.5 w-3.5" />
@@ -296,7 +366,7 @@ export default function ChatInput({
 
             <Button
               onClick={handleSend}
-              disabled={!message.trim() || isLoading}
+              disabled={!message.trim() || isLoading || connected}
               size="icon"
               className="h-7 w-7 rounded-full"
             >

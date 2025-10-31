@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useChatSession } from "@/hooks/use-chat-session";
 import { useChatMessages } from "@/hooks/use-chat-messages";
 import { useAutoSaveConversation } from "@/hooks/use-auto-save-conversation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { getModelByFrontendValue } from "@/lib/modelMapping";
 
@@ -23,10 +23,24 @@ export default function ChatGptById() {
   const params = useParams();
   const gptId = params.id as string;
   const { sessionId, uploadDocument, hybridRag } = useChatSession();
-  const { messages, isLoading, sendMessage } = useChatMessages(sessionId);
+  const { messages, isLoading, sendMessage, addMessage } = useChatMessages(sessionId);
   const [gptData, setGptData] = useState<GptData | null>(null);
 
+  // Handle voice messages and add them to the chat
+  const handleVoiceMessage = useCallback((voiceMessage: { id: string; role: "user" | "assistant"; content: string; timestamp: string }) => {
+    // Add voice messages to the chat messages array
+    if (voiceMessage.content && voiceMessage.content.trim()) {
+      addMessage({
+        role: voiceMessage.role,
+        content: voiceMessage.content,
+        timestamp: voiceMessage.timestamp,
+        isStreaming: false,
+      });
+    }
+  }, [addMessage]);
+
   const hasMessages = messages.length > 0;
+  const [voiceConnected, setVoiceConnected] = useState(false);
 
   useAutoSaveConversation({
     gptId,
@@ -74,8 +88,8 @@ export default function ChatGptById() {
         />
       </div>
 
-      {hasMessages && (
-        <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-hidden">
+        {hasMessages && (
           <ScrollArea className="h-full p-2">
             <div className="space-y-2">
               {messages.map((msg) => (
@@ -90,23 +104,19 @@ export default function ChatGptById() {
               ))}
             </div>
           </ScrollArea>
-        </div>
-      )}
-
-      <div
-        className={`${
-          hasMessages
-            ? "flex-shrink-0 p-2 bg-background"
-            : "flex-1 flex flex-col items-center justify-center p-4"
-        }`}
-      >
-        {!hasMessages && (
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-semibold text-primary">
-              What can I help with?
-            </h1>
+        )}
+        {!hasMessages && !voiceConnected && (
+          <div className="h-full flex flex-col items-center justify-center p-4">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-semibold text-primary">
+                What can I help with?
+              </h1>
+            </div>
           </div>
         )}
+      </div>
+
+      <div className="flex-shrink-0 p-2 bg-background">
         <ChatInput
           onSendMessage={sendMessage}
           onDocumentUploaded={uploadDocument}
@@ -115,6 +125,9 @@ export default function ChatGptById() {
           hybridRag={hybridRag}
           defaultModel={gptData?.model}
           gptId={gptId}
+          sessionId={sessionId}
+          onVoiceMessage={handleVoiceMessage}
+          onVoiceConnectionChange={setVoiceConnected}
         />
       </div>
     </div>
