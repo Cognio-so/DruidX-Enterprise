@@ -245,6 +245,14 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
             collection_name=name,
             vectors_config=models.VectorParams(size=VECTOR_SIZE, distance=models.Distance.COSINE),
         )
+    async def extract_heading(txt):
+        lines = txt.split("\n")
+        for l in lines:
+            l = l.strip()
+            # Matches: "UNIT – I", "CHAPTER 3", "1.1 Regression", "2.5 Decision Trees"
+            if re.match(r"^(UNIT[\s–-]*[IVXLC0-9]+|CHAPTER[\s–-]*\d+|^\d+(\.\d+)+|[A-Z][A-Za-z\s]{4,})", l):
+                return re.sub(r"^[\d.:\s–-]+", "", l).strip(":–- ")
+        return None
 
     await asyncio.to_thread(
         QDRANT_CLIENT.upsert,
@@ -253,7 +261,11 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
             models.PointStruct(
                 id=str(uuid.uuid4()),
                 vector=embedding,
-                payload={"text": doc.page_content}
+                payload={"text": doc.page_content,
+                         "page": doc.metadata.get("page", 0),
+                        "heading": await extract_heading(doc.page_content)
+                         },
+                
             )
             for doc, embedding in zip(chunked_docs, embeddings)
         ]
@@ -541,6 +553,217 @@ You **MUST** respond with a single, valid JSON object and nothing else.
             "search_strategy": "both" if (has_user_docs and has_kb) else "user_only" if has_user_docs else "kb_only",
             "reasoning": "Fallback due to parsing error"
         }
+async def is_summarization_query(user_query: str) -> bool:
+    """
+    Detect if the query asks for summarization of the entire document.
+    """
+    summary_keywords = [
+        "summarize", "summary", "overview", "explain this document",
+        "explain the whole", "key points", "main points", "tldr",
+        "analyze this file", "analyze the document", "review this document",
+        "give complete summary", "give me a summary", "full document summary"
+    ]
+    q = user_query.lower()
+    return any(kw in q for kw in summary_keywords)
+    
+import asyncio, random
+from langchain.schema import HumanMessage
+
+import asyncio, re, random
+from langchain.schema import HumanMessage
+
+async def hierarchical_summarize(state, batch_size: int = 10):
+    """
+    🧠 Hierarchical Summarizer for Custom GPTs
+    ------------------------------------------
+    - Auto-adapts between Brief / Normal / Hierarchical modes.
+    - Fully async (map–reduce summarization with recursion).
+    - Honors Custom GPT instructions (from gpt_config["instruction"]).
+    - Streams output progressively through callbacks.
+    """
+
+    session_id = state.get("session_id")
+    cache = USER_DOC_EMBEDDING_CACHE.get(session_id)
+    if not cache:
+        raise Exception("No cached document found. Please upload a document first.")
+
+    collection_name = cache["collection_name"]
+    scroll_out, _ = await asyncio.to_thread(
+        QDRANT_CLIENT.scroll,
+        collection_name=collection_name,
+        limit=10000
+    )
+
+    chunks = [p.payload for p in scroll_out if "text" in p.payload]
+    if not chunks:
+        raise Exception("No chunks found in Qdrant collection.")
+    chunks.sort(key=lambda x: (x.get("page", 0), x.get("chunk_index", 0)))
+
+    chunk_callback = state.get("_chunk_callback")
+    llm_model = state.get("llm_model", "gpt-4o-mini")
+    gpt_config = state.get("gpt_config", {})
+    custom_prompt = gpt_config.get("instruction", "").strip()
+
+    # Base models
+    map_llm = get_llm("google/gemini-2.5-flash-lite", 0.9)
+    reduce_llm = get_llm(llm_model, 0.8)
+
+    # Detect scale
+    total_tokens = sum(len(c["text"].split()) for c in chunks)
+    if total_tokens < 1200:
+        mode = "brief"
+    elif total_tokens < 12000:
+        mode = "normal"
+    else:
+        mode = "hierarchical"
+
+    # Custom GPT system prefix
+    custom_prefix = f"\n---\n# CUSTOM GPT INSTRUCTION\n{custom_prompt}\n---\n" if custom_prompt else ""
+
+    # Helper: heading extractor
+    def extract_heading(txt: str):
+        lines = txt.split("\n")
+        for l in lines:
+            l = l.strip()
+            if re.match(r"^(UNIT[\s–-]*[IVXLC0-9]+|CHAPTER[\s–-]*\d+|^\d+(\.\d+)+|[A-Z][A-Za-z\s]{4,})", l):
+                return re.sub(r"^[\d.:\s–-]+", "", l).strip(":–- ")
+        return None
+
+    # Adjust batch size dynamically
+    avg_len = max(1, sum(len(c["text"]) for c in chunks) // len(chunks))
+    batch_size = min(10, max(3, 8000 // avg_len))
+    batches = [chunks[i:i + batch_size] for i in range(0, len(chunks), batch_size)]
+
+    # ------------------------------------------------------------
+    # MODE 1️⃣ : BRIEF SUMMARY (short docs <1200 tokens)
+    # ------------------------------------------------------------
+    print(f"mode:", mode)
+    if mode == "brief":
+        text = "\n".join(c["text"] for c in chunks)
+        prompt = f"""
+{custom_prefix}
+You are a professional summarizer.
+Summarize the document in detail while preserving the flow and factual integrity.
+
+### Guidelines:
+- Maintain original heading flow and key examples.
+- Include definitions and technical details.
+- Avoid repetition or generic statements.
+{text[:16000]}
+"""
+        resp = ""
+        async for chunk in reduce_llm.astream([HumanMessage(content=prompt)]):
+            if hasattr(chunk, "content") and chunk.content:
+                resp += chunk.content
+                if chunk_callback:
+                    await chunk_callback(chunk.content)
+        if chunk_callback:
+            await chunk_callback("\n\n")
+        return resp.strip()
+    print(f"mode: {mode}, total_tokens: {total_tokens}, batches: {len(batches)}, batch_size: {batch_size}")
+    if mode == "normal":
+        text = "\n".join(c["text"] for c in chunks)
+        prompt = f"""
+{custom_prefix}
+You are a professional summarizer.
+Summarize the document in detail while preserving the flow and factual integrity.
+
+### Guidelines:
+- Maintain original heading flow and key examples.
+- Include definitions and technical details.
+- Avoid repetition or generic statements.
+---
+{text[:32000]}
+"""
+        resp = ""
+        async for chunk in reduce_llm.astream([HumanMessage(content=prompt)]):
+            if hasattr(chunk, "content") and chunk.content:
+                resp += chunk.content
+                if chunk_callback:
+                    await chunk_callback(chunk.content)
+        if chunk_callback:
+            await chunk_callback("\n\n")
+        return resp.strip()
+    async def summarize_batch(batch):
+        combined_text = "\n".join([f"{b['heading'] or ''}\n{b['text']}" for b in batch])
+        prompt = f"""
+
+You are summarizing a structured academic document.
+
+### Task:
+- Automatically detect and preserve natural headings (UNIT, CHAPTER, etc.).
+- Summarize each section clearly and concisely (~200-300 words total).
+- **Even within the word limit, do not merge or remove distinct sections.**
+---
+{combined_text}
+"""
+
+
+        resp = await map_llm.ainvoke(prompt)
+        return resp.content.strip()
+
+    map_results = await asyncio.gather(*[summarize_batch(b) for b in batches])
+
+    # Recursive reduction
+    async def recursive_reduce(summaries: list[str]) -> str:
+        if len(summaries) <= 5:
+            block = "\n\n".join(summaries)
+            prompt = f"""
+You are merging partial summaries of a structured textbook/document.
+
+### Task:
+- Combine them while preserving all detected headings, subheadings, and their order.
+- If similar headings appear across summaries, merge their content intelligently under one heading.
+- Ensure the final text reads like a clean, organized outline with clear section boundaries.
+- Keep the merged summary between **350 and 600 words**.
+
+---
+{block}
+"""
+
+            resp = await map_llm.ainvoke(prompt)
+            return resp.content.strip()
+        merged = []
+        for i in range(0, len(summaries), 5):
+            partial = await recursive_reduce(summaries[i:i + 5])
+            merged.append(partial)
+        return await recursive_reduce(merged)
+
+    reduced_summary = await recursive_reduce(map_results)
+
+    # Final synthesis
+    final_prompt = f"""
+{custom_prefix} 
+- **Only use the  custom gpt instructions when relevant to summarization.**
+You are writing the final comprehensive summary of a structured document.
+
+### Rules:
+- Retain headings/subheadings automatically detected.
+- Format them clearly (bold or sectioned).
+- The total length should be about **1000-2000 words**.
+- Focus on clarity and coverage rather than repetition.
+
+
+---
+{reduced_summary}
+"""
+
+
+    await send_status_update(state, "✍️ Writing final detailed summary...", 90)
+    final_output = ""
+    async for chunk in reduce_llm.astream([HumanMessage(content=final_prompt)]):
+        if hasattr(chunk, "content") and chunk.content:
+            final_output += chunk.content
+            if chunk_callback:
+                await chunk_callback(chunk.content)
+    if chunk_callback:
+        await chunk_callback("\n\n")
+
+    print("[Summarizer] ✅ Hierarchical summarization complete.")
+    return final_output.strip()
+
+
+
 
 async def _process_user_docs(state, docs, user_query, rag):
     """
@@ -595,6 +818,29 @@ async def _process_kb_docs(state, kb_docs, user_query, rag):
 async def Rag(state: GraphState) -> GraphState:
     llm_model = state.get("llm_model", "gpt-4o-mini")
     user_query = state.get("resolved_query") or state.get("user_query", "")
+    if await is_summarization_query(user_query):
+        print("[RAG] Detected summarization intent — switching to Hierarchical Summarizer.")
+        await send_status_update(state, "🧠 Summarizing entire document...", 20)
+
+        try:
+            summary = await hierarchical_summarize(state)
+        except Exception as e:
+            print(f"[Summarizer] Error during summarization: {e}")
+            summary = f"⚠️ Unable to summarize document: {e}"
+
+        state["response"] = summary
+        state.setdefault("intermediate_results", []).append({
+            "node": "RAG",
+            "query": user_query,
+            "strategy": "hierarchical_summarizer",
+            "sources_used": {"user_docs": 1, "kb": 0},
+            "output": summary
+        })
+
+        await send_status_update(state, "✅ Hierarchical summarization completed", 100)
+        return state
+
+
     messages = state.get("messages", [])
     websearch = state.get("web_search", False)    
     kb_docs = state.get("kb", {})
