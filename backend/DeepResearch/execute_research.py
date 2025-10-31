@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 import re
 from graph_type import GraphState
 from WebSearch.websearch import web_search
-from llm import get_reasoning_llm, get_llm
+from llm import get_reasoning_llm, get_llm, _extract_usage
 
 
 class WebPageExtractor:
@@ -179,7 +179,8 @@ async def select_relevant_links(
     links: List[Dict[str, str]], 
     query: str,
     llm,
-    max_links: int = 2
+    max_links: int = 2,
+    state: Optional[GraphState] = None
 ) -> List[str]:
     """
     Use LLM to intelligently select which links to follow
@@ -236,6 +237,21 @@ Respond with ONLY the numbers (comma-separated, e.g., "3,7"):"""
     try:
         response = await llm.ainvoke([HumanMessage(content=prompt)])
         content = response.content.strip()
+        
+        # Track token usage from ainvoke
+        if state is not None:
+            token_usage = _extract_usage(response)
+            
+            if "token_usage" not in state or state["token_usage"] is None:
+                state["token_usage"] = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+            
+            state["token_usage"]["input_tokens"] += token_usage["input_tokens"]
+            state["token_usage"]["output_tokens"] += token_usage["output_tokens"]
+            state["token_usage"]["total_tokens"] += token_usage["total_tokens"]
+            
+            if token_usage["total_tokens"] > 0:
+                print(f"[TokenTracking] Tracked tokens from ainvoke: {token_usage}")
+        
         indices = []
         for part in content.split(','):
             try:
@@ -397,7 +413,8 @@ async def execute_research_node(state: GraphState) -> GraphState:
                     all_links, 
                     query, 
                     llm,
-                    max_links=2  
+                    max_links=2,
+                    state=state
                 )
                 
                 if relevant_urls:

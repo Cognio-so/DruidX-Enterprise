@@ -435,7 +435,8 @@ async def stream_chat(session_id: str, request: ChatRequest):
             "last_route": session.get("last_route")
         }
     }, # <--- ADD THIS LINE
-            _chunk_callback=chunk_callback  # Add this line
+            _chunk_callback=chunk_callback,  # Add this line
+            token_usage={"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
         )
         
         async def generate_stream():
@@ -485,17 +486,24 @@ async def stream_chat(session_id: str, request: ChatRequest):
                         if isinstance(node_state, dict) and 'img_urls' in node_state:
                             state.update(node_state)
                             break
+                # Aggregate token usage from state
+                token_usage = state.get("token_usage")
+                if not token_usage:
+                    token_usage = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+                
                 final_chunk = {
                     "type": "content",
                     "data": {
                         "content": "",
                         "is_complete": True,
                         "full_response": full_response,
-                        "img_urls": state.get("img_urls", [])
+                        "img_urls": state.get("img_urls", []),
+                        "token_usage": token_usage
                     }
                 }
                 
                 print(f"🔥 Final chunk img_urls: {final_chunk['data']['img_urls']}")
+                print(f"🔥 Token usage: {token_usage}")
                 yield f"data: {json.dumps(final_chunk)}\n\n"
                 
                 if full_response:
@@ -649,14 +657,15 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
             mcp_schema=gpt_config.get("mcpSchema"),
             mcp_connections=session.get("mcp_connections", []),
             last_route=session.get("last_route"), 
-            session_id=session_id,  
+            session_id=session_id,
             context={  
                 "session": {
                     "summary": session.get("summary", ""),
                     "last_route": session.get("last_route")
                 }
             },
-            _chunk_callback=chunk_callback 
+            _chunk_callback=chunk_callback,
+            token_usage={"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
         )
         
         async def generate_stream():
@@ -704,17 +713,24 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
                             state.update(node_state)
                             break
     
+                # Aggregate token usage from state
+                token_usage = state.get("token_usage")
+                if not token_usage:
+                    token_usage = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+                
                 final_chunk = {
                     "type": "content",
                     "data": {
                         "content": "",
                         "is_complete": True,
                         "full_response": full_response,
-                        "img_urls": state.get("img_urls", [])
+                        "img_urls": state.get("img_urls", []),
+                        "token_usage": token_usage
                     }
                 }
                 
                 print(f"🔥 Final deep research chunk img_urls: {final_chunk['data']['img_urls']}")
+                print(f"🔥 Token usage: {token_usage}")
                 yield f"data: {json.dumps(final_chunk)}\n\n"
                 
                 if full_response:

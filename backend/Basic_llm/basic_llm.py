@@ -85,7 +85,7 @@ async def SimpleLLm(state: GraphState) -> GraphState:
             kb_chunks = await _quick_kb_search(session_id, user_query, limit=2)
             print(f"[SimpleLLM-KB] Retrieved {len(kb_chunks)} KB chunks")
         from langchain_groq import ChatGroq
-        from llm import get_llm
+        from llm import get_llm, stream_with_token_tracking
         chat=get_llm(llm_model, temperature=0.9)
         # chat = get_llm("openai/gpt-oss-120b", 0.8)
     #     chat= ChatGroq(
@@ -171,15 +171,12 @@ Remember: Only use context sources when they genuinely help answer the user's qu
         system_msg = SystemMessage(content=enhanced_prompt)
         messages = [system_msg] + formatted_history + [HumanMessage(content=f"CURRENT USER INPUT: {user_query}")]
 
-       
-    
-        full_response = ""
-        async for chunk in chat.astream(messages):
-            if hasattr(chunk, 'content') and chunk.content:
-                full_response += chunk.content
-                
-                if chunk_callback:
-                    await chunk_callback(chunk.content)
+        full_response, _ = await stream_with_token_tracking(
+            chat,
+            messages,
+            chunk_callback=chunk_callback,
+            state=state
+        )
         
         if chunk_callback:
             await chunk_callback("\n\n")

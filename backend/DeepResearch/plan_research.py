@@ -1,7 +1,7 @@
 # DeepResearch/plan_research.py
 from graph_type import GraphState
 from langchain_core.messages import HumanMessage
-from llm import get_reasoning_llm, get_llm
+from llm import get_reasoning_llm, get_llm, stream_with_token_tracking
 from DeepResearch.prompt_loader import PROMPTS
 import asyncio
 
@@ -97,12 +97,12 @@ Generate a research plan that follows the user feedback exactly.
         await chunk_callback(generating_msg)
     print(f"llm..................", llm_model)
     llm2 = get_reasoning_llm(llm_model)
-    response_text = ""
-    async for chunk in llm2.astream([HumanMessage(content=planning_prompt)]):
-        if hasattr(chunk, "content") and chunk.content:
-            response_text += chunk.content
-            if chunk_callback:
-                await chunk_callback(chunk.content)
+    response_text, _ = await stream_with_token_tracking(
+        llm2,
+        [HumanMessage(content=planning_prompt)],
+        chunk_callback=chunk_callback,
+        state=state
+    )
     sub_questions = []
     for line in response_text.splitlines():
         line = line.strip()
