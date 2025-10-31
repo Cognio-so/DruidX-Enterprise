@@ -4,7 +4,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sparkles, User, ExternalLink, Download } from "lucide-react";
 import { Message, MessageContent } from "@/components/ai-elements/message";
 import { Response } from "@/components/ai-elements/response";
+import { Orb } from "@/components/ui/orb";
 import { useEffect, useRef } from "react";
+import { cn } from "@/lib/utils";
 
 interface UploadedDoc {
   url: string;
@@ -132,12 +134,12 @@ export default function ChatMessage({
         ) : (
           <MessageContent variant="flat">
             <div className="flex items-start gap-3">
-              <Avatar className="h-8 w-8 flex-shrink-0">
-                <AvatarImage src="/api/placeholder/32/32" />
-                <AvatarFallback>
-                  <Sparkles className="size-4 text-primary" />
-                </AvatarFallback>
-              </Avatar>
+              <div className={cn(
+                "ring-border size-8 flex-shrink-0 overflow-hidden rounded-full ring-1",
+                "flex items-center justify-center"
+              )}>
+                <Orb className="h-full w-full" />
+              </div>
               <div className="flex-1 space-y-2">
                 {imageUrls && imageUrls.length > 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

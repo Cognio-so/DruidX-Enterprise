@@ -25,6 +25,7 @@ interface StreamingChatHook {
   error: string | null;
   sendMessage: (request: ChatRequest) => Promise<void>;
   clearMessages: () => void;
+  addMessage: (message: Omit<Message, 'id'>) => void;
 }
 
 export function useStreamingChat(sessionId: string): StreamingChatHook {
@@ -182,11 +183,20 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
     setError(null);
   }, []);
 
+  const addMessage = useCallback((message: Omit<Message, 'id'>) => {
+    const newMessage: Message = {
+      ...message,
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+    };
+    setMessages(prev => [...prev, newMessage]);
+  }, []);
+
   return {
     messages,
     isLoading,
     error,
     sendMessage,
     clearMessages,
+    addMessage,
   };
 }

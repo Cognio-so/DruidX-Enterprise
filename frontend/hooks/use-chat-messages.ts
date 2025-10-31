@@ -15,10 +15,11 @@ interface ChatMessagesHook {
     model?: string;
   }) => Promise<void>;
   clearMessages: () => void;
+  addMessage: (message: { role: 'user' | 'assistant'; content: string; timestamp: string; isStreaming?: boolean; imageUrls?: string[] }) => void;
 }
 
 export function useChatMessages(sessionId: string | null): ChatMessagesHook {
-  const { messages, isLoading, error, sendMessage, clearMessages } = useStreamingChat(sessionId || '');
+  const { messages, isLoading, error, sendMessage, clearMessages, addMessage } = useStreamingChat(sessionId || '');
 
   const handleSendMessage = useCallback(async (message: string, options: {
     web_search?: boolean;
@@ -38,11 +39,16 @@ export function useChatMessages(sessionId: string | null): ChatMessagesHook {
     });
   }, [sessionId, sendMessage]);
 
+  const handleAddMessage = useCallback((message: { role: 'user' | 'assistant'; content: string; timestamp: string; isStreaming?: boolean; imageUrls?: string[] }) => {
+    addMessage(message);
+  }, [addMessage]);
+
   return {
     messages,
     isLoading,
     error,
     sendMessage: handleSendMessage,
     clearMessages,
+    addMessage: handleAddMessage,
   };
 }
