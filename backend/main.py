@@ -976,20 +976,32 @@ async def voice_connect(request: dict):
         livekit_api_secret = os.getenv("LIVEKIT_API_SECRET")
         
         if not livekit_url:
+            print(f"[VOICE CONNECT] ERROR: LIVEKIT_URL environment variable is not set")
             raise HTTPException(
                 status_code=500,
                 detail="LIVEKIT_URL environment variable is not set"
             )
         if not livekit_api_key:
+            print(f"[VOICE CONNECT] ERROR: LIVEKIT_API_KEY environment variable is not set")
             raise HTTPException(
                 status_code=500,
                 detail="LIVEKIT_API_KEY environment variable is not set"
             )
         if not livekit_api_secret:
+            print(f"[VOICE CONNECT] ERROR: LIVEKIT_API_SECRET environment variable is not set")
             raise HTTPException(
                 status_code=500,
                 detail="LIVEKIT_API_SECRET environment variable is not set"
             )
+        
+        # Validate LiveKit URL format - should be HTTPS/WSS in production
+        if livekit_url and not (livekit_url.startswith("wss://") or livekit_url.startswith("https://") or livekit_url.startswith("ws://") or livekit_url.startswith("http://")):
+            print(f"[VOICE CONNECT] WARNING: LIVEKIT_URL format may be incorrect: {livekit_url}")
+        elif livekit_url and not (livekit_url.startswith("wss://") or livekit_url.startswith("https://")):
+            print(f"[VOICE CONNECT] WARNING: LIVEKIT_URL should use secure protocol (wss:// or https://) in production: {livekit_url}")
+        
+        print(f"[VOICE CONNECT] Creating voice connection for session: {session_id}, GPT: {gpt_id}")
+        print(f"[VOICE CONNECT] LiveKit URL: {livekit_url}")
         
         room_name = f"voice-{session_id}"
         participant_identity = f"user-{session_id}"
@@ -1002,26 +1014,39 @@ async def voice_connect(request: dict):
             "created_at": datetime.now().isoformat()
         }
         
-        token = AccessToken(livekit_api_key, livekit_api_secret) \
-            .with_identity(participant_identity) \
-            .with_name(participant_identity) \
-            .with_grants(VideoGrants(
-                room_join=True,
-                room=room_name,
-                can_publish=True,
-                can_subscribe=True,
-                can_publish_data=True
-            )) \
-            .with_ttl(timedelta(hours=2)) \
-            .to_jwt()
-        
-        return {
-            "token": token,
-            "url": livekit_url,
-            "roomName": room_name
-        }
+        try:
+            token = AccessToken(livekit_api_key, livekit_api_secret) \
+                .with_identity(participant_identity) \
+                .with_name(participant_identity) \
+                .with_grants(VideoGrants(
+                    room_join=True,
+                    room=room_name,
+                    can_publish=True,
+                    can_subscribe=True,
+                    can_publish_data=True
+                )) \
+                .with_ttl(timedelta(hours=2)) \
+                .to_jwt()
+            
+            print(f"[VOICE CONNECT] Token generated successfully for room: {room_name}")
+            print(f"[VOICE CONNECT] Participant identity: {participant_identity}")
+            
+            return {
+                "token": token,
+                "url": livekit_url,
+                "roomName": room_name
+            }
+        except Exception as token_error:
+            print(f"[VOICE CONNECT] ERROR: Failed to generate token: {token_error}")
+            import traceback
+            traceback.print_exc()
+            raise HTTPException(status_code=500, detail=f"Failed to generate access token: {str(token_error)}")
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
     except Exception as e:
-        print(f"Error creating voice connection: {e}")
+        print(f"[VOICE CONNECT] ERROR: Failed to create voice connection: {e}")
+        print(f"[VOICE CONNECT] Error type: {type(e).__name__}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to create voice connection: {str(e)}")
