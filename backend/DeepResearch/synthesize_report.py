@@ -2,7 +2,7 @@
 from graph_type import GraphState
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
-from llm import get_reasoning_llm, get_llm
+from llm import get_reasoning_llm, get_llm, stream_with_token_tracking
 from DeepResearch.prompt_loader import PROMPTS
 from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
@@ -98,10 +98,12 @@ async def synthesize_report_node(state: GraphState) -> GraphState:
     #     google_api_key=google_api_key,
     # )
     llm2=get_reasoning_llm(llm_model)
-    async for chunk in llm2.astream([HumanMessage(content=synthesis_prompt)]):
-        if hasattr(chunk, 'content') and chunk.content:
-            if chunk_callback:
-                await chunk_callback(chunk.content)
+    _, _ = await stream_with_token_tracking(
+        llm2,
+        [HumanMessage(content=synthesis_prompt)],
+        chunk_callback=chunk_callback,
+        state=state
+    )
     
     # Add sources if not already included
     if research_state_dict["sources"]:

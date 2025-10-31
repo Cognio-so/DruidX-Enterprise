@@ -17,7 +17,7 @@ from prompt_cache import normalize_prefix
 
 QDRANT_URL = os.getenv("QDRANT_URL", ":memory:")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
-from llm import get_llm
+from llm import get_llm, stream_with_token_tracking, _extract_usage
 
 try:
     if QDRANT_URL == ":memory:":
@@ -639,12 +639,12 @@ Summarize the document in detail while preserving the flow and factual integrity
 - Avoid repetition or generic statements.
 {text[:16000]}
 """
-        resp = ""
-        async for chunk in reduce_llm.astream([HumanMessage(content=prompt)]):
-            if hasattr(chunk, "content") and chunk.content:
-                resp += chunk.content
-                if chunk_callback:
-                    await chunk_callback(chunk.content)
+        resp, _ = await stream_with_token_tracking(
+            reduce_llm,
+            [HumanMessage(content=prompt)],
+            chunk_callback=chunk_callback,
+            state=state
+        )
         if chunk_callback:
             await chunk_callback("\n\n")
         return resp.strip()
@@ -663,12 +663,12 @@ Summarize the document in detail while preserving the flow and factual integrity
 ---
 {text[:32000]}
 """
-        resp = ""
-        async for chunk in reduce_llm.astream([HumanMessage(content=prompt)]):
-            if hasattr(chunk, "content") and chunk.content:
-                resp += chunk.content
-                if chunk_callback:
-                    await chunk_callback(chunk.content)
+        resp, _ = await stream_with_token_tracking(
+            reduce_llm,
+            [HumanMessage(content=prompt)],
+            chunk_callback=chunk_callback,
+            state=state
+        )
         if chunk_callback:
             await chunk_callback("\n\n")
         return resp.strip()
@@ -687,7 +687,15 @@ You are summarizing a structured academic document.
 """
 
 
-        resp = await map_llm.ainvoke(prompt)
+        resp = await map_llm.ainvoke([HumanMessage(content=prompt)])
+        # Track token usage
+        if state:
+            token_usage = _extract_usage(resp)
+            if "token_usage" not in state or state["token_usage"] is None:
+                state["token_usage"] = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+            state["token_usage"]["input_tokens"] += token_usage["input_tokens"]
+            state["token_usage"]["output_tokens"] += token_usage["output_tokens"]
+            state["token_usage"]["total_tokens"] += token_usage["total_tokens"]
         return resp.content.strip()
 
     map_results = await asyncio.gather(*[summarize_batch(b) for b in batches])
@@ -707,7 +715,15 @@ You are merging partial summaries of a structured textbook/document.
 {block}
 """
 
-            resp = await map_llm.ainvoke(prompt)
+            resp = await map_llm.ainvoke([HumanMessage(content=prompt)])
+            # Track token usage
+            if state:
+                token_usage = _extract_usage(resp)
+                if "token_usage" not in state or state["token_usage"] is None:
+                    state["token_usage"] = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+                state["token_usage"]["input_tokens"] += token_usage["input_tokens"]
+                state["token_usage"]["output_tokens"] += token_usage["output_tokens"]
+                state["token_usage"]["total_tokens"] += token_usage["total_tokens"]
             return resp.content.strip()
         merged = []
         for i in range(0, len(summaries), 5):
@@ -734,12 +750,12 @@ You are writing the final comprehensive summary of a structured document.
 
 
     await send_status_update(state, "✍️ Writing final detailed summary...", 90)
-    final_output = ""
-    async for chunk in reduce_llm.astream([HumanMessage(content=final_prompt)]):
-        if hasattr(chunk, "content") and chunk.content:
-            final_output += chunk.content
-            if chunk_callback:
-                await chunk_callback(chunk.content)
+    final_output, _ = await stream_with_token_tracking(
+        reduce_llm,
+        [HumanMessage(content=final_prompt)],
+        chunk_callback=chunk_callback,
+        state=state
+    )
     if chunk_callback:
         await chunk_callback("\n\n")
 
@@ -1013,13 +1029,13 @@ async def Rag(state: GraphState) -> GraphState:
    
     print(f"model named used in rag.....", llm_model)
     chunk_callback = state.get("_chunk_callback")
-    full_response = ""
     ai_response_dict = {"role": "assistant", "content": ""}
-    async for chunk in llm.astream(final_messages):
-        if hasattr(chunk, 'content') and chunk.content:
-            full_response += chunk.content
-            if chunk_callback:
-                await chunk_callback(chunk.content)
+    full_response, _ = await stream_with_token_tracking(
+        llm,
+        final_messages,
+        chunk_callback=chunk_callback,
+        state=state
+    )
     if chunk_callback:
         await chunk_callback("\n\n")
         full_response += "\n\n"

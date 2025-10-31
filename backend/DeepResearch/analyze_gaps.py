@@ -1,7 +1,7 @@
 # DeepResearch/analyze_gaps.py
 from graph_type import GraphState
 from langchain_core.messages import HumanMessage
-from llm import get_reasoning_llm, get_llm
+from llm import get_reasoning_llm, get_llm, stream_with_token_tracking
 from DeepResearch.prompt_loader import PROMPTS
 
 
@@ -59,13 +59,15 @@ async def analyze_gaps_node(state: GraphState) -> GraphState:
         info_summary=info_summary_text
     )
     llm2 = get_reasoning_llm(llm_model)
-    full_response = gap_intro + analysis_info + (answered_section if answered_questions else "") + generating_msg
+    response_prefix = gap_intro + analysis_info + (answered_section if answered_questions else "") + generating_msg
     
-    async for chunk in llm2.astream([HumanMessage(content=analysis_prompt)]):
-        if hasattr(chunk, 'content') and chunk.content:
-            full_response += chunk.content
-            if chunk_callback:
-                await chunk_callback(chunk.content)
+    llm_response, _ = await stream_with_token_tracking(
+        llm2,
+        [HumanMessage(content=analysis_prompt)],
+        chunk_callback=chunk_callback,
+        state=state
+    )
+    full_response = response_prefix + llm_response
 
     analysis = {
         "confidence": 0.5,
