@@ -604,11 +604,8 @@ async def hierarchical_summarize(state, batch_size: int = 10):
     gpt_config = state.get("gpt_config", {})
     custom_prompt = gpt_config.get("instruction", "").strip()
 
-    # Base models
     map_llm = get_llm("google/gemini-2.5-flash-lite", 0.9)
     reduce_llm = get_llm(llm_model, 0.8)
-
-    # Detect scale
     total_tokens = sum(len(c["text"].split()) for c in chunks)
     if total_tokens < 1200:
         mode = "brief"
@@ -616,11 +613,7 @@ async def hierarchical_summarize(state, batch_size: int = 10):
         mode = "normal"
     else:
         mode = "hierarchical"
-
-    # Custom GPT system prefix
     custom_prefix = f"\n---\n# CUSTOM GPT INSTRUCTION\n{custom_prompt}\n---\n" if custom_prompt else ""
-
-    # Helper: heading extractor
     def extract_heading(txt: str):
         lines = txt.split("\n")
         for l in lines:
@@ -628,15 +621,9 @@ async def hierarchical_summarize(state, batch_size: int = 10):
             if re.match(r"^(UNIT[\s–-]*[IVXLC0-9]+|CHAPTER[\s–-]*\d+|^\d+(\.\d+)+|[A-Z][A-Za-z\s]{4,})", l):
                 return re.sub(r"^[\d.:\s–-]+", "", l).strip(":–- ")
         return None
-
-    # Adjust batch size dynamically
     avg_len = max(1, sum(len(c["text"]) for c in chunks) // len(chunks))
     batch_size = min(10, max(3, 8000 // avg_len))
     batches = [chunks[i:i + batch_size] for i in range(0, len(chunks), batch_size)]
-
-    # ------------------------------------------------------------
-    # MODE 1️⃣ : BRIEF SUMMARY (short docs <1200 tokens)
-    # ------------------------------------------------------------
     print(f"mode:", mode)
     if mode == "brief":
         text = "\n".join(c["text"] for c in chunks)
@@ -703,8 +690,6 @@ You are summarizing a structured academic document.
         return resp.content.strip()
 
     map_results = await asyncio.gather(*[summarize_batch(b) for b in batches])
-
-    # Recursive reduction
     async def recursive_reduce(summaries: list[str]) -> str:
         if len(summaries) <= 5:
             block = "\n\n".join(summaries)
@@ -730,8 +715,6 @@ You are merging partial summaries of a structured textbook/document.
         return await recursive_reduce(merged)
 
     reduced_summary = await recursive_reduce(map_results)
-
-    # Final synthesis
     final_prompt = f"""
 {custom_prefix} 
 - **Only use the  custom gpt instructions when relevant to summarization.**
