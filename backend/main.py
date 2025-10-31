@@ -886,18 +886,6 @@ async def _ensure_agent_worker_running():
                 os.makedirs(log_dir, exist_ok=True)
                 log_file = os.path.join(log_dir, "agent_worker.log")
                 
-                # Prepare environment variables - ensure LiveKit vars are available
-                env = os.environ.copy()
-                required_env_vars = ["LIVEKIT_URL", "LIVEKIT_API_KEY", "LIVEKIT_API_SECRET"]
-                missing_vars = [var for var in required_env_vars if not env.get(var)]
-                if missing_vars:
-                    print(f"[AGENT WORKER] WARNING: Missing environment variables: {missing_vars}")
-                
-                print(f"[AGENT WORKER] Environment check:")
-                print(f"  LIVEKIT_URL: {'✅ Set' if env.get('LIVEKIT_URL') else '❌ Missing'}")
-                print(f"  LIVEKIT_API_KEY: {'✅ Set' if env.get('LIVEKIT_API_KEY') else '❌ Missing'}")
-                print(f"  LIVEKIT_API_SECRET: {'✅ Set' if env.get('LIVEKIT_API_SECRET') else '❌ Missing'}")
-                
                 # Run the agent script directly with "console" argument
                 # This bypasses the uv check and runs agents.cli.run_app() directly
                 with open(log_file, "w") as f:
@@ -906,39 +894,26 @@ async def _ensure_agent_worker_running():
                         cwd=backend_dir,
                         stdout=f,
                         stderr=subprocess.STDOUT,
-                        env=env,
+                        env=os.environ.copy(),
                         startupinfo=startupinfo if platform.system() == "Windows" else None
                     )
                 
-                print(f"[AGENT WORKER] Started with PID: {_agent_worker_process.pid}")
-                print(f"[AGENT WORKER] Logs: {log_file}")
+                print(f"Agent worker started with PID: {_agent_worker_process.pid}")
+                print(f"Agent worker logs: {log_file}")
                 
                 # Wait a bit to check if it started successfully
                 await asyncio.sleep(3)
                 if _agent_worker_process.poll() is not None:
-                    print(f"[AGENT WORKER] ERROR: Process exited immediately with code: {_agent_worker_process.returncode}")
+                    print(f"Agent worker process exited immediately with code: {_agent_worker_process.returncode}")
                     # Read the log file to see what went wrong
                     try:
                         with open(log_file, "r") as f:
                             log_content = f.read()
                             if log_content:
-                                print(f"[AGENT WORKER] Error log:\n{log_content}")
-                            else:
-                                print(f"[AGENT WORKER] Log file is empty - process may have failed silently")
+                                print(f"Agent worker error log:\n{log_content}")
                     except Exception as log_err:
-                        print(f"[AGENT WORKER] Could not read log file: {log_err}")
+                        print(f"Could not read log file: {log_err}")
                     _agent_worker_process = None
-                else:
-                    print(f"[AGENT WORKER] ✅ Process is running (PID: {_agent_worker_process.pid})")
-                    # Try to read initial logs to verify connection
-                    try:
-                        await asyncio.sleep(2)  # Wait a bit more for initial logs
-                        with open(log_file, "r") as f:
-                            initial_logs = f.read()
-                            if initial_logs:
-                                print(f"[AGENT WORKER] Initial logs:\n{initial_logs[:500]}")  # First 500 chars
-                    except Exception:
-                        pass
                     
             except Exception as e:
                 print(f"Error starting agent worker: {e}")
@@ -1001,32 +976,20 @@ async def voice_connect(request: dict):
         livekit_api_secret = os.getenv("LIVEKIT_API_SECRET")
         
         if not livekit_url:
-            print(f"[VOICE CONNECT] ERROR: LIVEKIT_URL environment variable is not set")
             raise HTTPException(
                 status_code=500,
                 detail="LIVEKIT_URL environment variable is not set"
             )
         if not livekit_api_key:
-            print(f"[VOICE CONNECT] ERROR: LIVEKIT_API_KEY environment variable is not set")
             raise HTTPException(
                 status_code=500,
                 detail="LIVEKIT_API_KEY environment variable is not set"
             )
         if not livekit_api_secret:
-            print(f"[VOICE CONNECT] ERROR: LIVEKIT_API_SECRET environment variable is not set")
             raise HTTPException(
                 status_code=500,
                 detail="LIVEKIT_API_SECRET environment variable is not set"
             )
-        
-        # Validate LiveKit URL format - should be HTTPS/WSS in production
-        if livekit_url and not (livekit_url.startswith("wss://") or livekit_url.startswith("https://") or livekit_url.startswith("ws://") or livekit_url.startswith("http://")):
-            print(f"[VOICE CONNECT] WARNING: LIVEKIT_URL format may be incorrect: {livekit_url}")
-        elif livekit_url and not (livekit_url.startswith("wss://") or livekit_url.startswith("https://")):
-            print(f"[VOICE CONNECT] WARNING: LIVEKIT_URL should use secure protocol (wss:// or https://) in production: {livekit_url}")
-        
-        print(f"[VOICE CONNECT] Creating voice connection for session: {session_id}, GPT: {gpt_id}")
-        print(f"[VOICE CONNECT] LiveKit URL: {livekit_url}")
         
         room_name = f"voice-{session_id}"
         participant_identity = f"user-{session_id}"
@@ -1039,39 +1002,26 @@ async def voice_connect(request: dict):
             "created_at": datetime.now().isoformat()
         }
         
-        try:
-            token = AccessToken(livekit_api_key, livekit_api_secret) \
-                .with_identity(participant_identity) \
-                .with_name(participant_identity) \
-                .with_grants(VideoGrants(
-                    room_join=True,
-                    room=room_name,
-                    can_publish=True,
-                    can_subscribe=True,
-                    can_publish_data=True
-                )) \
-                .with_ttl(timedelta(hours=2)) \
-                .to_jwt()
-            
-            print(f"[VOICE CONNECT] Token generated successfully for room: {room_name}")
-            print(f"[VOICE CONNECT] Participant identity: {participant_identity}")
-            
-            return {
-                "token": token,
-                "url": livekit_url,
-                "roomName": room_name
-            }
-        except Exception as token_error:
-            print(f"[VOICE CONNECT] ERROR: Failed to generate token: {token_error}")
-            import traceback
-            traceback.print_exc()
-            raise HTTPException(status_code=500, detail=f"Failed to generate access token: {str(token_error)}")
-    except HTTPException:
-        # Re-raise HTTP exceptions as-is
-        raise
+        token = AccessToken(livekit_api_key, livekit_api_secret) \
+            .with_identity(participant_identity) \
+            .with_name(participant_identity) \
+            .with_grants(VideoGrants(
+                room_join=True,
+                room=room_name,
+                can_publish=True,
+                can_subscribe=True,
+                can_publish_data=True
+            )) \
+            .with_ttl(timedelta(hours=2)) \
+            .to_jwt()
+        
+        return {
+            "token": token,
+            "url": livekit_url,
+            "roomName": room_name
+        }
     except Exception as e:
-        print(f"[VOICE CONNECT] ERROR: Failed to create voice connection: {e}")
-        print(f"[VOICE CONNECT] Error type: {type(e).__name__}")
+        print(f"Error creating voice connection: {e}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to create voice connection: {str(e)}")
