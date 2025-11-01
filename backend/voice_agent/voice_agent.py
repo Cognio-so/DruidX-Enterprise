@@ -310,7 +310,7 @@ class VoiceAssistant:
         """Send transcription as data packet to room"""
         try:
             import json
-            from livekit.protocol import DataPacket_Kind
+            
             data = json.dumps({"type": "transcription", "text": text, "role": role}).encode()
             await ctx.room.local_participant.publish_data(
                 data, 
@@ -493,40 +493,26 @@ async def entrypoint(ctx: agents.JobContext):
 
 
 if __name__ == "__main__":
-    # Log startup info to stderr (visible in Railway)
+    # This block is now run directly by the subprocess call from main.py
+    # (which no longer passes the "console" argument).
     import sys
     print("=" * 70, file=sys.stderr)
     print("🚀 LiveKit Agent Worker Starting...", file=sys.stderr)
     print(f"Python: {sys.executable}", file=sys.stderr)
     print(f"LIVEKIT_URL: {os.getenv('LIVEKIT_URL', 'NOT SET')}", file=sys.stderr)
     print("=" * 70, file=sys.stderr)
-    sys.stderr.flush()
     
-    # If "console" is not in the command-line arguments,
-    # re-launch the script using subprocess with "console" added.
-    if "console" not in sys.argv:
-        print("Redirecting to execute with 'console' command...", file=sys.stderr)
-        sys.stderr.flush()
-        try:
-            # Construct the command: ['uv', 'run', 'voice_agent.py', ..., 'console']
-            command = ["uv", "run"] + sys.argv + ["console"]
-            # Execute the command
-            result = subprocess.run(command, check=True)
-            # Exit the current script to prevent it from continuing
-            sys.exit(result.returncode)
-        except FileNotFoundError:
-            print("Error: 'uv' command not found. Falling back to direct execution.", file=sys.stderr)
-            sys.stderr.flush()
-            # Fallback to the original execution if 'uv' isn't found
-            agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
-        except subprocess.CalledProcessError as e:
-            print(f"Error re-launching with 'console': {e}", file=sys.stderr)
-            sys.stderr.flush()
-            sys.exit(e.returncode)
-    else:
-        # If "console" is already in the arguments, run the app directly.
-        print("Starting LiveKit agent with console mode...", file=sys.stderr)
-        print("Connecting to LiveKit server...", file=sys.stderr)
-        sys.stderr.flush()
-        # This is the path taken by the subprocess call.
-        agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
+    print("Starting LiveKit agent worker in non-interactive mode...", file=sys.stderr)
+    print("Connecting to LiveKit server...", file=sys.stderr)
+    
+    # --- ADD THESE TWO LINES ---
+    # We must manually add the "start" command to sys.argv
+    # so the LiveKit CLI parser knows to run in production mode.
+    if len(sys.argv) == 1:
+        sys.argv.append("start")
+    # ---------------------------
+
+    sys.stderr.flush()
+
+    # This will now correctly execute the "start" command
+    agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
