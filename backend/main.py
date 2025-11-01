@@ -917,15 +917,18 @@ async def _ensure_agent_worker_running():
                 # Only redirect if you want file backup too
                 args = [python_exec, voice_agent_path]
                 # Only add console for local testing
-                if not os.getenv("RAILWAY_ENVIRONMENT_NAME"):
-                    args.append("console")
+                # ...
+                # The command is always the same, no "console"
+                args = [python_exec, voice_agent_path]
 
                 _agent_worker_process = subprocess.Popen(
                     args,
                     cwd=backend_dir,
+                    stdin=subprocess.DEVNULL,  # <-- ADD THIS to prevent TTY errors
                     env=os.environ.copy(),
                     startupinfo=startupinfo if platform.system() == "Windows" else None
                 )
+                # ...
 
                 
                 print(f"Agent worker started with PID: {_agent_worker_process.pid}")
