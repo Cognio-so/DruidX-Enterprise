@@ -485,7 +485,7 @@ async def entrypoint(ctx: agents.JobContext):
 if __name__ == "__main__":
     # If "console" is not in the command-line arguments,
     # re-launch the script using subprocess with "console" added.
-    if os.getenv("RAILWAY_ENVIRONMENT"):
+    if os.getenv("RAILWAY_ENVIRONMENT_NAME"):
         print("Running in Railway: Starting LiveKit agent without console mode...", file=sys.stderr)
         agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
     else:    
