@@ -9,7 +9,7 @@ import json
 from llm import get_llm
 from langchain_core.messages import SystemMessage, HumanMessage
 import os
-
+from llm import get_llm
 SLACK_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_SLACK", "20251201_01")  
 CALENDAR_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_GOOGLECALENDAR", "20251024_00")
 GITHUB_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_GITHUB", "20251024_00")
@@ -316,7 +316,7 @@ class MCPNode:
                 raise Exception(f"Failed to disconnect tool: {str(e)}")
     
     @staticmethod
-    async def execute_mcp_action(gpt_id: str, connected_tools: List[str], query: str, chunk_callback=None) -> str:
+    async def execute_mcp_action(gpt_id: str, connected_tools: List[str], query: str, chunk_callback=None, state: Optional[GraphState] = None) -> str:
         """Execute MCP action using connected tools - ASYNC for concurrent requests"""
         try:
             user_id = f"gpt_{gpt_id}"
@@ -377,6 +377,19 @@ class MCPNode:
                 ],
                 tools=composio_tools
             )
+            
+            # Track token usage from OpenAI SDK response
+            if state is not None and hasattr(completion, 'usage') and completion.usage:
+                if "token_usage" not in state or state["token_usage"] is None:
+                    state["token_usage"] = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+                
+                usage = completion.usage
+                state["token_usage"]["input_tokens"] += getattr(usage, 'prompt_tokens', 0)
+                state["token_usage"]["output_tokens"] += getattr(usage, 'completion_tokens', 0)
+                state["token_usage"]["total_tokens"] += getattr(usage, 'total_tokens', 0)
+                
+                print(f"[TokenTracking] MCP tool selection tokens: input={getattr(usage, 'prompt_tokens', 0)}, output={getattr(usage, 'completion_tokens', 0)}, total={getattr(usage, 'total_tokens', 0)}")
+            
             # print(f"completion: {completion}")
             result = await asyncio.to_thread(
                 composio.provider.handle_tool_calls,
@@ -512,7 +525,8 @@ Instructions:
             gpt_id=gpt_id,
             connected_tools=connected_tools,
             query=intelligent_user_message,
-            chunk_callback=None
+            chunk_callback=None,
+            state=state
         )
     
         raw_result_str = str(result)
@@ -543,6 +557,17 @@ Instructions:
                 ]
             )
             
+            # Track token usage from formatting LLM call
+            if hasattr(formatting_completion, 'usage') and formatting_completion.usage:
+                if "token_usage" not in state or state["token_usage"] is None:
+                    state["token_usage"] = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+                
+                usage = formatting_completion.usage
+                state["token_usage"]["input_tokens"] += getattr(usage, 'prompt_tokens', 0)
+                state["token_usage"]["output_tokens"] += getattr(usage, 'completion_tokens', 0)
+                state["token_usage"]["total_tokens"] += getattr(usage, 'total_tokens', 0)
+                
+                print(f"[TokenTracking] MCP formatting tokens: input={getattr(usage, 'prompt_tokens', 0)}, output={getattr(usage, 'completion_tokens', 0)}, total={getattr(usage, 'total_tokens', 0)}")
             
             formatted_result = formatting_completion.choices[0].message.content
             # print(f"MCP Node formatted result: {formatted_result}")
