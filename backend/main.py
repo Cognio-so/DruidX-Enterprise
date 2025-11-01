@@ -1073,27 +1073,38 @@ async def voice_disconnect(request: dict):
             livekit_api_secret = os.getenv("LIVEKIT_API_SECRET")
             
             if livekit_api_key and livekit_api_secret:
+                lk_api = None
                 try:
                     lk_api = livekit_api.LiveKitAPI(livekit_api_key, livekit_api_secret)
-                    # Get room info before deleting to check participants
-                    try:
-                        room_info = await lk_api.get_room(room_name)
-                        if room_info:
-                            # Delete the room which will disconnect all participants
-                            await lk_api.delete_room(room_name)
-                            print(f"Deleted LiveKit room: {room_name}")
-                    except Exception as room_err:
-                        # Room might not exist or already deleted
-                        print(f"Room {room_name} may not exist or already deleted: {room_err}")
-                        pass
-                except AttributeError:
-                    # Fallback for older API versions
+                    # Try to delete the room directly - no need to check if it exists first
+                    # The get_room() method doesn't exist in the deployed LiveKit API version
                     try:
                         await lk_api.delete_room(room_name)
-                    except:
-                        pass
+                        print(f"Deleted LiveKit room: {room_name}")
+                    except AttributeError:
+                        # Handle case where delete_room method doesn't exist
+                        print(f"delete_room method not available in this LiveKit API version")
+                    except Exception as delete_err:
+                        # Room might not exist or already deleted - this is fine
+                        print(f"Room {room_name} may not exist or already deleted: {delete_err}")
                 except Exception as api_err:
-                    print(f"Error deleting room via API: {api_err}")
+                    print(f"Error creating LiveKit API client: {api_err}")
+                finally:
+                    # Properly close the API client to avoid unclosed session warnings
+                    if lk_api:
+                        try:
+                            # Try different cleanup methods based on API version
+                            if hasattr(lk_api, 'close') and callable(getattr(lk_api, 'close', None)):
+                                if asyncio.iscoroutinefunction(lk_api.close):
+                                    await lk_api.close()
+                                else:
+                                    lk_api.close()
+                            elif hasattr(lk_api, '_client') and hasattr(lk_api._client, 'close'):
+                                # Close underlying aiohttp client if accessible
+                                await lk_api._client.close()
+                        except Exception as close_err:
+                            # Ignore cleanup errors - they're not critical
+                            pass
         
         # Check if there are any remaining active voice rooms
         # If no active rooms, stop the agent worker
