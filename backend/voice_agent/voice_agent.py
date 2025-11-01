@@ -86,7 +86,7 @@ class VoiceAssistant:
         self,
         instructions: str = None,
         tools: List[Callable] = None,
-        openai_model: str = "gpt-4o-mini",
+        openai_model: str = "gpt-4.1-nano",
         deepgram_stt_model: str = "nova-2",
         deepgram_tts_model: str = "aura-orpheus-en",
         initial_greeting: str = "Greet the user warmly, introduce yourself as a voice assistant, and offer your assistance.",
