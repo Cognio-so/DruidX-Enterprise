@@ -7,6 +7,7 @@ from datetime import date
 from typing import Optional, List, Callable, Any
 import sys
 import subprocess
+import platform
 
 from livekit import agents
 from livekit.agents import AgentSession, Agent, RoomInputOptions, function_tool, RunContext
@@ -24,7 +25,12 @@ from livekit.plugins import (
 from langgraph_websearcch import TavilyWebSearchTool
 
 # Set up logging to see more detailed error messages
-logging.basicConfig(level=logging.INFO)
+import sys
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stderr  # Write to stderr so Railway can see it
+)
 # Set the logging level for langsmith.client to WARNING to hide DEBUG messages
 logging.getLogger("langsmith.client").setLevel(logging.WARNING)
 logger = logging.getLogger("voice_assistant")
@@ -471,22 +477,36 @@ class VoiceAssistant:
 async def entrypoint(ctx: agents.JobContext):
     """Enhanced entrypoint with improved error handling"""
     try:
-        logger.info(f"Agent entrypoint called for room: {ctx.room.name}")
-        # Don't access ctx.room.url - may not exist in all contexts
+        logger.info("=" * 70)
+        logger.info(f"🎯 Agent entrypoint CALLED for room: {ctx.room.name}")
+        logger.info("Initializing VoiceAssistant...")
+        logger.info("=" * 70)
         assistant = VoiceAssistant()
+        logger.info("VoiceAssistant created, starting run()...")
         await assistant.run(ctx)
+        logger.info("✅ VoiceAssistant run() completed")
     except Exception as e:
-        logger.critical(f"Critical error in entrypoint: {str(e)}")
+        logger.critical(f"❌ Critical error in entrypoint: {str(e)}")
         import traceback
         traceback.print_exc()
         raise  # Re-raise to let LiveKit know the job failed
 
 
 if __name__ == "__main__":
+    # Log startup info to stderr (visible in Railway)
+    import sys
+    print("=" * 70, file=sys.stderr)
+    print("🚀 LiveKit Agent Worker Starting...", file=sys.stderr)
+    print(f"Python: {sys.executable}", file=sys.stderr)
+    print(f"LIVEKIT_URL: {os.getenv('LIVEKIT_URL', 'NOT SET')}", file=sys.stderr)
+    print("=" * 70, file=sys.stderr)
+    sys.stderr.flush()
+    
     # If "console" is not in the command-line arguments,
     # re-launch the script using subprocess with "console" added.
     if "console" not in sys.argv:
-        print("Redirecting to execute with 'console' command...")
+        print("Redirecting to execute with 'console' command...", file=sys.stderr)
+        sys.stderr.flush()
         try:
             # Construct the command: ['uv', 'run', 'voice_agent.py', ..., 'console']
             command = ["uv", "run"] + sys.argv + ["console"]
@@ -495,14 +515,18 @@ if __name__ == "__main__":
             # Exit the current script to prevent it from continuing
             sys.exit(result.returncode)
         except FileNotFoundError:
-            print("Error: 'uv' command not found. Please ensure 'uv' is installed and in your PATH.")
-            print("Falling back to default execution without 'console'.")
+            print("Error: 'uv' command not found. Falling back to direct execution.", file=sys.stderr)
+            sys.stderr.flush()
             # Fallback to the original execution if 'uv' isn't found
             agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
         except subprocess.CalledProcessError as e:
-            print(f"Error re-launching with 'console': {e}")
+            print(f"Error re-launching with 'console': {e}", file=sys.stderr)
+            sys.stderr.flush()
             sys.exit(e.returncode)
     else:
         # If "console" is already in the arguments, run the app directly.
+        print("Starting LiveKit agent with console mode...", file=sys.stderr)
+        print("Connecting to LiveKit server...", file=sys.stderr)
+        sys.stderr.flush()
         # This is the path taken by the subprocess call.
         agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
