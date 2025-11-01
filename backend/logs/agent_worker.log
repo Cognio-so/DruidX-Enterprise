@@ -1,0 +1,1153 @@
+2025-11-01 15:21:40,458 - voice_assistant - INFO - ======================================================================
+2025-11-01 15:21:40,459 - voice_assistant - INFO - Voice Assistant Module Loaded
+2025-11-01 15:21:40,459 - voice_assistant - INFO - LIVEKIT_URL: SET
+2025-11-01 15:21:40,459 - voice_assistant - INFO - LIVEKIT_API_KEY: SET
+2025-11-01 15:21:40,459 - voice_assistant - INFO - OPENAI_API_KEY: SET
+2025-11-01 15:21:40,459 - voice_assistant - INFO - DEEPGRAM_API_KEY: SET
+2025-11-01 15:21:40,459 - voice_assistant - INFO - ======================================================================
+2025-11-01 15:21:40,501 - voice_assistant - INFO - ======================================================================
+2025-11-01 15:21:40,501 - voice_assistant - INFO - \U0001f680 Voice Agent Script Starting...
+2025-11-01 15:21:40,501 - voice_assistant - INFO - Python: C:\Users\ashis\Desktop\office\DruidX\backend\venv\Scripts\python.exe
+2025-11-01 15:21:40,501 - voice_assistant - INFO - Arguments: ['C:\\Users\\ashis\\Desktop\\office\\DruidX\\backend\\voice_agent\\voice_agent.py', 'console']
+2025-11-01 15:21:40,501 - voice_assistant - INFO - Working Directory: C:\Users\ashis\Desktop\office\DruidX\backend
+2025-11-01 15:21:40,501 - voice_assistant - INFO - LIVEKIT_URL: wss://audiochat-l4zpp1da.livekit.cloud
+2025-11-01 15:21:40,502 - voice_assistant - INFO - ======================================================================
+2025-11-01 15:21:40,502 - voice_assistant - INFO - Running in console/worker mode...
+2025-11-01 15:21:40,502 - voice_assistant - INFO - Connecting to LiveKit server...
+2025-11-01 15:21:40,507 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-11-01 15:21:40,507 - [36mDEBUG[0m asyncio - Using proactor: IocpProactor [90m[0m
+2025-11-01 15:21:40,511 - livekit.agents - INFO - starting worker
+[34m==================================================[0m
+[34m     Livekit Agents - Console[0m
+[34m==================================================[0m
+Press [Ctrl+B] to toggle between Text/Audio mode, [Q] to quit.
+
+2025-11-01 15:21:40,511 - [32mINFO[0m livekit.agents - starting worker [90m{"version": "1.1.1", "rtc-version": "1.0.9"}[0m
+2025-11-01 15:21:40,517 - livekit.agents - INFO - [1msee tracing information at http://localhost:55808/debug[0m
+2025-11-01 15:21:40,517 - [32mINFO[0m livekit.agents - [1msee tracing information at http://localhost:55808/debug[0m [90m[0m
+2025-11-01 15:21:40,523 - livekit.agents - INFO - initializing job runner
+2025-11-01 15:21:40,523 - [32mINFO[0m livekit.agents - initializing job runner [90m{"tid": 29676}[0m
+2025-11-01 15:21:40,524 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-11-01 15:21:40,524 - [36mDEBUG[0m asyncio - Using proactor: IocpProactor [90m[0m
+2025-11-01 15:21:40,525 - livekit.agents - INFO - job runner initialized
+2025-11-01 15:21:40,525 - [32mINFO[0m livekit.agents - job runner initialized [90m{"tid": 29676, "elapsed_time": 0.0}[0m
+2025-11-01 15:21:40,663 - voice_assistant - INFO - ======================================================================
+2025-11-01 15:21:40,663 - [32mINFO[0m voice_assistant - ====================================================================== [90m[0m
+2025-11-01 15:21:40,663 - voice_assistant - INFO - \U0001f3af Agent entrypoint CALLED
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f3af' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 619, in entrypoint
+    logger.info("\U0001f3af Agent entrypoint CALLED")
+Message: '\U0001f3af Agent entrypoint CALLED'
+Arguments: ()
+2025-11-01 15:21:40,685 - voice_assistant - INFO - Room Name: fake_room
+2025-11-01 15:21:40,685 - [32mINFO[0m voice_assistant - Room Name: fake_room [90m[0m
+2025-11-01 15:21:40,688 - voice_assistant - INFO - Room SID: <MagicMock name='mock.sid' id='2578693501152'>
+2025-11-01 15:21:40,688 - [32mINFO[0m voice_assistant - Room SID: <MagicMock name='mock.sid' id='2578693501152'> [90m[0m
+2025-11-01 15:21:40,688 - voice_assistant - INFO - ======================================================================
+2025-11-01 15:21:40,688 - [32mINFO[0m voice_assistant - ====================================================================== [90m[0m
+2025-11-01 15:21:40,688 - voice_assistant - INFO - Creating VoiceAssistant instance...
+2025-11-01 15:21:40,688 - [32mINFO[0m voice_assistant - Creating VoiceAssistant instance... [90m[0m
+2025-11-01 15:21:40,689 - voice_assistant - INFO - ======================================================================
+2025-11-01 15:21:40,689 - [32mINFO[0m voice_assistant - ====================================================================== [90m[0m
+2025-11-01 15:21:40,689 - voice_assistant - INFO - Initializing VoiceAssistant instance...
+2025-11-01 15:21:40,689 - [32mINFO[0m voice_assistant - Initializing VoiceAssistant instance... [90m[0m
+2025-11-01 15:21:40,689 - voice_assistant - INFO - OpenAI Model: gpt-4o-mini
+2025-11-01 15:21:40,689 - [32mINFO[0m voice_assistant - OpenAI Model: gpt-4o-mini [90m[0m
+2025-11-01 15:21:40,689 - voice_assistant - INFO - Deepgram STT Model: nova-2
+2025-11-01 15:21:40,689 - [32mINFO[0m voice_assistant - Deepgram STT Model: nova-2 [90m[0m
+2025-11-01 15:21:40,689 - voice_assistant - INFO - Deepgram TTS Model: aura-orpheus-en
+2025-11-01 15:21:40,689 - [32mINFO[0m voice_assistant - Deepgram TTS Model: aura-orpheus-en [90m[0m
+2025-11-01 15:21:40,689 - voice_assistant - INFO - Parallel TTS Enabled: False
+2025-11-01 15:21:40,689 - [32mINFO[0m voice_assistant - Parallel TTS Enabled: False [90m[0m
+2025-11-01 15:21:40,690 - voice_assistant - INFO - Using default instructions (date: November 01, 2025)
+2025-11-01 15:21:40,690 - [32mINFO[0m voice_assistant - Using default instructions (date: November 01, 2025) [90m[0m
+2025-11-01 15:21:40,691 - voice_assistant - INFO - Initializing TavilyWebSearchTool...
+2025-11-01 15:21:40,691 - [32mINFO[0m voice_assistant - Initializing TavilyWebSearchTool... [90m[0m
+2025-11-01 15:21:40,691 - langgraph_websearcch - INFO - TavilyWebSearchTool initialized with max_results=2, search_depth=advanced
+2025-11-01 15:21:40,691 - [32mINFO[0m langgraph_websearcch - TavilyWebSearchTool initialized with max_results=2, search_depth=advanced [90m[0m
+2025-11-01 15:21:40,692 - voice_assistant - INFO - \u2705 Tavily web search tool initialized successfully
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 626, in entrypoint
+    assistant = VoiceAssistant()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 133, in __init__
+    logger.info("\u2705 Tavily web search tool initialized successfully")
+Message: '\u2705 Tavily web search tool initialized successfully'
+Arguments: ()
+2025-11-01 15:21:40,696 - voice_assistant - INFO - Tools configured: 1 tool(s) available
+2025-11-01 15:21:40,696 - [32mINFO[0m voice_assistant - Tools configured: 1 tool(s) available [90m[0m
+2025-11-01 15:21:40,696 - voice_assistant - INFO - \u2705 VoiceAssistant instance initialized
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 626, in entrypoint
+    assistant = VoiceAssistant()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 147, in __init__
+    logger.info("\u2705 VoiceAssistant instance initialized")
+Message: '\u2705 VoiceAssistant instance initialized'
+Arguments: ()
+2025-11-01 15:21:40,702 - voice_assistant - INFO - ======================================================================
+2025-11-01 15:21:40,702 - [32mINFO[0m voice_assistant - ====================================================================== [90m[0m
+2025-11-01 15:21:40,702 - voice_assistant - INFO - \u2705 VoiceAssistant created, calling run()...
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 627, in entrypoint
+    logger.info("\u2705 VoiceAssistant created, calling run()...")
+Message: '\u2705 VoiceAssistant created, calling run()...'
+Arguments: ()
+2025-11-01 15:21:40,706 - voice_assistant - INFO - \U0001f3af Starting VoiceAssistant.run()...
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f3af' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 628, in entrypoint
+    await assistant.run(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 558, in run
+    logger.info("\U0001f3af Starting VoiceAssistant.run()...")
+Message: '\U0001f3af Starting VoiceAssistant.run()...'
+Arguments: ()
+2025-11-01 15:21:40,711 - voice_assistant - INFO - ======================================================================
+2025-11-01 15:21:40,711 - [32mINFO[0m voice_assistant - ====================================================================== [90m[0m
+2025-11-01 15:21:40,711 - voice_assistant - INFO - \U0001f680 Starting voice assistant for room: fake_room
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f680' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 628, in entrypoint
+    await assistant.run(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 559, in run
+    await self.start(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 391, in start
+    logger.info(f"\U0001f680 Starting voice assistant for room: {ctx.room.name}")
+Message: '\U0001f680 Starting voice assistant for room: fake_room'
+Arguments: ()
+2025-11-01 15:21:40,718 - voice_assistant - INFO - Room SID: <MagicMock name='mock.sid' id='2578693501152'>
+2025-11-01 15:21:40,718 - [32mINFO[0m voice_assistant - Room SID: <MagicMock name='mock.sid' id='2578693501152'> [90m[0m
+2025-11-01 15:21:40,718 - voice_assistant - INFO - ======================================================================
+2025-11-01 15:21:40,718 - [32mINFO[0m voice_assistant - ====================================================================== [90m[0m
+2025-11-01 15:21:40,718 - voice_assistant - INFO - Initializing session (attempt 1)...
+2025-11-01 15:21:40,718 - [32mINFO[0m voice_assistant - Initializing session (attempt 1)... [90m[0m
+2025-11-01 15:21:40,718 - voice_assistant - INFO - Initializing AgentSession...
+2025-11-01 15:21:40,718 - [32mINFO[0m voice_assistant - Initializing AgentSession... [90m[0m
+2025-11-01 15:21:40,718 - voice_assistant - INFO - Verifying required API keys...
+2025-11-01 15:21:40,718 - [32mINFO[0m voice_assistant - Verifying required API keys... [90m[0m
+2025-11-01 15:21:40,719 - voice_assistant - INFO - \u2705 All API keys found. Initializing agent...
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 628, in entrypoint
+    await assistant.run(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 559, in run
+    await self.start(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 399, in start
+    if await self.initialize_session():
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 258, in initialize_session
+    if not await self._verify_api_keys():
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 251, in _verify_api_keys
+    logger.info("\u2705 All API keys found. Initializing agent...")
+Message: '\u2705 All API keys found. Initializing agent...'
+Arguments: ()
+2025-11-01 15:21:40,722 - voice_assistant - INFO - Creating AgentSession components...
+2025-11-01 15:21:40,722 - [32mINFO[0m voice_assistant - Creating AgentSession components... [90m[0m
+2025-11-01 15:21:40,722 - voice_assistant - INFO -   - VAD: silero (CPU mode)
+2025-11-01 15:21:40,722 - [32mINFO[0m voice_assistant -   - VAD: silero (CPU mode) [90m[0m
+2025-11-01 15:21:40,722 - voice_assistant - INFO -   - STT: Deepgram nova-2
+2025-11-01 15:21:40,722 - [32mINFO[0m voice_assistant -   - STT: Deepgram nova-2 [90m[0m
+2025-11-01 15:21:40,722 - voice_assistant - INFO -   - LLM: OpenAI gpt-4o-mini
+2025-11-01 15:21:40,722 - [32mINFO[0m voice_assistant -   - LLM: OpenAI gpt-4o-mini [90m[0m
+2025-11-01 15:21:40,722 - voice_assistant - INFO -   - TTS: Deepgram aura-orpheus-en
+2025-11-01 15:21:40,722 - [32mINFO[0m voice_assistant -   - TTS: Deepgram aura-orpheus-en [90m[0m
+2025-11-01 15:21:41,721 - voice_assistant - INFO - \u2705 AgentSession created successfully
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 628, in entrypoint
+    await assistant.run(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 559, in run
+    await self.start(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 399, in start
+    if await self.initialize_session():
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 303, in initialize_session
+    logger.info("\u2705 AgentSession created successfully")
+Message: '\u2705 AgentSession created successfully'
+Arguments: ()
+2025-11-01 15:21:41,725 - voice_assistant - INFO - \u2705 Session initialized successfully
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 628, in entrypoint
+    await assistant.run(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 559, in run
+    await self.start(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 400, in start
+    logger.info("\u2705 Session initialized successfully")
+Message: '\u2705 Session initialized successfully'
+Arguments: ()
+2025-11-01 15:21:41,729 - voice_assistant - INFO - Parallel TTS disabled
+2025-11-01 15:21:41,729 - [32mINFO[0m voice_assistant - Parallel TTS disabled [90m[0m
+2025-11-01 15:21:41,729 - voice_assistant - INFO - Creating Agent instance...
+2025-11-01 15:21:41,729 - [32mINFO[0m voice_assistant - Creating Agent instance... [90m[0m
+2025-11-01 15:21:41,730 - voice_assistant - INFO - \u2705 Agent instance created
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 628, in entrypoint
+    await assistant.run(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 559, in run
+    await self.start(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 421, in start
+    logger.info("\u2705 Agent instance created")
+Message: '\u2705 Agent instance created'
+Arguments: ()
+2025-11-01 15:21:41,734 - voice_assistant - INFO - Setting up STT event hooks...
+2025-11-01 15:21:41,734 - [32mINFO[0m voice_assistant - Setting up STT event hooks... [90m[0m
+2025-11-01 15:21:41,735 - voice_assistant - WARNING - \u26a0\ufe0f on_user_speech_committed not available on session
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 62-63: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 628, in entrypoint
+    await assistant.run(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 559, in run
+    await self.start(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 446, in start
+    logger.warning("\u26a0\ufe0f on_user_speech_committed not available on session")
+Message: '\u26a0\ufe0f on_user_speech_committed not available on session'
+Arguments: ()
+2025-11-01 15:21:41,738 - voice_assistant - INFO - Setting up agent response hooks...
+2025-11-01 15:21:41,738 - [32mINFO[0m voice_assistant - Setting up agent response hooks... [90m[0m
+2025-11-01 15:21:41,738 - voice_assistant - INFO - Monitoring agent conversation state...
+2025-11-01 15:21:41,738 - [32mINFO[0m voice_assistant - Monitoring agent conversation state... [90m[0m
+2025-11-01 15:21:41,738 - voice_assistant - INFO - \U0001f4e1 Connecting agent to room...
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f4e1' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 628, in entrypoint
+    await assistant.run(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 559, in run
+    await self.start(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 468, in start
+    logger.info("\U0001f4e1 Connecting agent to room...")
+Message: '\U0001f4e1 Connecting agent to room...'
+Arguments: ()
+2025-11-01 15:21:41,743 - voice_assistant - INFO - \u2705 Agent connected to room successfully
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 628, in entrypoint
+    await assistant.run(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 559, in run
+    await self.start(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 471, in start
+    logger.info("\u2705 Agent connected to room successfully")
+Message: '\u2705 Agent connected to room successfully'
+Arguments: ()
+2025-11-01 15:21:41,750 - voice_assistant - INFO - \U0001f3ac Starting agent session...
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f3ac' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 628, in entrypoint
+    await assistant.run(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 559, in run
+    await self.start(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 474, in start
+    logger.info("\U0001f3ac Starting agent session...")
+Message: '\U0001f3ac Starting agent session...'
+Arguments: ()
+2025-11-01 15:21:43,085 - livekit.agents - DEBUG - http_session(): creating a new httpclient ctx
+2025-11-01 15:21:43,085 - [36mDEBUG[0m livekit.agents - http_session(): creating a new httpclient ctx [90m[0m
+[Audio] Array (3- Intel® Sma [-70.00 dBFS] [32m[------------------------------][0m2025-11-01 15:21:43,096 - voice_assistant - INFO - \u2705 Agent session started successfully
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 628, in entrypoint
+    await assistant.run(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 559, in run
+    await self.start(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 483, in start
+    logger.info("\u2705 Agent session started successfully")
+Message: '\u2705 Agent session started successfully'
+Arguments: ()
+2025-11-01 15:21:43,101 - voice_assistant - INFO - \U0001f4ac Generating initial greeting...
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f4ac' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 628, in entrypoint
+    await assistant.run(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 559, in run
+    await self.start(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 500, in start
+    logger.info("\U0001f4ac Generating initial greeting...")
+Message: '\U0001f4ac Generating initial greeting...'
+Arguments: ()
+2025-11-01 15:21:43,105 - voice_assistant - DEBUG - Generating greeting (max attempts: 1)...
+2025-11-01 15:21:43,105 - [36mDEBUG[0m voice_assistant - Generating greeting (max attempts: 1)... [90m[0m
+2025-11-01 15:21:43,106 - voice_assistant - DEBUG - Greeting attempt 1/1
+2025-11-01 15:21:43,106 - [36mDEBUG[0m voice_assistant - Greeting attempt 1/1 [90m[0m
+[Audio] Array (3- Intel® Sma [-82.29 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.29 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.29 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.29 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.29 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.29 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.29 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.29 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.29 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.29 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.36 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.36 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.38 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-68.97 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-68.97 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.12 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.12 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.18 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.50 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.70 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.48 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.48 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.89 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.89 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.49 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.95 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.95 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.31 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.39 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.39 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.06 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.92 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.11 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.34 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.34 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.71 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.71 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.76 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.76 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.30 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.96 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.96 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.66 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.66 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.21 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.71 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.91 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.19 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.19 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.47 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.47 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.80 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.75 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.83 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.01 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.01 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-84.26 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-84.26 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.76 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.07 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.07 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-84.30 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-85.03 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-85.03 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-86.42 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-86.42 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-86.99 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-86.99 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.96 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.96 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-84.66 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-84.66 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-85.30 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-86.47 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-86.47 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-86.15 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-86.15 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-85.71 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-86.71 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.79 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.60 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.60 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-89.56 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-89.56 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-91.17 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-91.17 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-89.43 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-89.43 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-91.60 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-91.60 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.77 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.77 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-91.05 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-91.05 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.05 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.05 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.24 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-89.05 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.14 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-92.44 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-92.44 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-91.89 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-91.89 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-92.76 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-92.76 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.53 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-92.72 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-92.00 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-91.12 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-91.12 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-89.98 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-91.33 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-91.65 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.39 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.36 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-89.98 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-89.98 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-92.28 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.24 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.28 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-91.52 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-91.52 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-93.98 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-93.98 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-91.68 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-91.38 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-91.47 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.78 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.78 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-71.97 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-71.68 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-56.01 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-71.48 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-71.48 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-64.06 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-60.34 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-63.39 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-67.03 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-67.03 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-75.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-63.17 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-67.72 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-90.84 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-92.82 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-92.69 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-58.81 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-58.81 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-58.81 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-57.33 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-53.21 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-53.21 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-59.13 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-59.13 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-77.06 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-56.19 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-58.55 dBFS] [32m[#####-------------------------][0m2025-11-01 15:21:52,953 - voice_assistant - INFO - \u2705 Initial greeting generated successfully!
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 628, in entrypoint
+    await assistant.run(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 559, in run
+    await self.start(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 501, in start
+    await self._generate_greeting_with_retry()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 521, in _generate_greeting_with_retry
+    logger.info("\u2705 Initial greeting generated successfully!")
+Message: '\u2705 Initial greeting generated successfully!'
+Arguments: ()
+2025-11-01 15:21:52,956 - voice_assistant - DEBUG - Sending transcription: assistant - Hello! I'm your voice assistant. How can I help yo...
+2025-11-01 15:21:52,956 - [36mDEBUG[0m voice_assistant - Sending transcription: assistant - Hello! I'm your voice assistant. How can I help yo... [90m[0m
+2025-11-01 15:21:52,957 - voice_assistant - DEBUG - DataPacket_Kind not available (not critical)
+2025-11-01 15:21:52,957 - [36mDEBUG[0m voice_assistant - DataPacket_Kind not available (not critical) [90m[0m
+2025-11-01 15:21:52,957 - voice_assistant - INFO - \u2705 Sent transcription: assistant - Hello! I'm your voice assistant. How can I help yo...
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 628, in entrypoint
+    await assistant.run(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 559, in run
+    await self.start(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 502, in start
+    await self._send_transcription(ctx, greeting_text, "assistant")
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 382, in _send_transcription
+    logger.info(f"\u2705 Sent transcription: {role} - {text[:50]}...")
+Message: "\u2705 Sent transcription: assistant - Hello! I'm your voice assistant. How can I help yo..."
+Arguments: ()
+2025-11-01 15:21:52,960 - voice_assistant - INFO - \u2705 Initial greeting sent successfully
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 628, in entrypoint
+    await assistant.run(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 559, in run
+    await self.start(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 503, in start
+    logger.info("\u2705 Initial greeting sent successfully")
+Message: '\u2705 Initial greeting sent successfully'
+Arguments: ()
+2025-11-01 15:21:52,963 - voice_assistant - INFO - \u2705 Agent started, initializing monitoring...
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 628, in entrypoint
+    await assistant.run(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 565, in run
+    logger.info("\u2705 Agent started, initializing monitoring...")
+Message: '\u2705 Agent started, initializing monitoring...'
+Arguments: ()
+2025-11-01 15:21:52,967 - voice_assistant - INFO - Starting error monitoring task...
+2025-11-01 15:21:52,967 - [32mINFO[0m voice_assistant - Starting error monitoring task... [90m[0m
+2025-11-01 15:21:52,968 - voice_assistant - INFO - \U0001f3a7 Agent is now listening and ready for user input
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f3a7' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 628, in entrypoint
+    await assistant.run(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 576, in run
+    logger.info("\U0001f3a7 Agent is now listening and ready for user input")
+Message: '\U0001f3a7 Agent is now listening and ready for user input'
+Arguments: ()
+2025-11-01 15:21:52,972 - voice_assistant - INFO - Agent will remain active until room disconnects...
+2025-11-01 15:21:52,972 - [32mINFO[0m voice_assistant - Agent will remain active until room disconnects... [90m[0m
+2025-11-01 15:21:52,972 - voice_assistant - INFO - ======================================================================
+2025-11-01 15:21:52,972 - [32mINFO[0m voice_assistant - ====================================================================== [90m[0m
+2025-11-01 15:21:52,972 - voice_assistant - INFO - \U0001f4ac WAITING FOR USER INPUT...
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f4ac' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 628, in entrypoint
+    await assistant.run(ctx)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 579, in run
+    logger.info("\U0001f4ac WAITING FOR USER INPUT...")
+Message: '\U0001f4ac WAITING FOR USER INPUT...'
+Arguments: ()
+2025-11-01 15:21:52,977 - voice_assistant - INFO - ======================================================================
+2025-11-01 15:21:52,977 - [32mINFO[0m voice_assistant - ====================================================================== [90m[0m
+[Audio] Array (3- Intel® Sma [-69.65 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-69.65 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-55.88 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-57.46 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-57.46 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-59.74 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-59.74 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-50.59 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-55.77 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-59.18 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-61.31 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-61.31 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-55.92 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-55.92 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-58.50 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-58.50 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-59.93 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-61.68 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-61.68 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-60.68 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-60.68 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-62.07 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-62.07 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-58.32 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-59.42 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-59.42 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-61.27 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-61.27 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-63.00 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-60.06 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-60.06 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-66.07 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-66.07 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-64.73 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-63.93 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-65.34 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-67.81 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-67.81 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-69.64 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-70.81 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-70.81 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.55 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.55 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.93 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.88 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.88 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.72 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.67 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-73.85 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.49 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.49 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.08 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.08 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.97 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.02 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.94 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.59 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.59 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.84 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.84 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.42 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.44 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.76 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.66 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.66 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.84 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.84 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.51 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.80 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.56 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.02 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.02 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.28 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.18 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.40 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.52 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.52 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.55 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.55 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.10 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.10 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.74 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.74 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-68.57 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-40.91 dBFS] [32m[############------------------][0m[Audio] Array (3- Intel® Sma [-42.85 dBFS] [32m[############------------------][0m[Audio] Array (3- Intel® Sma [-44.14 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-44.14 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-39.30 dBFS] [32m[#############-----------------][0m[Audio] Array (3- Intel® Sma [-41.84 dBFS] [32m[############------------------][0m[Audio] Array (3- Intel® Sma [-51.09 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-71.82 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-71.82 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.06 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.06 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.63 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.23 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.65 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.71 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.71 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.65 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.93 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.54 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-22.72 dBFS] [33m[####################----------][0m[Audio] Array (3- Intel® Sma [-22.72 dBFS] [33m[####################----------][0m[Audio] Array (3- Intel® Sma [-23.16 dBFS] [33m[####################----------][0m[Audio] Array (3- Intel® Sma [-23.16 dBFS] [33m[####################----------][0m[Audio] Array (3- Intel® Sma [-22.59 dBFS] [33m[####################----------][0m[Audio] Array (3- Intel® Sma [-31.67 dBFS] [33m[################--------------][0m[Audio] Array (3- Intel® Sma [-28.06 dBFS] [33m[##################------------][0m[Audio] Array (3- Intel® Sma [-40.17 dBFS] [32m[#############-----------------][0m[Audio] Array (3- Intel® Sma [-40.17 dBFS] [32m[#############-----------------][0m[Audio] Array (3- Intel® Sma [-28.59 dBFS] [33m[##################------------][0m[Audio] Array (3- Intel® Sma [-47.19 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-47.19 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-57.02 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-55.73 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-62.69 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-72.10 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-72.10 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-72.69 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-72.69 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-66.70 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-68.12 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-68.12 dBFS] [32m[#-----------------------------][0m2025-11-01 15:22:01,010 - livekit.agents - DEBUG - received user transcript
+2025-11-01 15:22:01,010 - [36mDEBUG[0m livekit.agents - received user transcript [90m{"user_transcript": "Tell me about Mita.", "language": "en"}[0m
+[Audio] Array (3- Intel® Sma [-77.79 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.79 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-66.96 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-65.30 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-77.59 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.71 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.71 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.89 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.89 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.45 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.89 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.59 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.95 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.95 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.16 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.26 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.93 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.04 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.04 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.23 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.23 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.66 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.66 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.46 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.61 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.49 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.48 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.48 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.70 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.70 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-84.10 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.90 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.50 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.77 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.77 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.37 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.37 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.54 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.77 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.03 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.94 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.94 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.10 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.96 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.25 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.46 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.46 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.77 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.24 dBFS] [32m[------------------------------][0m2025-11-01 15:22:04,049 - livekit.agents - DEBUG - executing tool
+2025-11-01 15:22:04,049 - [36mDEBUG[0m livekit.agents - executing tool [90m{"function": "web_search", "arguments": "{\"query\":\"Mita\"}", "speech_id": "speech_7e805c815edc"}[0m
+2025-11-01 15:22:04,051 - voice_assistant - INFO - ======================================================================
+2025-11-01 15:22:04,051 - [32mINFO[0m voice_assistant - ====================================================================== [90m[0m
+2025-11-01 15:22:04,051 - voice_assistant - INFO - \U0001f50d WEB SEARCH TOOL CALLED
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f50d' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 158, in web_search
+    logger.info("\U0001f50d WEB SEARCH TOOL CALLED")
+Message: '\U0001f50d WEB SEARCH TOOL CALLED'
+Arguments: ()
+2025-11-01 15:22:04,057 - voice_assistant - INFO - Search query: 'Mita'
+2025-11-01 15:22:04,057 - [32mINFO[0m voice_assistant - Search query: 'Mita' [90m[0m
+2025-11-01 15:22:04,057 - voice_assistant - INFO - ======================================================================
+2025-11-01 15:22:04,057 - [32mINFO[0m voice_assistant - ====================================================================== [90m[0m
+2025-11-01 15:22:04,057 - voice_assistant - INFO - Performing web search for: Mita
+2025-11-01 15:22:04,057 - [32mINFO[0m voice_assistant - Performing web search for: Mita [90m[0m
+2025-11-01 15:22:04,058 - voice_assistant - DEBUG - Calling TavilyWebSearchTool.asearch()...
+2025-11-01 15:22:04,058 - [36mDEBUG[0m voice_assistant - Calling TavilyWebSearchTool.asearch()... [90m[0m
+2025-11-01 15:22:04,058 - langgraph_websearcch - INFO - Executing web search for query: Mita
+2025-11-01 15:22:04,058 - [32mINFO[0m langgraph_websearcch - Executing web search for query: Mita [90m[0m
+2025-11-01 15:22:04,349 - livekit.plugins.silero - WARNING - inference is slower than realtime
+2025-11-01 15:22:04,349 - [33mWARNING[0m livekit.plugins.silero - inference is slower than realtime [90m{"delay": 0.2754230000001989}[0m
+[Audio] Array (3- Intel® Sma [-58.27 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-78.65 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.65 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.65 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.65 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.65 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.55 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.68 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.41 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.41 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.37 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.58 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.67 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.85 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.85 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.85 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.39 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.20 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.20 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.81 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.81 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.84 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.30 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.91 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.42 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.42 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.95 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.95 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.65 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.65 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.45 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.59 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.59 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.06 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.73 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-84.61 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.69 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.27 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.27 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.58 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.35 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.80 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.83 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.83 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.12 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.12 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.04 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.16 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.02 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.19 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.21 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.21 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.21 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.90 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.19 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.19 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.00 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.00 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.41 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.42 dBFS] [32m[------------------------------][0m2025-11-01 15:22:07,808 - langgraph_websearcch - INFO - Search completed in 3.75s for: Mita
+2025-11-01 15:22:07,808 - [32mINFO[0m langgraph_websearcch - Search completed in 3.75s for: Mita [90m[0m
+2025-11-01 15:22:07,809 - voice_assistant - INFO - \u2705 Web search completed, received response
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 172, in web_search
+    logger.info(f"\u2705 Web search completed, received response")
+Message: '\u2705 Web search completed, received response'
+Arguments: ()
+2025-11-01 15:22:07,812 - voice_assistant - INFO - Found 2 search results, processing top 2...
+2025-11-01 15:22:07,812 - [32mINFO[0m voice_assistant - Found 2 search results, processing top 2... [90m[0m
+2025-11-01 15:22:07,812 - voice_assistant - DEBUG - Summary truncated to 400 characters for voice
+2025-11-01 15:22:07,812 - [36mDEBUG[0m voice_assistant - Summary truncated to 400 characters for voice [90m[0m
+2025-11-01 15:22:07,812 - voice_assistant - INFO - \u2705 Web search completed, returning summary (403 chars)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\ashis\miniconda3\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ashis\miniconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 59: character maps to <undefined>
+Call stack:
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ashis\miniconda3\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\job_proc_lazy_main.py", line 353, in thread_main
+    client.run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\ipc\proc_client.py", line 86, in run
+    loop.run_until_complete(self._task)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\base_events.py", line 2042, in _run_once
+    handle._run()
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\venv\Lib\site-packages\livekit\agents\utils\aio\debug.py", line 16, in instrumented
+    val = _run(self)
+  File "C:\Users\ashis\miniconda3\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ashis\Desktop\office\DruidX\backend\voice_agent\voice_agent.py", line 203, in web_search
+    logger.info(f"\u2705 Web search completed, returning summary ({len(summary)} chars)")
+Message: '\u2705 Web search completed, returning summary (403 chars)'
+Arguments: ()
+2025-11-01 15:22:07,815 - voice_assistant - INFO - ======================================================================
+2025-11-01 15:22:07,815 - [32mINFO[0m voice_assistant - ====================================================================== [90m[0m
+2025-11-01 15:22:07,815 - livekit.agents - DEBUG - tools execution completed
+2025-11-01 15:22:07,815 - [36mDEBUG[0m livekit.agents - tools execution completed [90m{"speech_id": "speech_7e805c815edc"}[0m
+[Audio] Array (3- Intel® Sma [-81.37 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.09 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.09 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.04 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.57 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.96 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-69.15 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-70.99 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.86 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.52 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.52 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-73.77 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-73.77 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-64.51 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-78.83 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.83 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.41 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.41 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.58 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.58 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.58 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.99 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.25 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.54 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.73 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.73 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.60 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.60 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.73 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.73 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.68 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.23 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.42 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-59.63 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-59.63 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-72.59 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-74.44 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.18 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-87.38 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-87.38 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.39 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.39 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.76 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-87.46 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-86.19 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.31 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.31 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.78 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-87.58 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-87.58 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.80 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.80 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-72.09 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.76 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.07 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-73.44 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.41 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.41 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.41 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-70.50 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-70.50 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-68.20 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-68.20 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-86.56 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.74 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.47 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.90 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.90 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.83 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.00 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-86.24 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-84.52 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-84.52 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.46 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.29 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.29 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-86.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-86.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.98 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.39 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-89.77 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-87.77 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-87.77 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-86.05 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-86.05 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-74.66 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-74.66 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.42 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.42 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-63.50 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-63.50 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-69.33 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-64.22 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-64.22 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-70.86 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-70.86 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.60 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.60 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-72.51 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.01 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.01 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.40 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.26 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-87.55 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-85.23 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-85.23 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-68.19 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-68.19 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-87.85 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-86.24 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-87.56 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.27 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.27 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.25 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.78 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.78 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.33 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.45 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-71.27 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-68.95 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-68.95 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-84.09 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-87.52 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-89.72 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.25 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.25 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-88.62 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-85.64 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-85.64 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.90 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.90 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.14 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.14 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.51 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-74.65 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-74.65 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.49 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.49 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.39 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.39 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.23 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.23 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-51.86 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-58.89 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-44.59 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-40.91 dBFS] [32m[############------------------][0m[Audio] Array (3- Intel® Sma [-51.19 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-51.25 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-51.25 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-87.48 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-87.48 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-85.88 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-85.88 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-70.70 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-70.70 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-41.69 dBFS] [32m[############------------------][0m[Audio] Array (3- Intel® Sma [-44.42 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-44.42 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-44.67 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-41.69 dBFS] [32m[############------------------][0m[Audio] Array (3- Intel® Sma [-52.10 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-58.61 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-59.49 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-64.68 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-77.52 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.52 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-89.76 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-89.76 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.29 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-85.75 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-85.75 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-70.81 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-70.81 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.28 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-90.28 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-32.77 dBFS] [33m[################--------------][0m[Audio] Array (3- Intel® Sma [-47.17 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-47.17 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-49.53 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-49.53 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-54.04 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-54.04 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-51.10 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-51.10 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-43.94 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-47.42 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-58.11 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-47.52 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-45.83 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-56.53 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-56.53 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-42.27 dBFS] [32m[############------------------][0m[Audio] Array (3- Intel® Sma [-42.27 dBFS] [32m[############------------------][0m[Audio] Array (3- Intel® Sma [-43.04 dBFS] [32m[############------------------][0m[Audio] Array (3- Intel® Sma [-43.04 dBFS] [32m[############------------------][0m[Audio] Array (3- Intel® Sma [-48.71 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-43.97 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-43.97 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-51.13 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-51.13 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-82.74 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.74 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-63.52 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-63.52 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-56.97 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-37.64 dBFS] [32m[##############----------------][0m[Audio] Array (3- Intel® Sma [-44.11 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-52.09 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-52.09 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-43.59 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-45.53 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-38.61 dBFS] [32m[#############-----------------][0m[Audio] Array (3- Intel® Sma [-50.90 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-50.90 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-53.84 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-53.84 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-52.36 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-52.36 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-75.86 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-49.31 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-49.31 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-55.16 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-51.08 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-51.25 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-55.18 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-55.18 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-81.75 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.75 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-49.70 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-45.00 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-57.34 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-53.74 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-53.74 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-65.28 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-65.28 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-63.57 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-63.57 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-41.30 dBFS] [32m[############------------------][0m[Audio] Array (3- Intel® Sma [-35.62 dBFS] [32m[###############---------------][0m[Audio] Array (3- Intel® Sma [-35.62 dBFS] [32m[###############---------------][0m[Audio] Array (3- Intel® Sma [-41.54 dBFS] [32m[############------------------][0m[Audio] Array (3- Intel® Sma [-48.96 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-48.17 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-47.25 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-47.25 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-59.75 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-51.03 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-51.03 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-67.52 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-82.87 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-55.17 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-54.41 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-54.41 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-68.90 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-74.73 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-74.73 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-73.56 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-69.52 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.01 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-64.50 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-64.50 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-68.59 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-68.59 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-70.63 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-70.63 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-54.29 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-54.29 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-52.14 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-43.27 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-48.16 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-52.91 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-46.55 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-36.79 dBFS] [32m[##############----------------][0m[Audio] Array (3- Intel® Sma [-38.10 dBFS] [32m[##############----------------][0m[Audio] Array (3- Intel® Sma [-52.19 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-52.36 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-55.70 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-56.15 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-56.15 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-47.28 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-47.28 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-60.73 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-60.73 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-65.67 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-65.67 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-78.57 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-44.32 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-33.21 dBFS] [33m[################--------------][0m[Audio] Array (3- Intel® Sma [-57.63 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-57.63 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-76.07 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-89.26 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.48 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-87.81 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-87.81 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-71.43 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-71.43 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-48.27 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-65.00 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-65.00 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-45.64 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-45.64 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-41.31 dBFS] [32m[############------------------][0m[Audio] Array (3- Intel® Sma [-41.31 dBFS] [32m[############------------------][0m[Audio] Array (3- Intel® Sma [-47.12 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-47.12 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-57.30 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-49.97 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-56.22 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-44.31 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-44.31 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-76.26 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.26 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-53.22 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-45.09 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-46.04 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-45.48 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-45.48 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-66.99 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-66.99 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-53.28 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-53.28 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-56.20 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-57.28 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-65.34 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-69.47 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-69.47 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-72.22 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-71.22 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-72.93 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-74.17 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-74.17 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-74.55 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-74.55 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.26 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.11 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.11 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.25 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-72.77 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.99 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.40 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.40 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-70.69 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.06 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.89 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.80 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.80 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.82 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.82 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.17 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.98 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.98 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.91 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.91 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.27 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.27 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.50 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.23 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.60 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.12 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.12 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.05 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.98 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.98 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.71 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.71 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.89 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.89 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.01 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.90 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.11 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.00 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.00 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.01 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.01 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.57 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.44 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.98 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.85 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.85 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.61 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.61 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.87 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.04 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.04 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.29 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.25 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.25 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.62 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.62 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.39 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.74 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.74 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.26 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.96 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.98 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.08 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.08 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.98 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.11 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.11 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.71 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.36 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.87 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.56 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.56 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.17 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.17 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-69.68 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-69.68 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-74.08 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.90 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.90 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.56 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.56 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.94 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.94 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.52 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.52 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.47 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.84 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.84 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.83 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.83 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.07 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.24 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.66 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.07 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.32 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.82 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.82 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.35 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.35 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.49 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.49 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.49 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.86 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.86 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.03 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.92 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.92 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.61 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.61 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.39 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.70 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.18 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.14 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.14 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.91 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.43 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.99 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.09 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.09 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.75 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.75 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.87 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.24 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.24 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.23 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.23 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.56 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.56 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.31 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.61 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.95 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.29 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.29 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.01 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.01 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.20 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.20 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.63 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.63 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.38 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.81 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.25 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.62 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-67.68 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-80.20 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.20 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.01 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.10 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-74.16 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-73.58 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.43 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.71 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.51 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.23 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.23 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.34 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.14 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.83 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.78 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.84 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.17 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.17 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.72 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.63 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.25 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-84.12 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-84.12 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.69 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-36.02 dBFS] [32m[###############---------------][0m[Audio] Array (3- Intel® Sma [-39.63 dBFS] [32m[#############-----------------][0m[Audio] Array (3- Intel® Sma [-39.63 dBFS] [32m[#############-----------------][0m[Audio] Array (3- Intel® Sma [-65.16 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-77.33 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.33 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.94 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.05 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.79 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.48 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.48 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.00 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.25 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.59 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.49 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.82 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.22 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.22 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.34 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-62.99 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-62.99 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-35.46 dBFS] [32m[###############---------------][0m[Audio] Array (3- Intel® Sma [-35.46 dBFS] [32m[###############---------------][0m[Audio] Array (3- Intel® Sma [-37.33 dBFS] [32m[##############----------------][0m[Audio] Array (3- Intel® Sma [-51.26 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-51.26 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-23.90 dBFS] [33m[####################----------][0m[Audio] Array (3- Intel® Sma [-23.90 dBFS] [33m[####################----------][0m[Audio] Array (3- Intel® Sma [-19.91 dBFS] [33m[#####################---------][0m[Audio] Array (3- Intel® Sma [-19.86 dBFS] [33m[#####################---------][0m[Audio] Array (3- Intel® Sma [-25.30 dBFS] [33m[###################-----------][0m[Audio] Array (3- Intel® Sma [-39.33 dBFS] [32m[#############-----------------][0m[Audio] Array (3- Intel® Sma [-39.33 dBFS] [32m[#############-----------------][0m[Audio] Array (3- Intel® Sma [-48.03 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-53.33 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-54.40 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-55.14 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-55.14 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-63.67 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-66.12 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-66.12 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-70.48 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-72.79 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.98 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.43 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.43 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-69.11 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-69.11 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-29.42 dBFS] [33m[#################-------------][0m[Audio] Array (3- Intel® Sma [-48.08 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-48.08 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-66.38 dBFS] [32m[##----------------------------][0m2025-11-01 15:22:42,594 - livekit.agents - DEBUG - received user transcript
+2025-11-01 15:22:42,594 - [36mDEBUG[0m livekit.agents - received user transcript [90m{"user_transcript": "Hello?", "language": "en"}[0m
+[Audio] Array (3- Intel® Sma [-61.70 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-67.52 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-37.60 dBFS] [32m[##############----------------][0m[Audio] Array (3- Intel® Sma [-37.60 dBFS] [32m[##############----------------][0m[Audio] Array (3- Intel® Sma [-45.99 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-46.83 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-54.39 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-59.49 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-59.49 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-65.60 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-65.60 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-38.25 dBFS] [32m[##############----------------][0m[Audio] Array (3- Intel® Sma [-38.25 dBFS] [32m[##############----------------][0m[Audio] Array (3- Intel® Sma [-27.10 dBFS] [33m[##################------------][0m[Audio] Array (3- Intel® Sma [-24.84 dBFS] [33m[###################-----------][0m[Audio] Array (3- Intel® Sma [-24.84 dBFS] [33m[###################-----------][0m[Audio] Array (3- Intel® Sma [-31.08 dBFS] [33m[#################-------------][0m[Audio] Array (3- Intel® Sma [-31.08 dBFS] [33m[#################-------------][0m[Audio] Array (3- Intel® Sma [-30.54 dBFS] [33m[#################-------------][0m[Audio] Array (3- Intel® Sma [-44.82 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-42.57 dBFS] [32m[############------------------][0m[Audio] Array (3- Intel® Sma [-45.97 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-45.97 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-43.37 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-42.93 dBFS] [32m[############------------------][0m[Audio] Array (3- Intel® Sma [-34.88 dBFS] [33m[###############---------------][0m[Audio] Array (3- Intel® Sma [-34.86 dBFS] [33m[###############---------------][0m[Audio] Array (3- Intel® Sma [-34.86 dBFS] [33m[###############---------------][0m[Audio] Array (3- Intel® Sma [-32.70 dBFS] [33m[################--------------][0m[Audio] Array (3- Intel® Sma [-32.70 dBFS] [33m[################--------------][0m[Audio] Array (3- Intel® Sma [-38.21 dBFS] [32m[##############----------------][0m[Audio] Array (3- Intel® Sma [-39.49 dBFS] [32m[#############-----------------][0m[Audio] Array (3- Intel® Sma [-39.49 dBFS] [32m[#############-----------------][0m[Audio] Array (3- Intel® Sma [-28.13 dBFS] [33m[##################------------][0m[Audio] Array (3- Intel® Sma [-28.13 dBFS] [33m[##################------------][0m[Audio] Array (3- Intel® Sma [-48.82 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-44.05 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-62.93 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-65.82 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-65.82 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-74.20 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-74.20 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.28 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-73.97 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.67 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.04 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.07 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.07 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-73.64 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-73.61 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.45 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.32 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.32 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-53.77 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-49.74 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-49.74 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-63.16 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-63.16 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-77.89 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.93 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.93 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-71.53 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-71.53 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-69.85 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-69.85 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.24 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.17 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.17 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.30 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.30 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.76 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.76 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-71.07 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-73.80 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.51 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.72 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.15 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.98 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.98 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.45 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.45 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.90 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.82 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.82 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-70.68 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-70.68 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.68 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.76 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.57 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.24 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.24 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.94 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.94 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.05 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.17 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.43 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.60 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.60 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.63 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.77 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.34 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-60.02 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-60.02 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-76.91 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.57 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.57 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.90 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.90 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.78 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.78 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.09 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.99 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.07 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.85 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.85 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.46 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.23 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.73 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.47 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.47 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.85 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.85 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.82 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.52 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.51 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.23 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.23 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.49 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.49 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.42 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.88 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.98 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.67 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.67 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.32 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-39.70 dBFS] [32m[#############-----------------][0m[Audio] Array (3- Intel® Sma [-38.05 dBFS] [32m[##############----------------][0m[Audio] Array (3- Intel® Sma [-38.05 dBFS] [32m[##############----------------][0m[Audio] Array (3- Intel® Sma [-68.77 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-68.77 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-63.38 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-61.80 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-69.59 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.38 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.38 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-70.43 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.42 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.45 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-73.32 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-73.95 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-68.91 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.92 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.92 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.77 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.81 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.23 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.23 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.97 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.97 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.58 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.38 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.38 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.22 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.22 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.86 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.37 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.37 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-35.81 dBFS] [32m[###############---------------][0m[Audio] Array (3- Intel® Sma [-24.85 dBFS] [33m[###################-----------][0m[Audio] Array (3- Intel® Sma [-27.03 dBFS] [33m[##################------------][0m[Audio] Array (3- Intel® Sma [-25.17 dBFS] [33m[###################-----------][0m2025-11-01 15:22:53,657 - voice_assistant - DEBUG - Agent still running (alive for 60 seconds)
+2025-11-01 15:22:53,657 - [36mDEBUG[0m voice_assistant - Agent still running (alive for 60 seconds) [90m[0m
+[Audio] Array (3- Intel® Sma [-25.17 dBFS] [33m[###################-----------][0m[Audio] Array (3- Intel® Sma [-25.73 dBFS] [33m[###################-----------][0m[Audio] Array (3- Intel® Sma [-33.19 dBFS] [33m[################--------------][0m[Audio] Array (3- Intel® Sma [-33.19 dBFS] [33m[################--------------][0m[Audio] Array (3- Intel® Sma [-45.58 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-45.58 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-51.50 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-51.50 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-63.36 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-68.43 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-68.43 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-67.51 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-67.51 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-72.64 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.73 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.73 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-73.66 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.02 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-76.36 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.01 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.01 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.31 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.28 dBFS] [32m[------------------------------][0m2025-11-01 15:22:55,044 - livekit.agents - DEBUG - received user transcript
+2025-11-01 15:22:55,044 - [36mDEBUG[0m livekit.agents - received user transcript [90m{"user_transcript": "Hello?", "language": "en"}[0m
+[Audio] Array (3- Intel® Sma [-76.92 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.66 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-75.66 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.03 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.03 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.50 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.50 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.46 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-73.44 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-74.99 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.71 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.71 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.79 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.42 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.42 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.88 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.88 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.67 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.67 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.34 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.15 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-79.55 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.25 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.25 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.47 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.65 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.56 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.59 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.59 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.67 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.21 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.88 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.01 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.01 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.37 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-82.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.75 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.75 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.19 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-62.85 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-62.85 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-84.80 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.72 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-77.68 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.61 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.61 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-80.34 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-85.81 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-85.81 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.75 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-59.02 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-57.03 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-80.56 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-84.47 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-69.37 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-69.37 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-78.13 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-46.38 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-53.09 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-53.09 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-33.81 dBFS] [33m[################--------------][0m[Audio] Array (3- Intel® Sma [-33.81 dBFS] [33m[################--------------][0m[Audio] Array (3- Intel® Sma [-43.93 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-29.29 dBFS] [33m[#################-------------][0m[Audio] Array (3- Intel® Sma [-29.29 dBFS] [33m[#################-------------][0m[Audio] Array (3- Intel® Sma [-59.53 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-55.58 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-67.11 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-62.05 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-62.05 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-53.87 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-53.87 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-64.02 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-46.76 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-49.71 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-49.71 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-56.69 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-43.35 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-43.35 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-64.05 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-64.05 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-57.88 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-61.61 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-58.02 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-81.47 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-81.47 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-51.06 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-54.86 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-53.70 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-55.92 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-55.92 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-61.04 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-68.31 dBFS] [32m[#-----------------------------][0m[Audio] Array (3- Intel® Sma [-49.81 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-54.45 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-55.71 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-34.80 dBFS] [33m[###############---------------][0m[Audio] Array (3- Intel® Sma [-34.80 dBFS] [33m[###############---------------][0m[Audio] Array (3- Intel® Sma [-58.52 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-52.97 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-52.36 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-52.36 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-62.23 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-61.42 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-65.37 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-85.62 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-85.62 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-55.61 dBFS] [32m[######------------------------][0m[Audio] Array (3- Intel® Sma [-61.83 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-51.25 dBFS] [32m[########----------------------][0m[Audio] Array (3- Intel® Sma [-50.12 dBFS] [32m[#########---------------------][0m[Audio] Array (3- Intel® Sma [-59.31 dBFS] [32m[#####-------------------------][0m[Audio] Array (3- Intel® Sma [-45.76 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-40.29 dBFS] [32m[#############-----------------][0m[Audio] Array (3- Intel® Sma [-46.49 dBFS] [32m[##########--------------------][0m[Audio] Array (3- Intel® Sma [-53.64 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-53.64 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-53.55 dBFS] [32m[#######-----------------------][0m[Audio] Array (3- Intel® Sma [-35.37 dBFS] [32m[###############---------------][0m[Audio] Array (3- Intel® Sma [-35.37 dBFS] [32m[###############---------------][0m[Audio] Array (3- Intel® Sma [-43.16 dBFS] [32m[############------------------][0m[Audio] Array (3- Intel® Sma [-42.06 dBFS] [32m[############------------------][0m[Audio] Array (3- Intel® Sma [-43.40 dBFS] [32m[###########-------------------][0m[Audio] Array (3- Intel® Sma [-64.31 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-64.31 dBFS] [32m[##----------------------------][0m[Audio] Array (3- Intel® Sma [-60.00 dBFS] [32m[####--------------------------][0m[Audio] Array (3- Intel® Sma [-62.18 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-62.18 dBFS] [32m[###---------------------------][0m[Audio] Array (3- Intel® Sma [-78.50 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-84.55 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-83.77 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-84.64 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-84.64 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-84.09 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-85.97 dBFS] [32m[------------------------------][0m[Audio] Array (3- Intel® Sma [-85.97 dBFS] [32m[------------------------------][0m

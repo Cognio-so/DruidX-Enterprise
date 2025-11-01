@@ -907,42 +907,37 @@ async def _ensure_agent_worker_running():
                     startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                     startupinfo.wShowWindow = subprocess.SW_HIDE
                 
-                # Create log file for agent worker
+                # Create log file for agent worker (backup)
                 log_dir = os.path.join(backend_dir, "logs")
                 os.makedirs(log_dir, exist_ok=True)
                 log_file = os.path.join(log_dir, "agent_worker.log")
                 
-                # Run the agent script directly with "console" argument
-                # This bypasses the uv check and runs agents.cli.run_app() directly
-                with open(log_file, "w") as f:
-                    _agent_worker_process = subprocess.Popen(
-                        [python_exec, voice_agent_path, "console"],
-                        cwd=backend_dir,
-                        stdout=f,
-                        stderr=subprocess.STDOUT,
-                        env=os.environ.copy(),
-                        startupinfo=startupinfo if platform.system() == "Windows" else None
-                    )
+                # IMPORTANT: Don't redirect stdout/stderr to file - let it go to Railway logs
+                # Railway captures stdout/stderr automatically
+                # Only redirect if you want file backup too
+                _agent_worker_process = subprocess.Popen(
+                    [python_exec, voice_agent_path, "console"],
+                    cwd=backend_dir,
+                    # Remove stdout/stderr redirection so Railway can see logs
+                    # stdout=subprocess.PIPE,  # Comment this out
+                    # stderr=subprocess.STDOUT,  # Comment this out
+                    env=os.environ.copy(),
+                    startupinfo=startupinfo if platform.system() == "Windows" else None
+                )
                 
                 print(f"Agent worker started with PID: {_agent_worker_process.pid}")
-                print(f"Agent worker logs: {log_file}")
+                print(f"Agent worker logs visible in Railway console output")
                 
                 # Wait a bit to check if it started successfully
                 await asyncio.sleep(3)
                 if _agent_worker_process.poll() is not None:
-                    print(f"Agent worker process exited immediately with code: {_agent_worker_process.returncode}")
-                    # Read the log file to see what went wrong
-                    try:
-                        with open(log_file, "r") as f:
-                            log_content = f.read()
-                            if log_content:
-                                print(f"Agent worker error log:\n{log_content}")
-                    except Exception as log_err:
-                        print(f"Could not read log file: {log_err}")
+                    print(f"❌ Agent worker process exited immediately with code: {_agent_worker_process.returncode}")
                     _agent_worker_process = None
+                else:
+                    print(f"✅ Agent worker process is running (PID: {_agent_worker_process.pid})")
                     
             except Exception as e:
-                print(f"Error starting agent worker: {e}")
+                print(f"❌ Error starting agent worker: {e}")
                 import traceback
                 traceback.print_exc()
                 _agent_worker_process = None
