@@ -626,7 +626,6 @@ async def hierarchical_summarize(state, batch_size: int = 10):
     if mode == "brief":
         text = "\n".join(c["text"] for c in chunks)
         prompt = f"""
-{custom_prefix}
 You are a professional summarizer.
 Summarize the document in detail while preserving the flow and factual integrity.
 
@@ -649,7 +648,7 @@ Summarize the document in detail while preserving the flow and factual integrity
     if mode == "normal":
         text = "\n".join(c["text"] for c in chunks)
         prompt = f"""
-{custom_prefix}
+
 You are a professional summarizer.
 Summarize the document in detail while preserving the flow and factual integrity.
 
@@ -657,6 +656,7 @@ Summarize the document in detail while preserving the flow and factual integrity
 - Maintain original heading flow and key examples.
 - Include definitions and technical details.
 - Avoid repetition or generic statements.
+- Whole summary must be between 500 and 1000 words.
 ---
 {text[:32000]}
 """
