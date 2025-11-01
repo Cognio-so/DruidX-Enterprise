@@ -907,42 +907,37 @@ async def _ensure_agent_worker_running():
                     startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                     startupinfo.wShowWindow = subprocess.SW_HIDE
                 
-                # Create log file for agent worker
+                # Create log file for agent worker (backup)
                 log_dir = os.path.join(backend_dir, "logs")
                 os.makedirs(log_dir, exist_ok=True)
                 log_file = os.path.join(log_dir, "agent_worker.log")
                 
-                # Run the agent script directly with "console" argument
-                # This bypasses the uv check and runs agents.cli.run_app() directly
-                with open(log_file, "w") as f:
-                    _agent_worker_process = subprocess.Popen(
-                        [python_exec, voice_agent_path, "console"],
-                        cwd=backend_dir,
-                        stdout=f,
-                        stderr=subprocess.STDOUT,
-                        env=os.environ.copy(),
-                        startupinfo=startupinfo if platform.system() == "Windows" else None
-                    )
+                # IMPORTANT: Don't redirect stdout/stderr to file - let it go to Railway logs
+                # Railway captures stdout/stderr automatically
+                # Only redirect if you want file backup too
+                _agent_worker_process = subprocess.Popen(
+                    [python_exec, voice_agent_path, "console"],
+                    cwd=backend_dir,
+                    # Remove stdout/stderr redirection so Railway can see logs
+                    # stdout=subprocess.PIPE,  # Comment this out
+                    # stderr=subprocess.STDOUT,  # Comment this out
+                    env=os.environ.copy(),
+                    startupinfo=startupinfo if platform.system() == "Windows" else None
+                )
                 
                 print(f"Agent worker started with PID: {_agent_worker_process.pid}")
-                print(f"Agent worker logs: {log_file}")
+                print(f"Agent worker logs visible in Railway console output")
                 
                 # Wait a bit to check if it started successfully
                 await asyncio.sleep(3)
                 if _agent_worker_process.poll() is not None:
-                    print(f"Agent worker process exited immediately with code: {_agent_worker_process.returncode}")
-                    # Read the log file to see what went wrong
-                    try:
-                        with open(log_file, "r") as f:
-                            log_content = f.read()
-                            if log_content:
-                                print(f"Agent worker error log:\n{log_content}")
-                    except Exception as log_err:
-                        print(f"Could not read log file: {log_err}")
+                    print(f"❌ Agent worker process exited immediately with code: {_agent_worker_process.returncode}")
                     _agent_worker_process = None
+                else:
+                    print(f"✅ Agent worker process is running (PID: {_agent_worker_process.pid})")
                     
             except Exception as e:
-                print(f"Error starting agent worker: {e}")
+                print(f"❌ Error starting agent worker: {e}")
                 import traceback
                 traceback.print_exc()
                 _agent_worker_process = None
@@ -1073,38 +1068,27 @@ async def voice_disconnect(request: dict):
             livekit_api_secret = os.getenv("LIVEKIT_API_SECRET")
             
             if livekit_api_key and livekit_api_secret:
-                lk_api = None
                 try:
                     lk_api = livekit_api.LiveKitAPI(livekit_api_key, livekit_api_secret)
-                    # Try to delete the room directly - no need to check if it exists first
-                    # The get_room() method doesn't exist in the deployed LiveKit API version
+                    # Get room info before deleting to check participants
+                    try:
+                        room_info = await lk_api.get_room(room_name)
+                        if room_info:
+                            # Delete the room which will disconnect all participants
+                            await lk_api.delete_room(room_name)
+                            print(f"Deleted LiveKit room: {room_name}")
+                    except Exception as room_err:
+                        # Room might not exist or already deleted
+                        print(f"Room {room_name} may not exist or already deleted: {room_err}")
+                        pass
+                except AttributeError:
+                    # Fallback for older API versions
                     try:
                         await lk_api.delete_room(room_name)
-                        print(f"Deleted LiveKit room: {room_name}")
-                    except AttributeError:
-                        # Handle case where delete_room method doesn't exist
-                        print(f"delete_room method not available in this LiveKit API version")
-                    except Exception as delete_err:
-                        # Room might not exist or already deleted - this is fine
-                        print(f"Room {room_name} may not exist or already deleted: {delete_err}")
+                    except:
+                        pass
                 except Exception as api_err:
-                    print(f"Error creating LiveKit API client: {api_err}")
-                finally:
-                    # Properly close the API client to avoid unclosed session warnings
-                    if lk_api:
-                        try:
-                            # Try different cleanup methods based on API version
-                            if hasattr(lk_api, 'close') and callable(getattr(lk_api, 'close', None)):
-                                if asyncio.iscoroutinefunction(lk_api.close):
-                                    await lk_api.close()
-                                else:
-                                    lk_api.close()
-                            elif hasattr(lk_api, '_client') and hasattr(lk_api._client, 'close'):
-                                # Close underlying aiohttp client if accessible
-                                await lk_api._client.close()
-                        except Exception as close_err:
-                            # Ignore cleanup errors - they're not critical
-                            pass
+                    print(f"Error deleting room via API: {api_err}")
         
         # Check if there are any remaining active voice rooms
         # If no active rooms, stop the agent worker
