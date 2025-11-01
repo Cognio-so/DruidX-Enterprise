@@ -310,7 +310,7 @@ class VoiceAssistant:
         """Send transcription as data packet to room"""
         try:
             import json
-            from livekit.protocol import DataPacket_Kind
+            # DataPacket_Kind is not needed for publish_data - remove the import
             data = json.dumps({"type": "transcription", "text": text, "role": role}).encode()
             await ctx.room.local_participant.publish_data(
                 data, 
@@ -528,5 +528,21 @@ if __name__ == "__main__":
         print("Starting LiveKit agent with console mode...", file=sys.stderr)
         print("Connecting to LiveKit server...", file=sys.stderr)
         sys.stderr.flush()
+        
+        # Suppress termios errors on Railway (no TTY available)
+        # This is expected in containerized environments
+        import warnings
+        warnings.filterwarnings("ignore", category=UserWarning, module="livekit.agents.voice.chat_cli")
+        
         # This is the path taken by the subprocess call.
-        agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
+        try:
+            agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
+        except KeyboardInterrupt:
+            print("Agent worker stopped by user", file=sys.stderr)
+            sys.stderr.flush()
+        except Exception as e:
+            print(f"❌ Fatal error: {e}", file=sys.stderr)
+            import traceback
+            traceback.print_exc(file=sys.stderr)
+            sys.stderr.flush()
+            sys.exit(1)
