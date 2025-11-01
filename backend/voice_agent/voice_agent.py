@@ -501,48 +501,51 @@ if __name__ == "__main__":
     print(f"LIVEKIT_URL: {os.getenv('LIVEKIT_URL', 'NOT SET')}", file=sys.stderr)
     print("=" * 70, file=sys.stderr)
     sys.stderr.flush()
-    
-    # If "console" is not in the command-line arguments,
-    # re-launch the script using subprocess with "console" added.
-    if "console" not in sys.argv:
-        print("Redirecting to execute with 'console' command...", file=sys.stderr)
+    if os.getenv("RAILWAY_ENVIRONMENT"):
+        # 🚀 Running on Railway (production mode, no console)
+        print("Running in Railway: Starting LiveKit agent without console mode...", file=sys.stderr)
         sys.stderr.flush()
-        try:
-            # Construct the command: ['uv', 'run', 'voice_agent.py', ..., 'console']
-            command = ["uv", "run"] + sys.argv + ["console"]
-            # Execute the command
-            result = subprocess.run(command, check=True)
-            # Exit the current script to prevent it from continuing
-            sys.exit(result.returncode)
-        except FileNotFoundError:
-            print("Error: 'uv' command not found. Falling back to direct execution.", file=sys.stderr)
-            sys.stderr.flush()
-            # Fallback to the original execution if 'uv' isn't found
-            agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
-        except subprocess.CalledProcessError as e:
-            print(f"Error re-launching with 'console': {e}", file=sys.stderr)
-            sys.stderr.flush()
-            sys.exit(e.returncode)
+        agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
     else:
-        # If "console" is already in the arguments, run the app directly.
-        print("Starting LiveKit agent with console mode...", file=sys.stderr)
-        print("Connecting to LiveKit server...", file=sys.stderr)
-        sys.stderr.flush()
-        
-        # Suppress termios errors on Railway (no TTY available)
-        # This is expected in containerized environments
-        import warnings
-        warnings.filterwarnings("ignore", category=UserWarning, module="livekit.agents.voice.chat_cli")
-        
-        # This is the path taken by the subprocess call.
-        try:
-            agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
-        except KeyboardInterrupt:
-            print("Agent worker stopped by user", file=sys.stderr)
+        if "console" not in sys.argv:
+            print("Redirecting to execute with 'console' command...", file=sys.stderr)
             sys.stderr.flush()
-        except Exception as e:
-            print(f"❌ Fatal error: {e}", file=sys.stderr)
-            import traceback
-            traceback.print_exc(file=sys.stderr)
+            try:
+                # Construct the command: ['uv', 'run', 'voice_agent.py', ..., 'console']
+                command = ["uv", "run"] + sys.argv + ["console"]
+                # Execute the command
+                result = subprocess.run(command, check=True)
+                # Exit the current script to prevent it from continuing
+                sys.exit(result.returncode)
+            except FileNotFoundError:
+                print("Error: 'uv' command not found. Falling back to direct execution.", file=sys.stderr)
+                sys.stderr.flush()
+                # Fallback to the original execution if 'uv' isn't found
+                agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
+            except subprocess.CalledProcessError as e:
+                print(f"Error re-launching with 'console': {e}", file=sys.stderr)
+                sys.stderr.flush()
+                sys.exit(e.returncode)
+        else:
+            # If "console" is already in the arguments, run the app directly.
+            print("Starting LiveKit agent with console mode...", file=sys.stderr)
+            print("Connecting to LiveKit server...", file=sys.stderr)
             sys.stderr.flush()
-            sys.exit(1)
+            
+            # Suppress termios errors on Railway (no TTY available)
+            # This is expected in containerized environments
+            import warnings
+            warnings.filterwarnings("ignore", category=UserWarning, module="livekit.agents.voice.chat_cli")
+            
+            # This is the path taken by the subprocess call.
+            try:
+                agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
+            except KeyboardInterrupt:
+                print("Agent worker stopped by user", file=sys.stderr)
+                sys.stderr.flush()
+            except Exception as e:
+                print(f"❌ Fatal error: {e}", file=sys.stderr)
+                import traceback
+                traceback.print_exc(file=sys.stderr)
+                sys.stderr.flush()
+                sys.exit(1)
