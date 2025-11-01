@@ -915,15 +915,18 @@ async def _ensure_agent_worker_running():
                 # IMPORTANT: Don't redirect stdout/stderr to file - let it go to Railway logs
                 # Railway captures stdout/stderr automatically
                 # Only redirect if you want file backup too
+                args = [python_exec, voice_agent_path]
+                # Only add console for local testing
+                if not os.getenv("RAILWAY_ENVIRONMENT_NAME"):
+                    args.append("console")
+
                 _agent_worker_process = subprocess.Popen(
-                    [python_exec, voice_agent_path, "console"],
+                    args,
                     cwd=backend_dir,
-                    # Remove stdout/stderr redirection so Railway can see logs
-                    # stdout=subprocess.PIPE,  # Comment this out
-                    # stderr=subprocess.STDOUT,  # Comment this out
                     env=os.environ.copy(),
                     startupinfo=startupinfo if platform.system() == "Windows" else None
                 )
+
                 
                 print(f"Agent worker started with PID: {_agent_worker_process.pid}")
                 print(f"Agent worker logs visible in Railway console output")
