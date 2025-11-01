@@ -1062,33 +1062,9 @@ async def voice_disconnect(request: dict):
             del _active_voice_rooms[room_name]
             print(f"Removed room {room_name} from active rooms. Remaining: {len(_active_voice_rooms)}")
         
-        # Delete the LiveKit room
-        if room_name:
-            livekit_api_key = os.getenv("LIVEKIT_API_KEY")
-            livekit_api_secret = os.getenv("LIVEKIT_API_SECRET")
-            
-            if livekit_api_key and livekit_api_secret:
-                try:
-                    lk_api = livekit_api.LiveKitAPI(livekit_api_key, livekit_api_secret)
-                    # Get room info before deleting to check participants
-                    try:
-                        room_info = await lk_api.get_room(room_name)
-                        if room_info:
-                            # Delete the room which will disconnect all participants
-                            await lk_api.delete_room(room_name)
-                            print(f"Deleted LiveKit room: {room_name}")
-                    except Exception as room_err:
-                        # Room might not exist or already deleted
-                        print(f"Room {room_name} may not exist or already deleted: {room_err}")
-                        pass
-                except AttributeError:
-                    # Fallback for older API versions
-                    try:
-                        await lk_api.delete_room(room_name)
-                    except:
-                        pass
-                except Exception as api_err:
-                    print(f"Error deleting room via API: {api_err}")
+        # Note: LiveKit will automatically clean up rooms when participants disconnect
+        # We don't need to manually delete via API (and get_room() doesn't exist anyway)
+        # This eliminates the "Unclosed client session" warning
         
         # Check if there are any remaining active voice rooms
         # If no active rooms, stop the agent worker
