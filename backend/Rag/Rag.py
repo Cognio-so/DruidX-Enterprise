@@ -491,7 +491,7 @@ You are a precise and logical routing agent for an AI system. Your only job is t
 * **THEN** your decision **MUST BE** `"user_docs_only"`. This rule overrides all others to ensure immediate relevance.
 
 **2. PRIORITY #2: The "Comparison & Evaluation" Rule**
-* **IF** the query asks for a **comparison, review, or validation** (e.g., "compare this to", "review this against", "does this meet standards?") AND the **Custom GPT Instructions** imply a standard of comparison (e.g., "You are a resume reviewer," "You are a code auditor"),
+* **IF** the query asks for a **comparison, review, or validation** (e.g., "compare this to","check this", "review this against", "does this meet standards?") AND the **Custom GPT Instructions** imply a standard of comparison (e.g., "You are a resume reviewer," "You are a code auditor"),
 * **THEN** your decision **MUST BE** `"both"` (if the KB is available).
 
 **3. PRIORITY #3: The "Contextual Explanation" Rule**
@@ -519,7 +519,7 @@ You **MUST** respond with a single, valid JSON object and nothing else.
 """ 
     llm = ChatGroq(
         model="openai/gpt-oss-120b",  
-        temperature=0.4,
+        temperature=0.2,
         groq_api_key=os.getenv("GROQ_API_KEY")
     )
     response = await llm.ainvoke([HumanMessage(content=classification_prompt)])
@@ -566,9 +566,91 @@ async def is_summarization_query(user_query: str) -> bool:
     
 import asyncio, random
 from langchain.schema import HumanMessage
+import base64
+async def extract_text_from_image(file_content: bytes, filename: str = "", state: GraphState = None) -> str:
+    """Extract text and description from image using GPT-4 Vision or Gemini Vision"""
+    
+    # Get model from GraphState
+    if state is None:
+        state = GraphState()
+    
+    llm_model = state.get("llm_model")
+    print(f"[ImageProcessor] GraphState llm_model: {llm_model}")
+    # If llm_model is not in state, try to get it from gpt_config
+    if llm_model is None and state.get("gpt_config"):
+        llm_model = state["gpt_config"].get("model")
+    
+    if llm_model is None:
+        print(f"[ImageProcessor] Error: llm_model not found in GraphState. Cannot process image {filename}")
+        return f"[Image Analysis Error: llm_model not configured in GraphState]"
+    
+    print(f"[ImageProcessor] Processing image {filename} with model from GraphState: {llm_model}")
+    
+    try:
+        # Encode image to base64
+        image_base64 = base64.b64encode(file_content).decode('utf-8')
+        
+        # Detect image format from filename
+        image_format = "jpeg"  # default
+        if filename.lower().endswith('.png'):
+            image_format = "png"
+        elif filename.lower().endswith('.gif'):
+            image_format = "gif"
+        elif filename.lower().endswith('.webp'):
+            image_format = "webp"
+        elif filename.lower().endswith('.bmp'):
+            image_format = "bmp"
+        
+        # Prepare messages for Vision API using LangChain message format
+        message = HumanMessage(
+            content=[
+                {
+                    "type": "text",
+                    "text": "Analyze this image in detail. Extract all visible text, describe all objects, people, scenes, colors, and any important details. If this is a document, extract the text content."
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/{image_format};base64,{image_base64}"
+                    }
+                }
+            ]
+        )
+        
+        # Call Vision API - pass messages as positional argument
+        llm = get_llm(llm_model, temperature=0.5)
+        response = await llm.ainvoke([message])
+        
+        # Track token usage from vision model call (like in mcp.py)
+        if state is not None:
+            token_usage = _extract_usage(response)
+            
+            if token_usage["total_tokens"] > 0:
+                # Initialize token_usage in state if needed
+                if "token_usage" not in state or state["token_usage"] is None:
+                    state["token_usage"] = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+                
+                # Accumulate token usage
+                state["token_usage"]["input_tokens"] += token_usage["input_tokens"]
+                state["token_usage"]["output_tokens"] += token_usage["output_tokens"]
+                state["token_usage"]["total_tokens"] += token_usage["total_tokens"]
+                
+                print(f"[TokenTracking] Image processing tokens: input={token_usage['input_tokens']}, output={token_usage['output_tokens']}, total={token_usage['total_tokens']}")
+                print(f"[TokenTracking] Accumulated token usage in state: {state['token_usage']}")
+        
+        # Extract content from LangChain AIMessage object
+        analysis = response.content
+        print(f"[ImageProcessor] Analysis: {analysis}")
+        print(f"[ImageProcessor] ✅ Successfully analyzed image {filename}: {len(analysis)} chars")
+        return analysis
+        
+    except Exception as e:
+        print(f"[ImageProcessor] ❌ Error processing image {filename}: {e}")
+        import traceback
+        traceback.print_exc()
+        return f"[Image Analysis Error: {str(e)}]"
+    
 
-import asyncio, re, random
-from langchain.schema import HumanMessage
 
 async def hierarchical_summarize(state, batch_size: int = 10):
     """
@@ -815,6 +897,224 @@ async def _process_kb_docs(state, kb_docs, user_query, rag):
 async def Rag(state: GraphState) -> GraphState:
     llm_model = state.get("llm_model", "gpt-4o-mini")
     user_query = state.get("resolved_query") or state.get("user_query", "")
+    uploaded_images = state.get("uploaded_images", []) or []
+    chunk_callback = state.get("_chunk_callback")
+    
+    messages = state.get("messages", [])
+    kb_docs = state.get("kb", {})
+    docs = state.get("active_docs", [])
+    gpt_config = state.get("gpt_config", {})
+    custom_system_prompt = gpt_config.get("instruction", "")
+    has_user_docs = bool(docs)
+    has_kb = bool(kb_docs)
+    
+    # Process images with intelligent source selection
+    image_analysis_results = []
+    
+    if uploaded_images:
+        print(f"[RAG] Found {len(uploaded_images)} image(s) with file_content in state")
+        await send_status_update(state, "🧠 Analyzing query and determining sources...", 10)
+        has_user_docs=True
+        source_decision = await intelligent_source_selection(
+            user_query=user_query,
+            has_user_docs=has_user_docs,
+            has_kb=has_kb,
+            custom_prompt=custom_system_prompt,
+            llm_model=llm_model
+        )
+        
+        use_kb = source_decision.get("use_kb", False)
+        use_user_docs = source_decision.get("use_user_docs", False)
+        for image_data in uploaded_images:
+            filename = image_data.get("filename", "")
+            file_content = image_data.get("file_content")
+            file_url = image_data.get("file_url", "")
+            
+            if not file_content:
+                print(f"[RAG] Warning: No file_content for {filename}, will fetch from {file_url}")
+                try:
+                    import httpx
+                    async with httpx.AsyncClient() as client:
+                        response = await client.get(file_url, timeout=30.0)
+                        response.raise_for_status()
+                        file_content = response.content
+                except Exception as e:
+                    print(f"[RAG] Failed to fetch image {filename}: {e}")
+                    continue
+            
+            print(f"[RAG] Processing image: {filename}, size: {len(file_content)} bytes")
+            
+            try:
+                
+                
+                # Encode image to base64
+                image_base64 = base64.b64encode(file_content).decode('utf-8')
+                
+                # Detect image format
+                image_format = "jpeg"
+                if filename.lower().endswith('.png'):
+                    image_format = "png"
+                elif filename.lower().endswith('.gif'):
+                    image_format = "gif"
+                elif filename.lower().endswith('.webp'):
+                    image_format = "webp"
+                elif filename.lower().endswith('.bmp'):
+                    image_format = "bmp"
+                
+                if use_kb:
+                    
+                    extraction_prompt = "Analyze this image in detail. Extract all visible text, describe all objects, people, scenes, colors, and any important details comprehensively."
+                    
+                    extraction_message = HumanMessage(
+                        content=[
+                            {"type": "text", "text": extraction_prompt},
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": f"data:image/{image_format};base64,{image_base64}"}
+                            }
+                        ]
+                    )
+                    
+                    llm = get_llm(llm_model, temperature=0.7)
+
+                    extraction_response = await llm.ainvoke([extraction_message])
+                    extracted_details = extraction_response.content
+        
+                  
+                    token_usage = _extract_usage(extraction_response)
+                    if state and token_usage["total_tokens"] > 0:
+                        if "token_usage" not in state or state["token_usage"] is None:
+                            state["token_usage"] = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+                        state["token_usage"]["input_tokens"] += token_usage["input_tokens"]
+                        state["token_usage"]["output_tokens"] += token_usage["output_tokens"]
+                        state["token_usage"]["total_tokens"] += token_usage["total_tokens"]
+                    
+                    print(f"[RAG-IMAGE] Extracted {len(extracted_details)} chars from image (silent extraction)")
+                    
+                    # Search KB using extracted details + user query
+                    await send_status_update(state, "🔍 Searching knowledge base with image context...", 50)
+                    
+                    kb_result = []
+                    if has_kb and kb_docs:
+                        session_id = state.get("session_id", "default")
+                        if session_id in KB_EMBEDDING_CACHE:
+                            cache_data = KB_EMBEDDING_CACHE[session_id]
+                            collection_name = cache_data["collection_name"]
+                            is_hybrid = cache_data["is_hybrid"]
+                            
+                            search_query = f"{user_query} {extracted_details}"
+                            
+                            if is_hybrid:
+                                kb_result = await _hybrid_search_intersection(collection_name, search_query, limit=3)
+                            else:
+                                kb_result = await _hybrid_search_rrf(collection_name, search_query, limit=5, k=60)
+                            
+                            print(f"[RAG-IMAGE] Retrieved {len(kb_result)} KB chunks")
+                    
+                   
+                    answer_context_parts = []
+                    answer_context_parts.append(f"USER QUESTION: {user_query}")
+                    answer_context_parts.append(f"\nIMAGE DETAILS FROM {filename}:\n{extracted_details}")
+                    
+                    if kb_result:
+                        answer_context_parts.append(f"\nKNOWLEDGE BASE CONTEXT:\n{chr(10).join(kb_result)}")
+                    
+                    if custom_system_prompt:
+                        answer_context_parts.append(f"\nCUSTOM GPT INSTRUCTIONS:\n{custom_system_prompt}")
+                    
+                    answer_prompt = f"""
+You are an AI assistant answering a user's question about an image.
+
+The user asked: {user_query}
+
+Below are the extracted details from the image and relevant knowledge base information (if available).
+
+**Your task:** Provide a comprehensive, accurate answer to the user's question by combining:
+1. The visual information extracted from the image
+2. Relevant knowledge from the knowledge base (if provided)
+3. Your understanding of the topic
+
+Be specific, detailed, and cite what you see in the image. If KB information is provided, integrate it naturally with the image analysis.
+
+---
+{chr(10).join(answer_context_parts)}
+"""
+                    
+                    answer_message = HumanMessage(content=answer_prompt)
+                
+                    final_answer, _ = await stream_with_token_tracking(
+                        llm,
+                        [answer_message],
+                        chunk_callback=chunk_callback,
+                        state=state
+                    )
+                    
+                    image_analysis_results.append({
+                        "filename": filename,
+                        "analysis": final_answer,
+                        "extracted_details": extracted_details,
+                        "kb_chunks_used": len(kb_result)
+                    })
+                    
+                    print(f"[RAG-IMAGE] ✅ Generated answer with KB: {filename}, {len(final_answer)} chars")
+                    
+                else:
+                    prompt_text = f"The user asked: {user_query}\n\nAnalyze this image in detail and answer the user's question. Provide comprehensive information based on what you see in the image."
+                    
+                    message = HumanMessage(
+                        content=[
+                            {"type": "text", "text": prompt_text},
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": f"data:image/{image_format};base64,{image_base64}"}
+                            }
+                        ]
+                    )
+                    
+                    llm = get_llm(llm_model, temperature=0.5)
+                    full_image_analysis, _ = await stream_with_token_tracking(
+                        llm,
+                        [message],
+                        chunk_callback=chunk_callback,
+                        state=state
+                    )
+                    
+                    image_analysis_results.append({
+                        "filename": filename,
+                        "analysis": full_image_analysis
+                    })
+                    
+                    print(f"[RAG-IMAGE] ✅ Direct analysis: {filename}, {len(full_image_analysis)} chars")
+                
+            except Exception as e:
+                print(f"[RAG] ❌ Error processing image {filename}: {e}")
+                import traceback
+                traceback.print_exc()
+                if chunk_callback:
+                    await chunk_callback(f"\n⚠️ Error analyzing image {filename}: {str(e)}\n")
+        
+        # Combine all image analyses into final response
+        if image_analysis_results:
+            combined_analysis = "\n\n".join([
+                f"**{img['filename']}:**\n{img['analysis']}" 
+                for img in image_analysis_results
+            ])
+            state["response"] = combined_analysis
+            state.setdefault("intermediate_results", []).append({
+                "node": "RAG",
+                "query": user_query,
+                "strategy": f"image_analysis_with_kb" if use_kb else "image_analysis_only",
+                "sources_used": {
+                    "images": len(image_analysis_results),
+                    "kb": sum(img.get("kb_chunks_used", 0) for img in image_analysis_results)
+                },
+                "output": state["response"]
+            })
+            await send_status_update(state, "✅ Image analysis completed", 100)
+        
+        return state
+    
+    # Continue with non-image RAG processing below...
     if await is_summarization_query(user_query):
         print("[RAG] Detected summarization intent — switching to Hierarchical Summarizer.")
         await send_status_update(state, "🧠 Summarizing entire document...", 20)
@@ -836,7 +1136,7 @@ async def Rag(state: GraphState) -> GraphState:
 
         await send_status_update(state, "✅ Hierarchical summarization completed", 100)
         return state
-
+    
 
     messages = state.get("messages", [])
     websearch = state.get("web_search", False)    
@@ -906,12 +1206,8 @@ async def Rag(state: GraphState) -> GraphState:
         }
     
     use_user_docs = source_decision["use_user_docs"]
-    print(f"is doc usr doc..........",use_user_docs)
     use_kb = source_decision["use_kb"]
     strategy = source_decision["search_strategy"]
-    
-    print(f"[RAG] Using strategy: {strategy}")
-    print(f"[RAG] User Docs: {use_user_docs}, KB: {use_kb}")
 
     if not use_user_docs:
         user_result = []
@@ -940,6 +1236,7 @@ async def Rag(state: GraphState) -> GraphState:
     
     context_parts.append(f"\nUSER QUERY:\n{user_query}")
     context_parts.append(f"\nSOURCE ROUTING DECISION:\nStrategy: {strategy}\nReasoning: {source_decision['reasoning']}")
+    
     
     if user_result and use_user_docs:
         context_parts.append(f"\nUSER DOCUMENT CONTEXT:\n{chr(10).join(user_result)}")

@@ -195,6 +195,9 @@ async def add_documents_by_url(session_id: str, request: dict):
     print(f"Document type: {doc_type}")
     
     # Process documents in parallel
+    processed_docs = []
+    uploaded_images = []  # Store image file_content separately
+    
     async def process_single_document(doc: dict, index: int) -> Optional[dict]:
         """Process a single document (extract content from URL)"""
         try:
@@ -203,6 +206,7 @@ async def add_documents_by_url(session_id: str, request: dict):
             filename = doc["filename"]
             
             print(f"[Parallel] Processing document {index + 1}/{len(documents)}: {filename}")
+            print(f"[Parallel] File type from request: {file_type}")
             
             # Fetch content from URL
             async with httpx.AsyncClient() as client:
@@ -211,16 +215,42 @@ async def add_documents_by_url(session_id: str, request: dict):
                 file_content = response.content
                 print(f"[Parallel] Downloaded {len(file_content)} bytes from {filename}")
             
+            # Better file type detection - check extension first (more reliable)
+            file_extension = filename.split('.')[-1].lower() if '.' in filename else ''
+            is_image = (
+                file_type.startswith('image/') or 
+                file_extension in ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg']
+            )
+            
+            print(f"[Parallel] Detected file extension: {file_extension}, is_image: {is_image}")
+            
             # Extract text based on file type
-            if file_type == "application/pdf" or filename.lower().endswith('.pdf'):
+            content = ""
+            if is_image:
+                # For images, store file_content bytes for later use in RAG
+                # Don't call vision model during upload - will be done in RAG based on user query
+                content = f"[Image file: {filename}]"  # Placeholder content for document structure
+                
+                # Store image bytes for RAG processing (as base64-ready)
+                image_data = {
+                    "filename": filename,
+                    "file_content": file_content,  # Raw bytes
+                    "file_url": file_url,
+                    "file_type": "image",
+                    "id": doc.get("id"),
+                    "size": len(file_content)
+                }
+                uploaded_images.append(image_data)
+                print(f"[Parallel] Image detected: {filename} - stored {len(file_content)} bytes for RAG processing")
+            elif file_type == "application/pdf" or file_extension == 'pdf':
                 content = extract_text_from_pdf(file_content)
                 if not content.strip():
                     print(f"⚠️ Warning: PDF {filename} appears to be empty or unreadable")
-            elif file_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" or filename.lower().endswith('.docx'):
+            elif file_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" or file_extension == 'docx':
                 content = extract_text_from_docx(file_content)
                 if not content.strip():
                     print(f"⚠️ Warning: DOCX {filename} appears to be empty or unreadable")
-            elif file_type == "application/json" or filename.lower().endswith('.json'):
+            elif file_type == "application/json" or file_extension == 'json':
                 content = extract_text_from_json(file_content)
                 if not content.strip():
                     print(f"⚠️ Warning: JSON {filename} appears to be empty or unreadable")
@@ -229,16 +259,17 @@ async def add_documents_by_url(session_id: str, request: dict):
                 if not content.strip():
                     print(f"⚠️ Warning: Text file {filename} appears to be empty or unreadable")
             
-            if content.strip():  # Only return documents with actual content
+            # For images, still create the doc structure but skip content processing
+            if is_image or content.strip():
                 processed_doc = {
                     "id": doc["id"],
                     "filename": doc["filename"],
-                    "content": content,
-                    "file_type": doc["file_type"],
+                    "content": content,  # For images, this is just placeholder
+                    "file_type": "image" if is_image else doc.get("file_type", "unknown"),
                     "file_url": doc["file_url"],
                     "size": doc["size"]
                 }
-                print(f"✅ [Parallel] Successfully processed: {filename} ({len(content)} chars)")
+                print(f"✅ [Parallel] Successfully processed: {filename} ({'image metadata stored' if is_image else f'{len(content)} chars'})")
                 return processed_doc
             else:
                 print(f"❌ [Parallel] Skipping {filename}: No readable content extracted")
@@ -255,7 +286,6 @@ async def add_documents_by_url(session_id: str, request: dict):
     results = await asyncio.gather(*doc_tasks, return_exceptions=True)
     
     # Collect successful results (filter out None and exceptions)
-    processed_docs = []
     for i, result in enumerate(results):
         if isinstance(result, Exception):
             print(f"❌ [Parallel] Document {i + 1} raised exception: {result}")
@@ -263,15 +293,22 @@ async def add_documents_by_url(session_id: str, request: dict):
             processed_docs.append(result)
     
     print(f"✅ [Parallel] Total processed documents: {len(processed_docs)}/{len(documents)}")
+    if uploaded_images:
+        print(f"✅ [Parallel] Total images with content stored: {len(uploaded_images)}")
     
     # Add to session
     if doc_type == "user":
         # REPLACE old documents instead of extending
         session["uploaded_docs"] = processed_docs
         session["new_uploaded_docs"] = processed_docs
-        print(f"Replaced uploaded_docs with {len(processed_docs)} documents")
         
-        # Pre-process embeddings immediately after upload
+        # DON'T store uploaded_images with bytes in session (memory issue)
+        # Images are already stored in R2/S3, just use file_url when needed
+       
+        session["uploaded_images"] = uploaded_images
+        print(f"[MAIN] {len(uploaded_images)} image(s) metadata stored (file_url), bytes not stored in session")
+
+        # Pre-process embeddings immediately after upload (skip images)
         try:
             from Rag.Rag import preprocess_user_documents, clear_user_doc_cache
             
@@ -279,15 +316,25 @@ async def add_documents_by_url(session_id: str, request: dict):
             clear_user_doc_cache(session_id)
             print(f"[MAIN] Cleared old user document cache for session {session_id}")
             
-            # Process only NEW documents
-            hybrid_rag = session.get("gpt_config", {}).get("hybridRag", False)
-            await preprocess_user_documents(
-                processed_docs, 
-                session_id, 
-                is_hybrid=hybrid_rag,
-                is_new_upload=True  # Clear and replace
-            )
-            print(f"✅ [MAIN] Pre-processed {len(processed_docs)} user documents with embeddings")
+            # Filter out images - don't process embeddings for images
+            non_image_docs = [doc for doc in processed_docs if isinstance(doc, dict) and doc.get("file_type") != "image"]
+            image_count = len(processed_docs) - len(non_image_docs)
+            
+            if image_count > 0:
+                print(f"[MAIN] Skipping {image_count} image(s) from embedding preprocessing")
+            
+            # Process only non-image documents for embeddings
+            if non_image_docs:
+                hybrid_rag = session.get("gpt_config", {}).get("hybridRag", False)
+                await preprocess_user_documents(
+                    non_image_docs,  # Only pass non-image documents
+                    session_id, 
+                    is_hybrid=hybrid_rag,
+                    is_new_upload=True  # Clear and replace
+                )
+                print(f"✅ [MAIN] Pre-processed {len(non_image_docs)} non-image documents with embeddings")
+            else:
+                print(f"[MAIN] No non-image documents to preprocess")
         except Exception as e:
             print(f"⚠️ [MAIN] Warning: Failed to pre-process user documents: {e}")
             import traceback
@@ -420,13 +467,27 @@ async def stream_chat(session_id: str, request: ChatRequest):
                 }
             })
         
-        # Create the state with the chunk callback already set
+        # Get uploaded images metadata (with file_url) from session - no bytes stored
+        uploaded_images_metadata = []
+        if session.get("uploaded_docs"):
+            for doc in session["uploaded_docs"]:
+                if isinstance(doc, dict) and doc.get("file_type") == "image":
+                    # Store only metadata, not bytes - fetch from file_url when needed
+                    uploaded_images_metadata.append({
+                        "filename": doc.get("filename", ""),
+                        "file_url": doc.get("file_url", ""),
+                        "file_type": "image",
+                        "id": doc.get("id"),
+                        "size": doc.get("size", 0)
+                    })
+        
         state = GraphState(
             user_query=request.message,
             llm_model=llm_model,
             messages=session["messages"],
             doc=uploaded_docs_content,
             new_uploaded_docs=new_uploaded_docs_content,
+            uploaded_images=uploaded_images_metadata,  # Only metadata with file_url, no bytes
             gpt_config=gpt_config,
             kb=kb_docs_structured,
             web_search=request.web_search,  
@@ -436,16 +497,16 @@ async def stream_chat(session_id: str, request: ChatRequest):
             mcp=gpt_config.get("mcp", False),
             mcp_schema=gpt_config.get("mcpSchema"),
             mcp_connections=session.get("mcp_connections", []),
-            enabled_composio_tools=request.composio_tools or [],  # Add composio tools from request
+            enabled_composio_tools=request.composio_tools or [],
             last_route=session.get("last_route"), 
             session_id=session_id,  
             context={  
-        "session": {
-            "summary": session.get("summary", ""),
-            "last_route": session.get("last_route")
-        }
-    }, # <--- ADD THIS LINE
-            _chunk_callback=chunk_callback,  # Add this line
+                "session": {
+                    "summary": session.get("summary", ""),
+                    "last_route": session.get("last_route")
+                }
+            },
+            _chunk_callback=chunk_callback,
             token_usage={"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
         )
         

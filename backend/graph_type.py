@@ -9,6 +9,7 @@ class GraphState(TypedDict, total=False):
     kb: Optional[Dict[str, Any]]
     doc: Optional[List[str]]
     new_uploaded_docs: Optional[List[str]]  # New field for recently uploaded documents
+    uploaded_images: Optional[List[Dict[str, Any]]]  # Image files with content bytes: [{"filename": "...", "file_content": bytes, "file_url": "...", "file_type": "image"}]
     deep_search: Optional[bool]
     mcp: Optional[bool]
     mcp_schema: Optional[List[Dict[str, Any]]]

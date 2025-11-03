@@ -7,6 +7,13 @@ import uuid
 from fastapi import UploadFile
 from models import DocumentInfo
 import fitz
+import base64
+from openai import OpenAI
+import os
+from graph_type import GraphState
+# Initialize OpenAI client for image processing
+from llm import get_llm, _extract_usage
+from langchain_core.messages import HumanMessage
 def extract_text_from_pdf(file_content: bytes) -> str:
     """Extract text from PDF file using PyMuPDF (fitz)"""
     try:
@@ -68,6 +75,8 @@ def extract_text_from_json(file_content: bytes) -> str:
     except Exception as e:
         print(f"Error reading JSON: {e}")
         return ""
+
+
 
 async def process_uploaded_files_api(uploaded_files: List[UploadFile]) -> List[DocumentInfo]:
     """Process uploaded files and extract text content for API"""
