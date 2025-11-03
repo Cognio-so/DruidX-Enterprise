@@ -122,9 +122,9 @@ class VoiceAssistant:
         self.initial_greeting = initial_greeting
         self.enable_parallel_tts = enable_parallel_tts
         self.background_audio = BackgroundAudioPlayer(
-            ambient_sound=AudioConfig(BuiltinAudioClip.OFFICE_AMBIENCE, volume=0.1),
+            # ambient_sound=AudioConfig(BuiltinAudioClip.OFFICE_AMBIENCE, volume=0.1),
             thinking_sound=[
-                AudioConfig(BuiltinAudioClip.OFFICE_AMBIENCE, volume=0.3),
+                AudioConfig(BuiltinAudioClip.KEYBOARD_TYPING, volume=0.3),
             ],
         )
 
