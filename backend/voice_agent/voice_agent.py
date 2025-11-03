@@ -16,6 +16,7 @@ from livekit.agents import (
     RoomInputOptions,
     function_tool,
     RunContext,
+    JobProcess,
     AudioConfig,
     BackgroundAudioPlayer,
     BuiltinAudioClip,
@@ -505,6 +506,12 @@ class VoiceAssistant:
             except asyncio.CancelledError:
                 pass
 
+def prewarm(proc: JobProcess):
+    proc.userdata["vad"] = silero.VAD.load(
+        force_cpu=True,
+        activation_threshold=0.6,
+        min_silence_duration=0.8,
+        sample_rate=16000)
 
 # Updated entrypoint function
 async def entrypoint(ctx: agents.JobContext):
@@ -550,4 +557,4 @@ if __name__ == "__main__":
     sys.stderr.flush()
 
     # This will now correctly execute the "start" command
-    agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
+    agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint, prewarm_fnc=prewarm))
