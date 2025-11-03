@@ -22,12 +22,12 @@ export const MODEL_MAPPING: ModelInfo[] = [
   { frontendValue: "gpt_5_mini", displayName: "GPT 5 mini", backendName: "openai/gpt-5-mini" },
   { frontendValue: "gpt_5_nano", displayName: "GPT 5 nano", backendName: "openai/gpt-5-nano" },
   { frontendValue: "gpt_4o", displayName: "GPT-4o", backendName: "openai/gpt-4o" },
-  { frontendValue: "claude_sonnet_4_5", displayName: "Claude Sonnet 4.5", backendName: "claude-4.5-sonnet" },
-  { frontendValue: "claude_opus_4_1", displayName: "Claude Opus 4.1", backendName: "claude-4.1-opus" },
-  { frontendValue: "claude_haiku_3_5", displayName: "Claude Haiku 3.5", backendName: "claude-3.5-haiku" },
-  { frontendValue: "grok_4_fast", displayName: "Grok 4 Fast", backendName: "grok-4-fast" },
-  { frontendValue: "deepseek_v3_1", displayName: "DeepSeek V3.1", backendName: "deepseek-v3.1" },
-  { frontendValue: "meta_llama_3_3_70b", displayName: "meta/llama 3.3 70b", backendName: "meta/llama-3.3-70b" },
+  { frontendValue: "claude_sonnet_4_5", displayName: "Claude Sonnet 4.5", backendName: "anthropic/claude-4.5-sonnet" },
+  { frontendValue: "claude_opus_4_1", displayName: "Claude Opus 4.1", backendName: "anthropic/claude-4.1-opus" },
+  { frontendValue: "claude_haiku_3_5", displayName: "Claude Haiku 3.5", backendName: "anthropic/claude-3.5-haiku" },
+  { frontendValue: "grok_4_fast", displayName: "Grok 4 Fast", backendName: "x-ai/grok-4-fast" },
+  { frontendValue: "deepseek_v3_1", displayName: "DeepSeek V3.1", backendName: "deepseek/deepseek-chat-v3.1" },
+  { frontendValue: "meta_llama_3_3_70b", displayName: "meta/llama 3.3 70b", backendName: "meta-llama/llama-3.3-70b-instruct:free" },
   { frontendValue: "kimi_k2_0905", displayName: "Kimi K2 0905", backendName: "moonshotai/kimi-k2-0905" },
 ];
 
