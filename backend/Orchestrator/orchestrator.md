@@ -16,10 +16,10 @@ You must base your decision on:
   - when uncertain route to SimpleLLM.
   
 - **RAG** → ONLY when:
-  - Query explicitly references uploaded content ("in the document", "from the file", "in the PDF", "analyze this document")
-  - Query asks to analyze, summarize, or extract from uploaded content
-  - Follow-up questions when last_route was RAG AND query continues document discussion ("what else", "explain section 2", "summarize it")
-  - **CRITICAL**: If user provides text content directly in the query (not uploaded documents), use SimpleLLM instead of RAG
+  - Query explicitly references uploaded content ("in the document", "from the file", "in the PDF", "analyze this document", "from the image", "in the image", "above image", "this image", "the image")
+  - Query asks to analyze, summarize, or extract from uploaded content (documents or images)
+  - Follow-up questions when last_route was RAG AND query continues document/image discussion ("what else", "explain section 2", "summarize it", "from the above image", "tell me about the image")
+  - **CRITICAL**: If user provides text content directly in the query (not uploaded documents/images), use SimpleLLM instead of RAG
   
 - **WebSearch** → Use when query involves:
   - **Factual questions about real-world entities**: "what is X", "who is Y", "explain Z", "tell me about X"
@@ -81,9 +81,11 @@ User: "give me examples"
 ```
 
 ### 2. RAG Follow-ups:
-When **last_route = RAG** AND **active_docs = true**:
+When **last_route = RAG** AND (**active_docs = true** OR **uploaded_images exists**):
 - Document-specific: "what about section 2", "explain the methodology"
-- Short references: "summarize it", "what else", "continue"
+- Image-specific: "from the above image", "what's in the image", "tell me about the image", "mentioned in the image"
+- Short references: "summarize it", "what else", "continue", "tell me more"
+- Pronouns when images/docs are present: "what does it say", "analyze it", "explain it"
 
 **Examples:**
 ```

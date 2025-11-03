@@ -410,6 +410,8 @@ async def orchestrator(state: GraphState) -> GraphState:
         print("[Orchestrator] Initialized active_docs as None.")
     available_composio_tools = state.get("enabled_composio_tools", [])
     print(f"Enlabled composio tools", state.get("enabled_composio_tools", []))
+    user_images = state.get("uploaded_images", [])
+    
     if new_Doc:
         state["active_docs"]=new_Doc
     if not state.get("tasks"):
