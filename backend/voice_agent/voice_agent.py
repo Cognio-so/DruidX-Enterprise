@@ -591,7 +591,7 @@ def prewarm(proc: JobProcess):
 
 # Updated entrypoint function
 async def entrypoint(ctx: agents.JobContext):
-    """Enhanced entrypoint with improved error handling"""
+    """Enhanced entrypoint with improved error handling and proper shutdown"""
     try:
         logger.info("=" * 70)
         logger.info(f"🎯 Agent entrypoint CALLED for room: {ctx.room.name}")
@@ -604,9 +604,13 @@ async def entrypoint(ctx: agents.JobContext):
     except Exception as e:
         logger.critical(f"❌ Critical error in entrypoint: {str(e)}")
         import traceback
-
         traceback.print_exc()
         raise  # Re-raise to let LiveKit know the job failed
+    finally:
+        # This block ensures that shutdown is always called, fixing the warning.
+        logger.info("Shutting down agent job context.")
+        await ctx.shutdown()
+        logger.info("Agent job context shut down successfully.")
 
 
 if __name__ == "__main__":
