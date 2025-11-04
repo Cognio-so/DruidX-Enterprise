@@ -12,6 +12,11 @@ from datetime import datetime, timedelta
 import json
 import httpx
 import subprocess
+from redis_client import redis_client
+if redis_client:
+    print("[Main] Redis client imported successfully.")
+else:
+    print("[Main] WARNING: Redis client is not available. Session management will NOT be persistent.")
 
 try:
     from livekit.api import AccessToken, VideoGrants
@@ -57,40 +62,59 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-sessions: Dict[str, Dict[str, Any]] = {}
-
-# Agent worker process management
 _agent_worker_process: Optional[subprocess.Popen] = None
 _agent_worker_lock = asyncio.Lock()
-_active_voice_rooms: Dict[str, Dict[str, Any]] = {}  # Track active voice rooms
+_active_voice_rooms: Dict[str, Dict[str, Any]] = {}  
 
 
 class SessionManager:
     @staticmethod
     def create_session() -> str:
         session_id = str(uuid.uuid4())
-        sessions[session_id] = {
+        session_data = {
             "session_id": session_id,
             "messages": [],
             "uploaded_docs": [],
-            "new_uploaded_docs": [],  # Add this line
+            "new_uploaded_docs": [],
             "kb": [],
             "gpt_config": None,
             "created_at": datetime.now().isoformat()
         }
+        if redis_client:
+            print("[SessionManager] Storing session in Redis//////////////////////////////////////////////////////")
+            session_key = f"session:{session_id}"
+            redis_client.set(session_key, json.dumps(session_data))
+            redis_client.expire(session_key, 86400)
+        else:
+            
+            global sessions
+            sessions[session_id] = session_data
         return session_id
     
     @staticmethod
     def get_session(session_id: str) -> Dict[str, Any]:
-        if session_id not in sessions:
-            raise HTTPException(status_code=404, detail="Session not found")
-        return sessions[session_id]
+        if redis_client:
+            session_data = redis_client.get(f"session:{session_id}")
+            if not session_data:
+                raise HTTPException(status_code=404, detail="Session not found")
+            return json.loads(session_data)
+        else:
+            global sessions
+            if session_id not in sessions:
+                raise HTTPException(status_code=404, detail="Session not found")
+            return sessions[session_id]
     
     @staticmethod
     def update_session(session_id: str, updates: Dict[str, Any]):
-        if session_id not in sessions:
-            raise HTTPException(status_code=404, detail="Session not found")
-        sessions[session_id].update(updates)
+        session_data = SessionManager.get_session(session_id)
+        session_data.update(updates)
+        if redis_client:
+            session_key = f"session:{session_id}"
+            redis_client.set(session_key, json.dumps(session_data))
+            redis_client.expire(session_key, 86400) 
+        else:
+            global sessions
+            sessions[session_id] = session_data
 
 async def fetch_document_content(url: str) -> str:
     """Fetch document content from URL"""
@@ -140,7 +164,8 @@ async def root():
 async def create_session():
     """Create a new chat session"""
     session_id = SessionManager.create_session()
-    return SessionInfo(session_id=session_id, created_at=sessions[session_id]["created_at"])
+    session = SessionManager.get_session(session_id)
+    return SessionInfo(session_id=session_id, created_at=session["created_at"])
 
 @app.get("/api/sessions/{session_id}", response_model=Dict[str, Any])
 async def get_session(session_id: str):
@@ -152,14 +177,10 @@ async def set_gpt_config(session_id: str, gpt_config: dict):
     """Set GPT configuration for a session"""
     session = SessionManager.get_session(session_id)
     session["gpt_config"] = gpt_config
-    
-    # Store MCP connections in session
     mcp_connections = gpt_config.get("mcpConnections", [])
     session["mcp_connections"] = mcp_connections
     
-   
-    
-    # Pre-process KB if available
+
     if session.get("kb"):
         try:
             from Rag.Rag import preprocess_kb_documents
@@ -193,10 +214,8 @@ async def add_documents_by_url(session_id: str, request: dict):
     
     print(f"Documents to process: {len(documents)}")
     print(f"Document type: {doc_type}")
-    
-    # Process documents in parallel
     processed_docs = []
-    uploaded_images = []  # Store image file_content separately
+    uploaded_images = []  
     
     async def process_single_document(doc: dict, index: int) -> Optional[dict]:
         """Process a single document (extract content from URL)"""
@@ -208,14 +227,12 @@ async def add_documents_by_url(session_id: str, request: dict):
             print(f"[Parallel] Processing document {index + 1}/{len(documents)}: {filename}")
             print(f"[Parallel] File type from request: {file_type}")
             
-            # Fetch content from URL
             async with httpx.AsyncClient() as client:
                 response = await client.get(file_url, timeout=30.0)
                 response.raise_for_status()
                 file_content = response.content
                 print(f"[Parallel] Downloaded {len(file_content)} bytes from {filename}")
-            
-            # Better file type detection - check extension first (more reliable)
+
             file_extension = filename.split('.')[-1].lower() if '.' in filename else ''
             is_image = (
                 file_type.startswith('image/') or 
@@ -223,18 +240,14 @@ async def add_documents_by_url(session_id: str, request: dict):
             )
             
             print(f"[Parallel] Detected file extension: {file_extension}, is_image: {is_image}")
-            
-            # Extract text based on file type
+    
             content = ""
             if is_image:
-                # For images, store file_content bytes for later use in RAG
-                # Don't call vision model during upload - will be done in RAG based on user query
-                content = f"[Image file: {filename}]"  # Placeholder content for document structure
+                content = f"[Image file: {filename}]"  
                 
-                # Store image bytes for RAG processing (as base64-ready)
                 image_data = {
                     "filename": filename,
-                    "file_content": file_content,  # Raw bytes
+                    "file_content": file_content,  
                     "file_url": file_url,
                     "file_type": "image",
                     "id": doc.get("id"),
@@ -259,12 +272,11 @@ async def add_documents_by_url(session_id: str, request: dict):
                 if not content.strip():
                     print(f"⚠️ Warning: Text file {filename} appears to be empty or unreadable")
             
-            # For images, still create the doc structure but skip content processing
             if is_image or content.strip():
                 processed_doc = {
                     "id": doc["id"],
                     "filename": doc["filename"],
-                    "content": content,  # For images, this is just placeholder
+                    "content": content,  
                     "file_type": "image" if is_image else doc.get("file_type", "unknown"),
                     "file_url": doc["file_url"],
                     "size": doc["size"]
@@ -279,13 +291,9 @@ async def add_documents_by_url(session_id: str, request: dict):
             import traceback
             traceback.print_exc()
             return None
-    
-    # Process all documents in parallel
     print(f"[Parallel] Starting parallel processing of {len(documents)} documents...")
     doc_tasks = [process_single_document(doc, i) for i, doc in enumerate(documents)]
     results = await asyncio.gather(*doc_tasks, return_exceptions=True)
-    
-    # Collect successful results (filter out None and exceptions)
     for i, result in enumerate(results):
         if isinstance(result, Exception):
             print(f"❌ [Parallel] Document {i + 1} raised exception: {result}")
@@ -295,42 +303,55 @@ async def add_documents_by_url(session_id: str, request: dict):
     print(f"✅ [Parallel] Total processed documents: {len(processed_docs)}/{len(documents)}")
     if uploaded_images:
         print(f"✅ [Parallel] Total images with content stored: {len(uploaded_images)}")
-    
-    # Add to session
+
     if doc_type == "user":
-        # REPLACE old documents instead of extending
+       
         session["uploaded_docs"] = processed_docs
         session["new_uploaded_docs"] = processed_docs
+        uploaded_images_metadata = []
+        for img in uploaded_images:
+            clean_img = {
+                "filename": img.get("filename"),
+                "file_url": img.get("file_url"),
+                "file_type": img.get("file_type"),
+                "id": img.get("id"),
+                "size": img.get("size")
+            }
+            uploaded_images_metadata.append(clean_img)
         
-        # DON'T store uploaded_images with bytes in session (memory issue)
-        # Images are already stored in R2/S3, just use file_url when needed
-       
-        session["uploaded_images"] = uploaded_images
-        print(f"[MAIN] {len(uploaded_images)} image(s) metadata stored (file_url), bytes not stored in session")
+        session["uploaded_images"] = uploaded_images_metadata
+        print(f"[MAIN] {len(uploaded_images_metadata)} image(s) metadata stored (file_url), bytes not stored in session")
 
-        # Pre-process embeddings immediately after upload (skip images)
         try:
-            from Rag.Rag import preprocess_user_documents, clear_user_doc_cache
-            
-            # Clear old embeddings first
+            from Rag.Rag import preprocess_user_documents, clear_user_doc_cache, preprocess_images, clear_image_cache
             clear_user_doc_cache(session_id)
-            print(f"[MAIN] Cleared old user document cache for session {session_id}")
-            
-            # Filter out images - don't process embeddings for images
+            clear_image_cache(session_id)
+            print(f"[MAIN] Cleared old user document and image caches for session {session_id}")
+            if uploaded_images:
+                print(f"[MAIN] Pre-processing {len(uploaded_images)} image(s)...")
+                temp_state_for_images = GraphState(
+                    session_id=session_id,
+                    llm_model=session.get("gpt_config", {}).get("model", "gpt-4o-mini"),
+                    gpt_config=session.get("gpt_config", {}),
+                    token_usage={"input_tokens": 0, "output_tokens": 0, "total_tokens": 0},
+                    _chunk_callback=None 
+                )
+                await preprocess_images(uploaded_images, temp_state_for_images)
+                print(f"✅ [MAIN] Pre-processed {len(uploaded_images)} image(s)")
+
             non_image_docs = [doc for doc in processed_docs if isinstance(doc, dict) and doc.get("file_type") != "image"]
             image_count = len(processed_docs) - len(non_image_docs)
             
             if image_count > 0:
                 print(f"[MAIN] Skipping {image_count} image(s) from embedding preprocessing")
-            
-            # Process only non-image documents for embeddings
+
             if non_image_docs:
                 hybrid_rag = session.get("gpt_config", {}).get("hybridRag", False)
                 await preprocess_user_documents(
-                    non_image_docs,  # Only pass non-image documents
+                    non_image_docs,  
                     session_id, 
                     is_hybrid=hybrid_rag,
-                    is_new_upload=True  # Clear and replace
+                    is_new_upload=True  
                 )
                 print(f"✅ [MAIN] Pre-processed {len(non_image_docs)} non-image documents with embeddings")
             else:
@@ -343,8 +364,6 @@ async def add_documents_by_url(session_id: str, request: dict):
     elif doc_type == "kb":
         session["kb"].extend(processed_docs)
         print(f"Added {len(processed_docs)} documents to kb")
-        
-        # Pre-process KB embeddings immediately after upload
         try:
             from Rag.Rag import preprocess_kb_documents
             hybrid_rag = session.get("gpt_config", {}).get("hybridRag", False)
@@ -391,11 +410,8 @@ async def stream_chat(session_id: str, request: ChatRequest):
     print(f"Previous last_route in session: {session.get('last_route')}")  
     session["messages"].append({"role": "user", "content": request.message})
     print(f"Added user message to session. Total messages: {len(session['messages'])}")
-    
-    # Get GPT configuration - with better error handling
     gpt_config = session.get("gpt_config")
     if not gpt_config:
-        # If no GPT config, create a default one
         gpt_config = {
             "model": "gpt-4o-mini",
             "webBrowser": False,
@@ -416,7 +432,6 @@ async def stream_chat(session_id: str, request: ChatRequest):
     print(f"Instruction: {gpt_config.get('instruction', '')[:100]}...")
     
     try:
-        # Prepare document content from stored documents
         uploaded_docs_content = []
         if session.get("uploaded_docs"):
             for doc in session["uploaded_docs"]:
@@ -445,8 +460,7 @@ async def stream_chat(session_id: str, request: ChatRequest):
             for doc in session["new_uploaded_docs"]:
                 if isinstance(doc, dict) and doc.get("content"):
                     new_uploaded_docs_content.append(doc["content"])
-        
-        # Create the chunk callback first
+
         queue = asyncio.Queue()
         full_response = ""
         
@@ -454,8 +468,7 @@ async def stream_chat(session_id: str, request: ChatRequest):
             nonlocal full_response
             full_response += chunk_content
             # print(f"🔥 DIRECT CHUNK CALLBACK: {chunk_content[:50]}...")
-            
-            # Add a small delay to make streaming smoother
+        
             await asyncio.sleep(0.001)  # 50ms delay between chunks
             
             await queue.put({
@@ -466,13 +479,10 @@ async def stream_chat(session_id: str, request: ChatRequest):
                     "is_complete": False
                 }
             })
-        
-        # Get uploaded images metadata (with file_url) from session - no bytes stored
         uploaded_images_metadata = []
         if session.get("uploaded_docs"):
             for doc in session["uploaded_docs"]:
                 if isinstance(doc, dict) and doc.get("file_type") == "image":
-                    # Store only metadata, not bytes - fetch from file_url when needed
                     uploaded_images_metadata.append({
                         "filename": doc.get("filename", ""),
                         "file_url": doc.get("file_url", ""),
@@ -513,8 +523,6 @@ async def stream_chat(session_id: str, request: ChatRequest):
         async def generate_stream():
             try:
                 print("=== STARTING DIRECT GRAPH STREAMING ===")
-                
-                # Create a variable to store the final state
                 final_state = None
                 
                 async def run_graph():
@@ -523,7 +531,7 @@ async def stream_chat(session_id: str, request: ChatRequest):
                         print("🔥 STARTING DIRECT GRAPH EXECUTION")
                         async for node_result in graph.astream(state):
                             print(f"🔥 NODE RESULT: {list(node_result.keys())}")
-                            # Capture the final state from the last node result
+                           
                             final_state = node_result
                     except Exception as e:
                         print(f"--- ERROR in direct graph execution: {e}")
@@ -557,7 +565,7 @@ async def stream_chat(session_id: str, request: ChatRequest):
                         if isinstance(node_state, dict) and 'img_urls' in node_state:
                             state.update(node_state)
                             break
-                # Aggregate token usage from state
+              
                 token_usage = state.get("token_usage")
                 if not token_usage:
                     token_usage = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
@@ -591,10 +599,10 @@ async def stream_chat(session_id: str, request: ChatRequest):
                 if state.get("context", {}).get("session", {}).get("last_route"):
                     session["last_route"] = state["context"]["session"]["last_route"]
 
-                # Update session with context data
+                
                 if state.get("context", {}).get("session"):
                     SessionManager.update_session(session_id, session)
-                # Always update last_route, even if response is empty
+                
                 if state.get("route"):
                     session["last_route"] = state["route"]
                     SessionManager.update_session(session_id, session)
@@ -854,9 +862,14 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
 @app.delete("/api/sessions/{session_id}")
 async def delete_session(session_id: str):
     """Delete a session"""
-    if session_id not in sessions:
-        raise HTTPException(status_code=404, detail="Session not found")
-    del sessions[session_id]
+    if redis_client:
+        if not redis_client.delete(f"session:{session_id}"):
+            raise HTTPException(status_code=404, detail="Session not found")
+    else:
+        global sessions
+        if session_id not in sessions:
+            raise HTTPException(status_code=404, detail="Session not found")
+        del sessions[session_id]
     return {"message": "Session deleted successfully"}
 
 # MCP Endpoints
