@@ -35,6 +35,8 @@ replicate
 langchain-groq
 composio
 PyMuPDF
+redis==5.0.7
+dill==0.3.8
 
 # Core dependencies
 python-dotenv==1.1.0

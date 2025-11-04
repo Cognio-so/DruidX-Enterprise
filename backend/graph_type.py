@@ -40,3 +40,4 @@ class GraphState(TypedDict, total=False):
     img_urls: Optional[List[str]]  # Add this line for image URLs
     gpt_id: Optional[str]
     token_usage: Optional[Dict[str, int]]  # Token usage: input_tokens, output_tokens, total_tokens
+    image_analysis_cache: Optional[Dict[str, str]]

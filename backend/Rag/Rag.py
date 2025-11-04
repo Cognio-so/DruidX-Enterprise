@@ -14,6 +14,8 @@ from rank_bm25 import BM25Okapi
 import re
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 from prompt_cache import normalize_prefix
+from redis_client import redis_client, redis_client_binary
+import dill
 
 QDRANT_URL = os.getenv("QDRANT_URL", ":memory:")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
@@ -64,13 +66,6 @@ except FileNotFoundError:
 
 STATIC_SYS_RAG = normalize_prefix([CORE_PREFIX, RAG_RULES])
 
-
-BM25_INDICES = {}
-KB_EMBEDDING_CACHE = {}
-USER_DOC_EMBEDDING_CACHE = {}
-
-
-
 import hashlib
 import time
 
@@ -78,30 +73,49 @@ import time
 
 def clear_kb_cache(collection_name: str = None):
     """Clear KB embedding cache for a specific collection or all collections"""
-    global KB_EMBEDDING_CACHE
+    if not redis_client:
+        return
     if collection_name:
-        if collection_name in KB_EMBEDDING_CACHE:
-            del KB_EMBEDDING_CACHE[collection_name]
-            print(f"[RAG] Cleared KB cache for {collection_name}")
+        keys_to_delete = redis_client.keys(f"kb_cache:{collection_name}:*")
+        if keys_to_delete:
+            redis_client.delete(*keys_to_delete)
+        print(f"[RAG] Cleared KB cache for {collection_name}")
     else:
-        KB_EMBEDDING_CACHE.clear()
+        keys_to_delete = redis_client.keys("kb_cache:*")
+        if keys_to_delete:
+            redis_client.delete(*keys_to_delete)
         print("[RAG] Cleared all KB embedding cache")
 
 def clear_user_doc_cache(session_id: str = None):
     """Clear user document embedding cache for a specific session or all sessions"""
-    global USER_DOC_EMBEDDING_CACHE, BM25_INDICES
+    if not redis_client:
+        return
     if session_id:
-        if session_id in USER_DOC_EMBEDDING_CACHE:
-            collection_name = USER_DOC_EMBEDDING_CACHE[session_id].get("collection_name")
-            del USER_DOC_EMBEDDING_CACHE[session_id]
-            print(f"[RAG] Cleared user doc cache for session {session_id}")
-            if collection_name and collection_name in BM25_INDICES:
-                del BM25_INDICES[collection_name]
-                print(f"[RAG] Cleared BM25 index for {collection_name}")
+        keys_to_delete = redis_client.keys(f"user_doc_cache:{session_id}:*")
+        keys_to_delete += redis_client_binary.keys(f"bm25_index:user_docs_{session_id}") 
+        if keys_to_delete:
+            redis_client.delete(*keys_to_delete)
+        print(f"[RAG] Cleared user doc cache for session {session_id}")
     else:
-        USER_DOC_EMBEDDING_CACHE.clear()
-        BM25_INDICES.clear()
+        keys_to_delete = redis_client.keys("user_doc_cache:*")
+        keys_to_delete += redis_client_binary.keys("bm25_index:*")
+        if keys_to_delete:
+            redis_client.delete(*keys_to_delete)
         print("[RAG] Cleared all user document caches (embeddings, BM25)")
+
+
+def clear_image_cache(session_id: str = None):
+    """Clear image analysis cache for a specific session or all sessions"""
+    if not redis_client:
+        return
+    if session_id:
+        redis_client.delete(f"image_cache:{session_id}")
+        print(f"[RAG] Cleared image analysis cache for session {session_id}")
+    else:
+        keys_to_delete = redis_client.keys("image_cache:*")
+        if keys_to_delete:
+            redis_client.delete(*keys_to_delete)
+        print("[RAG] Cleared all image analysis cache")
 
 async def preprocess_kb_documents(kb_docs: List[dict], session_id: str, is_hybrid: bool = False):
     """
@@ -112,8 +126,9 @@ async def preprocess_kb_documents(kb_docs: List[dict], session_id: str, is_hybri
         return
     
     collection_name = f"kb_{session_id}"
+    cache_key = f"kb_cache:{collection_name}"
 
-    if session_id in KB_EMBEDDING_CACHE:
+    if redis_client and redis_client.exists(cache_key):
         print(f"[RAG] KB already processed for session {session_id}")
         return
     
@@ -126,14 +141,16 @@ async def preprocess_kb_documents(kb_docs: List[dict], session_id: str, is_hybri
         else:
             kb_texts.append(str(doc))
 
-    await retreive_docs(kb_texts, collection_name, is_hybrid=is_hybrid, clear_existing=False, is_kb=True)
+    await retreive_docs(kb_texts, collection_name, is_hybrid=is_hybrid, clear_existing=False, is_kb=True, session_id=session_id)
     
-    KB_EMBEDDING_CACHE[session_id] = {
-        "collection_name": collection_name,
-        "is_hybrid": is_hybrid,
-        "processed_at": asyncio.get_event_loop().time(),
-        "document_count": len(kb_texts)
-    }
+    if redis_client:
+        redis_client.hset(cache_key, mapping={
+            "collection_name": collection_name,
+            "is_hybrid": str(is_hybrid),
+            "processed_at": str(asyncio.get_event_loop().time()),
+            "document_count": len(kb_texts)
+        })
+        redis_client.expire(cache_key, 86400) # Expire after 24 hours
     
     print(f"[RAG] Pre-processed and cached {len(kb_texts)} KB documents for session {session_id}")
 
@@ -152,22 +169,15 @@ async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid
         return
     
     collection_name = f"user_docs_{session_id}"
+    cache_key = f"user_doc_cache:{session_id}"
 
     if is_new_upload:
-        if session_id in USER_DOC_EMBEDDING_CACHE:
-            old_collection_name = USER_DOC_EMBEDDING_CACHE[session_id].get("collection_name")
-            print(f"🔥 [CACHE-DEBUG] Found old collection: {old_collection_name}")
-            
-            del USER_DOC_EMBEDDING_CACHE[session_id]
+        if redis_client:
+            redis_client.delete(cache_key)
             print(f"🔥 [CACHE-DEBUG] Cleared existing user doc cache for session {session_id}")
-            
-            if old_collection_name and old_collection_name in BM25_INDICES:
-                del BM25_INDICES[old_collection_name]
-                print(f"🔥 [CACHE-DEBUG] Cleared old BM25 index for {old_collection_name}")
-            else:
-                print(f"🔥 [CACHE-DEBUG] No old BM25 index found for {old_collection_name}")
-        else:
-            print(f"🔥 [CACHE-DEBUG] No existing cache found for session {session_id}")
+            if redis_client_binary:
+                redis_client_binary.delete(f"bm25_index:{collection_name}")
+                print(f"🔥 [CACHE-DEBUG] Cleared old BM25 index for {collection_name}")
     
         try:
             collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
@@ -190,16 +200,69 @@ async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid
         else:
             doc_texts.append(str(doc))
 
-    await retreive_docs(doc_texts, collection_name, is_hybrid=is_hybrid, clear_existing=is_new_upload, is_user_doc=True)
+    await retreive_docs(doc_texts, collection_name, is_hybrid=is_hybrid, clear_existing=is_new_upload, is_user_doc=True, session_id=session_id)
 
-    USER_DOC_EMBEDDING_CACHE[session_id] = {
-        "collection_name": collection_name,
-        "is_hybrid": is_hybrid,
-        "processed_at": asyncio.get_event_loop().time(),
-        "document_count": len(doc_texts)  
-    }
+    if redis_client:
+        redis_client.hset(cache_key, mapping={
+            "collection_name": collection_name,
+            "is_hybrid": str(is_hybrid),
+            "processed_at": str(asyncio.get_event_loop().time()),
+            "document_count": len(doc_texts)
+        })
+        redis_client.expire(cache_key, 86400) # Expire after 24 hours
     
     print(f"[RAG] Pre-processed and cached {len(doc_texts)} NEW user documents for session {session_id}")
+
+async def preprocess_images(uploaded_images: List[Dict[str, Any]], state: GraphState):
+    """
+    Pre-process uploaded images to generate and cache their descriptions.
+    This is called immediately after image upload to prepare for fast RAG retrieval.
+    """
+    if not uploaded_images or not redis_client:
+        return
+    session_id = state.get("session_id")
+    session_cache_key = f"image_cache:{session_id}"
+
+    for image_data in uploaded_images:
+        filename = image_data.get("filename", "")
+        if not filename:
+            continue
+
+        if redis_client.hexists(session_cache_key, filename):
+            print(f"[ImagePreprocessor] Image '{filename}' already processed for session {session_id}.")
+            continue
+
+        file_content = image_data.get("file_content")
+        file_url = image_data.get("file_url")
+
+        if not file_content and file_url:
+            print(f"[ImagePreprocessor] No file_content for {filename}, fetching from {file_url}")
+            try:
+                import httpx
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(file_url, timeout=30.0)
+                    response.raise_for_status()
+                    file_content = response.content
+            except Exception as e:
+                print(f"[ImagePreprocessor] Failed to fetch image '{filename}': {e}")
+                continue
+        
+        if not file_content:
+            print(f"[ImagePreprocessor] Skipping '{filename}' as it has no content.")
+            continue
+        
+        print(f"[ImagePreprocessor] Pre-processing image: {filename}")
+        await send_status_update(state, f"🖼️ Analyzing image: {filename}...", progress=None)
+        
+        analysis = await extract_text_from_image(file_content, filename, state)
+        redis_client.hset(session_cache_key, filename, analysis)
+        print(f"[ImagePreprocessor] Cached analysis for '{filename}' in session {session_id}")
+
+    if redis_client and uploaded_images:
+        redis_client.expire(session_cache_key, 86400) 
+    if "uploaded_images" in state:
+        state["uploaded_images"] = []
+
 
 async def send_status_update(state: GraphState, message: str, progress: int = None):
     """Send status update if callback is available"""
@@ -213,25 +276,11 @@ async def send_status_update(state: GraphState, message: str, progress: int = No
                 "progress": progress
             }
         })
-async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clear_existing: bool = False, is_kb: bool = False, is_user_doc: bool = False):
+async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clear_existing: bool = False, is_kb: bool = False, is_user_doc: bool = False, session_id: str = "default"):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     chunked_docs = text_splitter.create_documents(doc)
-
-    if is_kb and name in KB_EMBEDDING_CACHE:
-        print(f"[RAG] Using cached KB embeddings for {name}")
-        embeddings = KB_EMBEDDING_CACHE[name]["embeddings"]
-        chunked_docs = KB_EMBEDDING_CACHE[name]["chunked_docs"]
-    else:
-        # Use parallel batch embedding for efficient processing
-        chunk_texts = [doc.page_content for doc in chunked_docs]
-        embeddings = await embed_chunks_parallel(chunk_texts, batch_size=200)
-        
-        if is_kb:
-            KB_EMBEDDING_CACHE[name] = {
-                "embeddings": embeddings,
-                "chunked_docs": chunked_docs
-            }
-            print(f"[RAG] Cached KB embeddings for {name} ({len(embeddings)} chunks)")
+    chunk_texts = [doc.page_content for doc in chunked_docs]
+    embeddings = await embed_chunks_parallel(chunk_texts, batch_size=200)
     
     collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
     collections = [c.name for c in collections_response.collections]
@@ -251,7 +300,6 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
         lines = txt.split("\n")
         for l in lines:
             l = l.strip()
-            # Matches: "UNIT – I", "CHAPTER 3", "1.1 Regression", "2.5 Decision Trees"
             if re.match(r"^(UNIT[\s–-]*[IVXLC0-9]+|CHAPTER[\s–-]*\d+|^\d+(\.\d+)+|[A-Z][A-Za-z\s]{4,})", l):
                 return re.sub(r"^[\d.:\s–-]+", "", l).strip(":–- ")
         return None
@@ -276,11 +324,20 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
     if is_hybrid:
         tokenized_docs = [tokenize(doc.page_content) for doc in chunked_docs]
         bm25 = await asyncio.to_thread(BM25Okapi, tokenized_docs)
-        BM25_INDICES[name] = {
-            "bm25": bm25,
-            "docs": {str(i): doc.page_content for i, doc in enumerate(chunked_docs)},
-            "tokens": tokenized_docs
-        }
+        if redis_client_binary:
+            try:
+                serialized_bm25 = dill.dumps({
+                    "bm25": bm25,
+                    "docs": {str(i): doc.page_content for i, doc in enumerate(chunked_docs)},
+                    "tokens": tokenized_docs
+                })
+                redis_key = f"bm25_index:{name}"
+                redis_client_binary.set(redis_key, serialized_bm25)
+                redis_client_binary.expire(redis_key, 86400) # Expire after 24 hours
+                print(f"[RAG] Stored BM25 index in Redis for {name}")
+            except Exception as e:
+                print(f"[RAG] ERROR: Failed to serialize and store BM25 index in Redis: {e}")
+    
         print(f"[RAG] Stored {len(chunked_docs)} chunks in {name} (Vector + BM25)")
     else:
         print(f"[RAG] Stored {len(chunked_docs)} chunks in {name} (Vector only)")
@@ -368,11 +425,20 @@ async def _hybrid_search_rrf(collection_name: str, query: str, limit: int, k: in
     )
     vector_ranking = [result.payload["text"] for result in vector_results]
 
-    if collection_name not in BM25_INDICES:
+    bm25_data = None
+    if redis_client_binary:
+        try:
+            serialized_data = redis_client_binary.get(f"bm25_index:{collection_name}")
+            if serialized_data:
+                bm25_data = dill.loads(serialized_data)
+                print(f"[HYBRID-RRF] Loaded BM25 index from Redis for {collection_name}")
+        except Exception as e:
+            print(f"[HYBRID-RRF] ERROR: Failed to load BM25 index from Redis: {e}")
+
+    if not bm25_data:
         print(f"[HYBRID-RRF] No BM25 index for {collection_name}, falling back to vector only")
         return vector_ranking[:limit]
     
-    bm25_data = BM25_INDICES[collection_name]
     bm25 = bm25_data["bm25"]
     docs = bm25_data["docs"]
     
@@ -413,11 +479,22 @@ async def _hybrid_search_intersection(collection_name: str, query: str, limit: i
         limit=limit * 5
     )
     vector_docs = {result.payload["text"] for result in vector_results}
-    if collection_name not in BM25_INDICES:
+
+    bm25_data = None
+    if redis_client_binary:
+        try:
+            serialized_data = redis_client_binary.get(f"bm25_index:{collection_name}")
+            if serialized_data:
+                bm25_data = dill.loads(serialized_data)
+                print(f"[HYBRID-INTERSECTION] Loaded BM25 index from Redis for {collection_name}")
+        except Exception as e:
+            print(f"[HYBRID-INTERSECTION] ERROR: Failed to load BM25 index from Redis: {e}")
+
+
+    if not bm25_data:
         print(f"[HYBRID-INTERSECTION] No BM25 index for {collection_name}, falling back to vector only")
         return list(vector_docs)[:limit]
 
-    bm25_data = BM25_INDICES[collection_name]
     bm25 = bm25_data["bm25"]
     docs = bm25_data["docs"]
 
@@ -569,14 +646,11 @@ from langchain.schema import HumanMessage
 import base64
 async def extract_text_from_image(file_content: bytes, filename: str = "", state: GraphState = None) -> str:
     """Extract text and description from image using GPT-4 Vision or Gemini Vision"""
-    
-    # Get model from GraphState
     if state is None:
         state = GraphState()
     
     llm_model = state.get("llm_model")
     print(f"[ImageProcessor] GraphState llm_model: {llm_model}")
-    # If llm_model is not in state, try to get it from gpt_config
     if llm_model is None and state.get("gpt_config"):
         llm_model = state["gpt_config"].get("model")
     
@@ -587,10 +661,7 @@ async def extract_text_from_image(file_content: bytes, filename: str = "", state
     print(f"[ImageProcessor] Processing image {filename} with model from GraphState: {llm_model}")
     
     try:
-        # Encode image to base64
         image_base64 = base64.b64encode(file_content).decode('utf-8')
-        
-        # Detect image format from filename
         image_format = "jpeg"  # default
         if filename.lower().endswith('.png'):
             image_format = "png"
@@ -600,8 +671,6 @@ async def extract_text_from_image(file_content: bytes, filename: str = "", state
             image_format = "webp"
         elif filename.lower().endswith('.bmp'):
             image_format = "bmp"
-        
-        # Prepare messages for Vision API using LangChain message format
         message = HumanMessage(
             content=[
                 {
@@ -616,29 +685,21 @@ async def extract_text_from_image(file_content: bytes, filename: str = "", state
                 }
             ]
         )
-        
-        # Call Vision API - pass messages as positional argument
         llm = get_llm(llm_model, temperature=0.5)
         response = await llm.ainvoke([message])
-        
-        # Track token usage from vision model call (like in mcp.py)
         if state is not None:
             token_usage = _extract_usage(response)
             
             if token_usage["total_tokens"] > 0:
-                # Initialize token_usage in state if needed
+               
                 if "token_usage" not in state or state["token_usage"] is None:
                     state["token_usage"] = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
-                
-                # Accumulate token usage
                 state["token_usage"]["input_tokens"] += token_usage["input_tokens"]
                 state["token_usage"]["output_tokens"] += token_usage["output_tokens"]
                 state["token_usage"]["total_tokens"] += token_usage["total_tokens"]
                 
                 print(f"[TokenTracking] Image processing tokens: input={token_usage['input_tokens']}, output={token_usage['output_tokens']}, total={token_usage['total_tokens']}")
                 print(f"[TokenTracking] Accumulated token usage in state: {state['token_usage']}")
-        
-        # Extract content from LangChain AIMessage object
         analysis = response.content
         print(f"[ImageProcessor] Analysis: {analysis}")
         print(f"[ImageProcessor] ✅ Successfully analyzed image {filename}: {len(analysis)} chars")
@@ -663,7 +724,7 @@ async def hierarchical_summarize(state, batch_size: int = 10):
     """
 
     session_id = state.get("session_id")
-    cache = USER_DOC_EMBEDDING_CACHE.get(session_id)
+    cache = redis_client.hgetall(f"user_doc_cache:{session_id}")
     if not cache:
         raise Exception("No cached document found. Please upload a document first.")
 
@@ -767,7 +828,6 @@ You are summarizing a structured academic document.
 
 
         resp = await map_llm.ainvoke([HumanMessage(content=prompt)])
-        # Track token usage
         if state:
             token_usage = _extract_usage(resp)
             if "token_usage" not in state or state["token_usage"] is None:
@@ -795,7 +855,6 @@ You are merging partial summaries of a structured textbook/document.
 """
 
             resp = await map_llm.ainvoke([HumanMessage(content=prompt)])
-            # Track token usage
             if state:
                 token_usage = _extract_usage(resp)
                 if "token_usage" not in state or state["token_usage"] is None:
@@ -851,14 +910,17 @@ async def _process_user_docs(state, docs, user_query, rag):
     session_id = state.get("session_id", "default")
     
     await send_status_update(state, "🔍 Searching user documents...", 50)
-
     
-    if session_id not in USER_DOC_EMBEDDING_CACHE:
+    cache_data = {}
+    if redis_client:
+        cache_data = redis_client.hgetall(f"user_doc_cache:{session_id}")
+
+    if not cache_data:
         raise Exception(f"User documents not pre-processed for session {session_id}. Please upload documents first.")
     
-    cache_data = USER_DOC_EMBEDDING_CACHE[session_id]
     collection_name = cache_data["collection_name"]
-    is_hybrid = cache_data["is_hybrid"]
+    is_hybrid = cache_data.get("is_hybrid", "False").lower() == "true"
+    
     if is_hybrid:
         res = await _hybrid_search_rrf(collection_name, user_query, limit=20, k=60)
     else:
@@ -874,18 +936,22 @@ async def _process_kb_docs(state, kb_docs, user_query, rag):
     
     await send_status_update(state, "🔍 Searching knowledge base...", 70)
 
-    if session_id not in KB_EMBEDDING_CACHE:
+    # The collection name is derived from session_id for KB docs as well
+    collection_name = f"kb_{session_id}"
+    cache_key = f"kb_cache:{collection_name}"
+    
+    cache_data = {}
+    if redis_client:
+        cache_data = redis_client.hgetall(cache_key)
+
+    if not cache_data:
         print(f"[RAG] ERROR: KB not pre-processed for session {session_id}")
-        print(f"[RAG] Available KB cache keys: {list(KB_EMBEDDING_CACHE.keys())}")
         raise Exception(f"KB not pre-processed for session {session_id}. Please load custom GPT first.")
     
-    cache_data = KB_EMBEDDING_CACHE[session_id]
-    collection_name = cache_data["collection_name"]
-    is_hybrid = cache_data["is_hybrid"]
+    is_hybrid = cache_data.get("is_hybrid", "False").lower() == "true"
     
     print(f"[RAG] Using pre-processed KB embeddings from collection: {collection_name}")
     
-
     if is_hybrid:
         res = await _hybrid_search_intersection(collection_name, user_query, limit=5)
     else:
@@ -908,13 +974,20 @@ async def Rag(state: GraphState) -> GraphState:
     has_user_docs = bool(docs)
     has_kb = bool(kb_docs)
     
-    # Process images with intelligent source selection
-    image_analysis_results = []
-    
+    session_id = state.get("session_id", "default")
+
     if uploaded_images:
-        print(f"[RAG] Found {len(uploaded_images)} image(s) with file_content in state")
-        await send_status_update(state, "🧠 Analyzing query and determining sources...", 10)
-        has_user_docs=True
+        await preprocess_images(uploaded_images, state)
+
+    image_analysis_cache = {}
+    if redis_client:
+        image_analysis_cache = redis_client.hgetall(f"image_cache:{session_id}")
+
+
+    if image_analysis_cache:
+        print(f"[RAG] Found {len(image_analysis_cache)} cached image analysis. Proceeding with image-related query flow.")
+        await send_status_update(state, "🧠 Analyzing query with image context...", 10)
+
         source_decision = await intelligent_source_selection(
             user_query=user_query,
             has_user_docs=has_user_docs,
@@ -922,196 +995,90 @@ async def Rag(state: GraphState) -> GraphState:
             custom_prompt=custom_system_prompt,
             llm_model=llm_model
         )
-        
         use_kb = source_decision.get("use_kb", False)
-        use_user_docs = source_decision.get("use_user_docs", False)
-        for image_data in uploaded_images:
-            filename = image_data.get("filename", "")
-            file_content = image_data.get("file_content")
-            file_url = image_data.get("file_url", "")
-            
-            if not file_content:
-                print(f"[RAG] Warning: No file_content for {filename}, will fetch from {file_url}")
-                try:
-                    import httpx
-                    async with httpx.AsyncClient() as client:
-                        response = await client.get(file_url, timeout=30.0)
-                        response.raise_for_status()
-                        file_content = response.content
-                except Exception as e:
-                    print(f"[RAG] Failed to fetch image {filename}: {e}")
-                    continue
-            
-            print(f"[RAG] Processing image: {filename}, size: {len(file_content)} bytes")
-            
-            try:
-                
-                
-                # Encode image to base64
-                image_base64 = base64.b64encode(file_content).decode('utf-8')
-                
-                # Detect image format
-                image_format = "jpeg"
-                if filename.lower().endswith('.png'):
-                    image_format = "png"
-                elif filename.lower().endswith('.gif'):
-                    image_format = "gif"
-                elif filename.lower().endswith('.webp'):
-                    image_format = "webp"
-                elif filename.lower().endswith('.bmp'):
-                    image_format = "bmp"
-                
-                if use_kb:
-                    
-                    extraction_prompt = "Analyze this image in detail. Extract all visible text, describe all objects, people, scenes, colors, and any important details comprehensively."
-                    
-                    extraction_message = HumanMessage(
-                        content=[
-                            {"type": "text", "text": extraction_prompt},
-                            {
-                                "type": "image_url",
-                                "image_url": {"url": f"data:image/{image_format};base64,{image_base64}"}
-                            }
-                        ]
-                    )
-                    
-                    llm = get_llm(llm_model, temperature=0.7)
 
-                    extraction_response = await llm.ainvoke([extraction_message])
-                    extracted_details = extraction_response.content
+        combined_analysis = "\n\n".join(
+            f"**Analysis of {filename}:**\n{analysis}"
+            for filename, analysis in image_analysis_cache.items()
+        )
+
+        llm = get_llm(llm_model, temperature=0.7)
+        final_answer = ""
+        kb_result = [] 
         
-                  
-                    token_usage = _extract_usage(extraction_response)
-                    if state and token_usage["total_tokens"] > 0:
-                        if "token_usage" not in state or state["token_usage"] is None:
-                            state["token_usage"] = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
-                        state["token_usage"]["input_tokens"] += token_usage["input_tokens"]
-                        state["token_usage"]["output_tokens"] += token_usage["output_tokens"]
-                        state["token_usage"]["total_tokens"] += token_usage["total_tokens"]
-                    
-                    print(f"[RAG-IMAGE] Extracted {len(extracted_details)} chars from image (silent extraction)")
-                    
-                    # Search KB using extracted details + user query
-                    await send_status_update(state, "🔍 Searching knowledge base with image context...", 50)
-                    
-                    kb_result = []
-                    if has_kb and kb_docs:
-                        session_id = state.get("session_id", "default")
-                        if session_id in KB_EMBEDDING_CACHE:
-                            cache_data = KB_EMBEDDING_CACHE[session_id]
-                            collection_name = cache_data["collection_name"]
-                            is_hybrid = cache_data["is_hybrid"]
-                            
-                            search_query = f"{user_query} {extracted_details}"
-                            
-                            if is_hybrid:
-                                kb_result = await _hybrid_search_intersection(collection_name, search_query, limit=3)
-                            else:
-                                kb_result = await _hybrid_search_rrf(collection_name, search_query, limit=5, k=60)
-                            
-                            print(f"[RAG-IMAGE] Retrieved {len(kb_result)} KB chunks")
-                    
-                   
-                    answer_context_parts = []
-                    answer_context_parts.append(f"USER QUESTION: {user_query}")
-                    answer_context_parts.append(f"\nIMAGE DETAILS FROM {filename}:\n{extracted_details}")
-                    
-                    if kb_result:
-                        answer_context_parts.append(f"\nKNOWLEDGE BASE CONTEXT:\n{chr(10).join(kb_result)}")
-                    
-                    if custom_system_prompt:
-                        answer_context_parts.append(f"\nCUSTOM GPT INSTRUCTIONS:\n{custom_system_prompt}")
-                    
-                    answer_prompt = f"""
-You are an AI assistant answering a user's question about an image.
+        if not use_kb:
+            # Case 1: Answer from image context only
+            await send_status_update(state, "✍️ Generating answer from image...", 50)
+            prompt = f"""The user asked: "{user_query}"
 
-The user asked: {user_query}
+Here is a detailed analysis of the relevant image(s):
+{combined_analysis}
 
-Below are the extracted details from the image and relevant knowledge base information (if available).
+Based ONLY on the image analysis, provide a comprehensive answer."""
 
-**Your task:** Provide a comprehensive, accurate answer to the user's question by combining:
-1. The visual information extracted from the image
-2. Relevant knowledge from the knowledge base (if provided)
-3. Your understanding of the topic
+            final_answer, _ = await stream_with_token_tracking(
+                llm,
+                [HumanMessage(content=prompt)],
+                chunk_callback=chunk_callback,
+                state=state
+            )
+        else:
+            # Case 2: RAG with image context
+            await send_status_update(state, "🔍 Searching knowledge base with image context...", 50)
+            
+            if has_kb and kb_docs:
+                collection_name = f"kb_{session_id}"
+                cache_key = f"kb_cache:{collection_name}"
+                cache_data = {}
+                if redis_client:
+                    cache_data = redis_client.hgetall(cache_key)
 
-Be specific, detailed, and cite what you see in the image. If KB information is provided, integrate it naturally with the image analysis.
+                if cache_data:
+                    is_hybrid = cache_data.get("is_hybrid", "False").lower() == "true"
+                    search_query = f"{user_query} {combined_analysis}"
+                    
+                    if is_hybrid:
+                        kb_result = await _hybrid_search_intersection(collection_name, search_query, limit=3)
+                    else:
+                        kb_result = await _hybrid_search_rrf(collection_name, search_query, limit=5, k=60)
+                    print(f"[RAG-IMAGE] Retrieved {len(kb_result)} KB chunks")
+
+            await send_status_update(state, "✍️ Generating answer from image and KB...", 90)
+            context_parts = [
+                f"USER QUESTION: {user_query}",
+                f"\nIMAGE DETAILS:\n{combined_analysis}"
+            ]
+            if kb_result:
+                context_parts.append(f"\nKNOWLEDGE BASE CONTEXT:\n{chr(10).join(kb_result)}")
+            if custom_system_prompt:
+                context_parts.append(f"\nCUSTOM GPT INSTRUCTIONS:\n{custom_system_prompt}")
+
+            answer_prompt = f"""You are an AI assistant answering a user's question about an image with help from a knowledge base.
+
+**Your task:** Provide a comprehensive answer by combining information from the image analysis and the knowledge base.
 
 ---
-{chr(10).join(answer_context_parts)}
+{chr(10).join(context_parts)}
 """
-                    
-                    answer_message = HumanMessage(content=answer_prompt)
-                
-                    final_answer, _ = await stream_with_token_tracking(
-                        llm,
-                        [answer_message],
-                        chunk_callback=chunk_callback,
-                        state=state
-                    )
-                    
-                    image_analysis_results.append({
-                        "filename": filename,
-                        "analysis": final_answer,
-                        "extracted_details": extracted_details,
-                        "kb_chunks_used": len(kb_result)
-                    })
-                    
-                    print(f"[RAG-IMAGE] ✅ Generated answer with KB: {filename}, {len(final_answer)} chars")
-                    
-                else:
-                    prompt_text = f"The user asked: {user_query}\n\nAnalyze this image in detail and answer the user's question. Provide comprehensive information based on what you see in the image."
-                    
-                    message = HumanMessage(
-                        content=[
-                            {"type": "text", "text": prompt_text},
-                            {
-                                "type": "image_url",
-                                "image_url": {"url": f"data:image/{image_format};base64,{image_base64}"}
-                            }
-                        ]
-                    )
-                    
-                    llm = get_llm(llm_model, temperature=0.5)
-                    full_image_analysis, _ = await stream_with_token_tracking(
-                        llm,
-                        [message],
-                        chunk_callback=chunk_callback,
-                        state=state
-                    )
-                    
-                    image_analysis_results.append({
-                        "filename": filename,
-                        "analysis": full_image_analysis
-                    })
-                    
-                    print(f"[RAG-IMAGE] ✅ Direct analysis: {filename}, {len(full_image_analysis)} chars")
-                
-            except Exception as e:
-                print(f"[RAG] ❌ Error processing image {filename}: {e}")
-                import traceback
-                traceback.print_exc()
-                if chunk_callback:
-                    await chunk_callback(f"\n⚠️ Error analyzing image {filename}: {str(e)}\n")
-        
-        # Combine all image analyses into final response
-        if image_analysis_results:
-            combined_analysis = "\n\n".join([
-                f"**{img['filename']}:**\n{img['analysis']}" 
-                for img in image_analysis_results
-            ])
-            state["response"] = combined_analysis
-            state.setdefault("intermediate_results", []).append({
-                "node": "RAG",
-                "query": user_query,
-                "strategy": f"image_analysis_with_kb" if use_kb else "image_analysis_only",
-                "sources_used": {
-                    "images": len(image_analysis_results),
-                    "kb": sum(img.get("kb_chunks_used", 0) for img in image_analysis_results)
-                },
-                "output": state["response"]
-            })
-            await send_status_update(state, "✅ Image analysis completed", 100)
-        
+            final_answer, _ = await stream_with_token_tracking(
+                llm,
+                [HumanMessage(content=answer_prompt)],
+                chunk_callback=chunk_callback,
+                state=state
+            )
+
+        state["response"] = final_answer
+        state.setdefault("intermediate_results", []).append({
+            "node": "RAG",
+            "query": user_query,
+            "strategy": "image_analysis_with_kb" if use_kb else "image_analysis_only",
+            "sources_used": {
+                "images": len(image_analysis_cache),
+                "kb": len(kb_result)
+            },
+            "output": state["response"]
+        })
+        await send_status_update(state, "✅ Image analysis completed", 100)
         return state
     
     # Continue with non-image RAG processing below...
@@ -1147,10 +1114,26 @@ Be specific, detailed, and cite what you see in the image. If KB information is 
     custom_system_prompt = gpt_config.get("instruction", "")
     temperature = gpt_config.get("temperature", 0.0)
 
-    print(f"[RAG] Processing query: {user_query}")
-    await send_status_update(state, "🧠 Analyzing query and searching sources in parallel...", 10)
-    has_user_docs = bool(docs)
-    has_kb = bool(kb_docs)
+    has_user_docs = False
+    if redis_client:
+        user_doc_cache_exists = redis_client.exists(f"user_doc_cache:{session_id}")
+        has_user_docs = bool(user_doc_cache_exists)
+        if has_user_docs:
+            print(f"[RAG] Found user document cache in Redis for session {session_id}")
+
+    if not has_user_docs:
+        has_user_docs = bool(docs)
+    has_kb = False
+    if redis_client:
+        kb_collection_name = f"kb_{session_id}"
+        kb_cache_exists = redis_client.exists(f"kb_cache:{kb_collection_name}")
+        has_kb = bool(kb_cache_exists)
+        if has_kb:
+            print(f"[RAG] Found KB cache in Redis for session {session_id}")
+    if not has_kb:
+        has_kb = bool(kb_docs)
+    
+    print(f"[RAG] Document availability - User docs: {has_user_docs}, KB: {has_kb}")
     parallel_tasks = []
 
     intelligence_task = asyncio.create_task(
@@ -1164,13 +1147,13 @@ Be specific, detailed, and cite what you see in the image. If KB information is 
     )
     parallel_tasks.append(("intelligence", intelligence_task))
 
-    if has_user_docs and docs:
+    if has_user_docs:
         user_search_task = asyncio.create_task(
             _process_user_docs(state, docs, user_query, rag)
         )
         parallel_tasks.append(("user_search", user_search_task))
 
-    if has_kb and kb_docs:
+    if has_kb:
         kb_search_task = asyncio.create_task(
             _process_kb_docs(state, kb_docs, user_query, rag)
         )
@@ -1249,8 +1232,7 @@ Be specific, detailed, and cite what you see in the image. If KB information is 
         context_parts.append("\nNO RETRIEVAL CONTEXT: No relevant documents were found. Provide a helpful response based on general knowledge and conversation history.")
     elif not user_result and kb_result:
         context_parts.append("\nPARTIAL CONTEXT: Only knowledge base information is available. The user may need to upload documents for analysis.")
-    
-    # Always include conversation context - let the LLM decide how to use it
+
     context_parts.append(f"CONVERSATION CONTEXT:\nSummary: {summary if summary else 'None'}\nLast Turns:\n{last_3_text}")
     final_context_message = HumanMessage(content="\n".join(context_parts))
     # print(f"system promtp................", STATIC_SYS_RAG)
