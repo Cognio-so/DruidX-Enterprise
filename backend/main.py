@@ -12,11 +12,7 @@ from datetime import datetime, timedelta
 import json
 import httpx
 import subprocess
-from redis_client import redis_client
-if redis_client:
-    print("[Main] Redis client imported successfully.")
-else:
-    print("[Main] WARNING: Redis client is not available. Session management will NOT be persistent.")
+from redis_client import ensure_redis_client, ensure_redis_client_binary
 
 try:
     from livekit.api import AccessToken, VideoGrants
@@ -67,9 +63,12 @@ _agent_worker_lock = asyncio.Lock()
 _active_voice_rooms: Dict[str, Dict[str, Any]] = {}  
 
 
+# Fallback in-memory sessions storage (used when Redis is not available)
+sessions: Dict[str, Dict[str, Any]] = {}
+
 class SessionManager:
     @staticmethod
-    def create_session() -> str:
+    async def create_session() -> str:
         session_id = str(uuid.uuid4())
         session_data = {
             "session_id": session_id,
@@ -80,21 +79,22 @@ class SessionManager:
             "gpt_config": None,
             "created_at": datetime.now().isoformat()
         }
+        redis_client = await ensure_redis_client()
         if redis_client:
-            print("[SessionManager] Storing session in Redis//////////////////////////////////////////////////////")
+            print("[SessionManager] Storing session in Redis (async)//////////////////////////////////////////////////////")
             session_key = f"session:{session_id}"
-            redis_client.set(session_key, json.dumps(session_data))
-            redis_client.expire(session_key, 86400)
+            await redis_client.set(session_key, json.dumps(session_data))
+            await redis_client.expire(session_key, 86400)
         else:
-            
             global sessions
             sessions[session_id] = session_data
         return session_id
     
     @staticmethod
-    def get_session(session_id: str) -> Dict[str, Any]:
+    async def get_session(session_id: str) -> Dict[str, Any]:
+        redis_client = await ensure_redis_client()
         if redis_client:
-            session_data = redis_client.get(f"session:{session_id}")
+            session_data = await redis_client.get(f"session:{session_id}")
             if not session_data:
                 raise HTTPException(status_code=404, detail="Session not found")
             return json.loads(session_data)
@@ -105,13 +105,14 @@ class SessionManager:
             return sessions[session_id]
     
     @staticmethod
-    def update_session(session_id: str, updates: Dict[str, Any]):
-        session_data = SessionManager.get_session(session_id)
+    async def update_session(session_id: str, updates: Dict[str, Any]):
+        session_data = await SessionManager.get_session(session_id)
         session_data.update(updates)
+        redis_client = await ensure_redis_client()
         if redis_client:
             session_key = f"session:{session_id}"
-            redis_client.set(session_key, json.dumps(session_data))
-            redis_client.expire(session_key, 86400) 
+            await redis_client.set(session_key, json.dumps(session_data))
+            await redis_client.expire(session_key, 86400) 
         else:
             global sessions
             sessions[session_id] = session_data
@@ -163,19 +164,19 @@ async def root():
 @app.post("/api/sessions", response_model=SessionInfo)
 async def create_session():
     """Create a new chat session"""
-    session_id = SessionManager.create_session()
-    session = SessionManager.get_session(session_id)
+    session_id = await SessionManager.create_session()
+    session = await SessionManager.get_session(session_id)
     return SessionInfo(session_id=session_id, created_at=session["created_at"])
 
 @app.get("/api/sessions/{session_id}", response_model=Dict[str, Any])
 async def get_session(session_id: str):
     """Get session information"""
-    return SessionManager.get_session(session_id)
+    return await SessionManager.get_session(session_id)
 
 @app.post("/api/sessions/{session_id}/gpt-config")
 async def set_gpt_config(session_id: str, gpt_config: dict):
     """Set GPT configuration for a session"""
-    session = SessionManager.get_session(session_id)
+    session = await SessionManager.get_session(session_id)
     session["gpt_config"] = gpt_config
     mcp_connections = gpt_config.get("mcpConnections", [])
     session["mcp_connections"] = mcp_connections
@@ -197,7 +198,7 @@ async def set_gpt_config(session_id: str, gpt_config: dict):
             import traceback
             traceback.print_exc()
     
-    SessionManager.update_session(session_id, session)
+    await SessionManager.update_session(session_id, session)
     return {"message": "GPT configuration updated", "gpt_config": gpt_config}
 
 @app.post("/api/sessions/{session_id}/add-documents")
@@ -207,7 +208,7 @@ async def add_documents_by_url(session_id: str, request: dict):
     print(f"Session ID: {session_id}")
     print(f"Request: {request}")
     
-    session = SessionManager.get_session(session_id)
+    session = await SessionManager.get_session(session_id)
     
     documents = request.get("documents", [])
     doc_type = request.get("doc_type", "user")
@@ -256,11 +257,11 @@ async def add_documents_by_url(session_id: str, request: dict):
                 uploaded_images.append(image_data)
                 print(f"[Parallel] Image detected: {filename} - stored {len(file_content)} bytes for RAG processing")
             elif file_type == "application/pdf" or file_extension == 'pdf':
-                content = extract_text_from_pdf(file_content)
+                content = await asyncio.to_thread(extract_text_from_pdf, file_content)
                 if not content.strip():
                     print(f"⚠️ Warning: PDF {filename} appears to be empty or unreadable")
             elif file_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" or file_extension == 'docx':
-                content = extract_text_from_docx(file_content)
+                content = await asyncio.to_thread(extract_text_from_docx, file_content)
                 if not content.strip():
                     print(f"⚠️ Warning: DOCX {filename} appears to be empty or unreadable")
             elif file_type == "application/json" or file_extension == 'json':
@@ -324,8 +325,8 @@ async def add_documents_by_url(session_id: str, request: dict):
 
         try:
             from Rag.Rag import preprocess_user_documents, clear_user_doc_cache, preprocess_images, clear_image_cache
-            clear_user_doc_cache(session_id)
-            clear_image_cache(session_id)
+            await clear_user_doc_cache(session_id)
+            # await clear_image_cache(session_id) # Removed to preserve image history
             print(f"[MAIN] Cleared old user document and image caches for session {session_id}")
             if uploaded_images:
                 print(f"[MAIN] Pre-processing {len(uploaded_images)} image(s)...")
@@ -379,7 +380,7 @@ async def add_documents_by_url(session_id: str, request: dict):
             import traceback
             traceback.print_exc()
     
-    SessionManager.update_session(session_id, session)
+    await SessionManager.update_session(session_id, session)
     
     print(f"Session KB docs count after update: {len(session.get('kb', []))}")
     
@@ -388,7 +389,7 @@ async def add_documents_by_url(session_id: str, request: dict):
 @app.get("/api/sessions/{session_id}/documents")
 async def get_documents(session_id: str):
     """Get all documents for a session"""
-    session = SessionManager.get_session(session_id)
+    session = await SessionManager.get_session(session_id)
     return {
         "uploaded_docs": session["uploaded_docs"],
         "kb": session["kb"]
@@ -406,7 +407,7 @@ async def stream_chat(session_id: str, request: ChatRequest):
     print(f"Uploaded doc: {request.uploaded_doc}")
     print(f"Composio tools: {request.composio_tools}")
     
-    session = SessionManager.get_session(session_id)
+    session = await SessionManager.get_session(session_id)
     print(f"Previous last_route in session: {session.get('last_route')}")  
     session["messages"].append({"role": "user", "content": request.message})
     print(f"Added user message to session. Total messages: {len(session['messages'])}")
@@ -420,7 +421,7 @@ async def stream_chat(session_id: str, request: ChatRequest):
             "instruction": "You are a helpful AI assistant."
         }
         session["gpt_config"] = gpt_config
-        SessionManager.update_session(session_id, session)
+        await SessionManager.update_session(session_id, session)
     
     llm_model = gpt_config.get("model", "gpt-4o-mini")
     print(f"=== GPT CONFIG ===")
@@ -592,7 +593,7 @@ async def stream_chat(session_id: str, request: ChatRequest):
                     if state.get("img_urls"):
                         session["img_urls"] = state.get("img_urls", [])
                     
-                    SessionManager.update_session(session_id, session)
+                    await SessionManager.update_session(session_id, session)
                 if state.get("context", {}).get("session", {}).get("summary"):
                     session["summary"] = state["context"]["session"]["summary"]
 
@@ -601,11 +602,18 @@ async def stream_chat(session_id: str, request: ChatRequest):
 
                 
                 if state.get("context", {}).get("session"):
-                    SessionManager.update_session(session_id, session)
+                    await SessionManager.update_session(session_id, session)
                 
                 if state.get("route"):
                     session["last_route"] = state["route"]
-                    SessionManager.update_session(session_id, session)
+                    await SessionManager.update_session(session_id, session)
+                
+                # After the graph has run, clear the new_uploaded_docs state
+                # to prevent it from persisting to the next turn.
+                if "new_uploaded_docs" in session:
+                    session["new_uploaded_docs"] = []
+                    
+                await SessionManager.update_session(session_id, session)
                 
                 yield f"data: {json.dumps({'type': 'done', 'data': {'session_id': session_id}})}\n\n"
                 
@@ -647,7 +655,7 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
     print(f"Session ID: {session_id}")
     print(f"Request message: {request.message}")
     
-    session = SessionManager.get_session(session_id)
+    session = await SessionManager.get_session(session_id)
     print(f"Previous last_route in session: {session.get('last_route')}")  
     session["messages"].append({"role": "user", "content": request.message})
     print(f"Added user message to session. Total messages: {len(session['messages'])}")
@@ -663,7 +671,7 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
             "instruction": "You are a helpful AI assistant."
         }
         session["gpt_config"] = gpt_config
-        SessionManager.update_session(session_id, session)
+        await SessionManager.update_session(session_id, session)
     
     llm_model = gpt_config.get("model", "gpt-4o-mini")
     deep_research_model = gpt_config.get("deepResearchModel", "alibaba/tongyi-deepresearch-30b-a3b:free")  # Use separate model for deep research
@@ -817,17 +825,17 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
                     if state.get("img_urls"):
                         session["img_urls"] = state.get("img_urls", [])
                     
-                    SessionManager.update_session(session_id, session)
+                    await SessionManager.update_session(session_id, session)
                 if state.get("context", {}).get("session", {}).get("summary"):
                     session["summary"] = state["context"]["session"]["summary"]
 
                 if state.get("context", {}).get("session", {}).get("last_route"):
                     session["last_route"] = state["context"]["session"]["last_route"]
                 if state.get("context", {}).get("session"):
-                    SessionManager.update_session(session_id, session)
+                    await SessionManager.update_session(session_id, session)
                 if state.get("route"):
                     session["last_route"] = state["route"]
-                    SessionManager.update_session(session_id, session)
+                    await SessionManager.update_session(session_id, session)
                 
                 yield f"data: {json.dumps({'type': 'done', 'data': {'session_id': session_id}})}\n\n"
                 
@@ -862,8 +870,9 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
 @app.delete("/api/sessions/{session_id}")
 async def delete_session(session_id: str):
     """Delete a session"""
+    redis_client = await ensure_redis_client()
     if redis_client:
-        if not redis_client.delete(f"session:{session_id}"):
+        if not await redis_client.delete(f"session:{session_id}"):
             raise HTTPException(status_code=404, detail="Session not found")
     else:
         global sessions

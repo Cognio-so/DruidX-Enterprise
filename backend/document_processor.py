@@ -11,21 +11,18 @@ import base64
 from openai import OpenAI
 import os
 from graph_type import GraphState
-# Initialize OpenAI client for image processing
 from llm import get_llm, _extract_usage
 from langchain_core.messages import HumanMessage
 def extract_text_from_pdf(file_content: bytes) -> str:
     """Extract text from PDF file using PyMuPDF (fitz)"""
     try:
-        # Open PDF from bytes
         doc = fitz.open(stream=file_content, filetype="pdf")
         text = ""
         
-        # Extract text from all pages
         for page_num in range(len(doc)):
             page = doc[page_num]
             page_text = page.get_text()
-            if page_text.strip():  # Only add non-empty pages
+            if page_text.strip():  
                 text += page_text + "\n"
         
         doc.close()
@@ -81,6 +78,7 @@ def extract_text_from_json(file_content: bytes) -> str:
 async def process_uploaded_files_api(uploaded_files: List[UploadFile]) -> List[DocumentInfo]:
     """Process uploaded files and extract text content for API"""
     processed_docs = []
+    import asyncio
     
     for file in uploaded_files:
         if file is not None:
@@ -90,27 +88,27 @@ async def process_uploaded_files_api(uploaded_files: List[UploadFile]) -> List[D
                 file_extension = file.filename.split('.')[-1].lower() if '.' in file.filename else 'txt'
                 file_id = str(uuid.uuid4())
                 
-                # Extract text based on file type
+                
                 text = ""
                 if file_extension == 'pdf':
-                    text = extract_text_from_pdf(file_content)
+                    text = await asyncio.to_thread(extract_text_from_pdf, file_content)
                 elif file_extension == 'docx':
-                    text = extract_text_from_docx(file_content)
+                    text = await asyncio.to_thread(extract_text_from_docx, file_content)
                 elif file_extension == 'txt':
-                    text = extract_text_from_txt(file_content)
+                    text = extract_text_from_txt(file_content)  
                 elif file_extension == 'json':
-                    text = extract_text_from_json(file_content)
+                    text = extract_text_from_json(file_content) 
                 else:
-                    text = extract_text_from_txt(file_content)  # Default fallback
+                    text = extract_text_from_txt(file_content)  
                 
                 if text.strip():
-                    # Create DocumentInfo object with correct fields
+                   
                     doc_info = DocumentInfo(
                         id=file_id,
                         filename=file.filename,
                         content=text,
                         file_type=file_extension,
-                        file_url=f"uploaded/{file.filename}",  # Simple URL for now
+                        file_url=f"uploaded/{file.filename}",  
                         size=len(file_content)
                     )
                     processed_docs.append(doc_info)
@@ -126,6 +124,7 @@ async def process_uploaded_files_api(uploaded_files: List[UploadFile]) -> List[D
 async def process_knowledge_base_files(uploaded_files: List[UploadFile]) -> List[DocumentInfo]:
     """Process knowledge base files and extract text content"""
     processed_docs = []
+    import asyncio
     
     for file in uploaded_files:
         if file is not None:
@@ -134,28 +133,25 @@ async def process_knowledge_base_files(uploaded_files: List[UploadFile]) -> List
                 file_content = await file.read()
                 file_extension = file.filename.split('.')[-1].lower() if '.' in file.filename else 'txt'
                 file_id = str(uuid.uuid4())
-                
-                # Extract text based on file type
                 text = ""
                 if file_extension == 'pdf':
-                    text = extract_text_from_pdf(file_content)
+                    text = await asyncio.to_thread(extract_text_from_pdf, file_content)
                 elif file_extension == 'docx':
-                    text = extract_text_from_docx(file_content)
+                    text = await asyncio.to_thread(extract_text_from_docx, file_content)
                 elif file_extension == 'txt':
-                    text = extract_text_from_txt(file_content)
+                    text = extract_text_from_txt(file_content)  
                 elif file_extension == 'json':
-                    text = extract_text_from_json(file_content)
+                    text = extract_text_from_json(file_content) 
                 else:
-                    text = extract_text_from_txt(file_content)  # Default fallback
+                    text = extract_text_from_txt(file_content) 
                 
                 if text.strip():
-                    # Create DocumentInfo object with correct fields
                     doc_info = DocumentInfo(
                         id=file_id,
                         filename=file.filename,
                         content=text,
                         file_type=file_extension,
-                        file_url=f"kb/{file.filename}",  # Simple URL for KB docs
+                        file_url=f"kb/{file.filename}",  
                         size=len(file_content)
                     )
                     processed_docs.append(doc_info)

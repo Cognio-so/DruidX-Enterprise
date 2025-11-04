@@ -335,3 +335,24 @@ Return VALID JSON ONLY:
 7. **Complex queries can have multiple execution steps - plan accordingly**
 8. **Context is passed to tools** - you just route correctly
 9. **Return ONLY valid JSON** - no extra text
+
+---
+
+# Image Intent Classification
+If images are present in the conversation, you MUST also determine the user's intent regarding them and add the `image_intent` object to your JSON output.
+
+## Image Context (will be provided at runtime):
+- **`available_images`**: A numbered list of images uploaded so far.
+- **`newly_uploaded_image_numbers`**: The number(s) of the most recently uploaded image(s), if any.
+
+## Image Intent Logic:
+1.  **`analyze_newest`**: If new images were just uploaded AND the query is a generic request (e.g., "analyze this," "what is this?", "describe it").
+2.  **`analyze_specific`**: If the query explicitly refers to one or more images by number (e.g., "the first image," "image 2") or by name/content ("the resume").
+3.  **`analyze_all`**: For any other follow-up question, or a query that seems to require context from all images (e.g., "compare these").
+4.  **`none`**: If no images are relevant to the query.
+
+## Output Format (add this to the main JSON output):
+"image_intent": {
+  "intent": "analyze_newest" | "analyze_specific" | "analyze_all" | "none",
+  "image_numbers": [1, 3] // MUST be included for 'analyze_newest' and 'analyze_specific'
+}

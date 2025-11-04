@@ -35,6 +35,14 @@ def _extract_usage(ai_message):
             "output_tokens": tu.get("completion_tokens", tu.get("output_tokens", 0)),
             "total_tokens": tu.get("total_tokens", 0),
         }
+
+    if "usage" in rm:
+        usage = rm["usage"]
+        return {
+            "input_tokens": usage.get("prompt_tokens", 0),
+            "output_tokens": usage.get("candidates_token_count", 0),
+            "total_tokens": usage.get("total_token_count", 0)
+        }
     
     return {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
 
@@ -93,10 +101,11 @@ async def stream_with_token_tracking(llm, messages, chunk_callback=None, state: 
     """
     Stream LLM response while tracking token usage.
     
-    Uses stream_options={"include_usage": True} to get usage from final chunk.
+    Uses the more reliable `astream_events` method to capture usage metadata 
+    from the 'end' event of the stream, which is more robust across different LLM providers.
     
     Args:
-        llm: LangChain LLM instance (should have stream_options configured)
+        llm: LangChain LLM instance
         messages: List of messages to send to LLM
         chunk_callback: Optional callback function for streaming chunks
         state: Optional GraphState dictionary to accumulate token usage
@@ -105,31 +114,29 @@ async def stream_with_token_tracking(llm, messages, chunk_callback=None, state: 
         Tuple of (full_response: str, token_usage: Dict[str, int])
     """
     full_response = ""
-    last_chunk = None
+    token_usage = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
     
-    # Stream messages - final chunk should contain usage_metadata
-    async for chunk in llm.astream(messages):
-        if hasattr(chunk, 'content') and chunk.content:
-            full_response += chunk.content
-            if chunk_callback:
-                await chunk_callback(chunk.content)
-        last_chunk = chunk  # Keep track of last chunk which should have usage
-    
-    # Extract token usage from final chunk
-    token_usage = _extract_usage(last_chunk) if last_chunk else {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
-    
+    async for event in llm.astream_events(messages, version="v1"):
+        kind = event["event"]
+        
+        if kind == "on_chat_model_stream":
+            chunk_content = event["data"]["chunk"].content
+            if chunk_content:
+                full_response += chunk_content
+                if chunk_callback:
+                    await chunk_callback(chunk_content)
+                    
+        elif kind == "on_chat_model_end":
+            final_run_state = event["data"]
+            final_message = final_run_state.get("output")
+            if final_message:
+                token_usage = _extract_usage(final_message)
+
     if token_usage["total_tokens"] > 0:
         print(f"[TokenTracking] ✅ Captured tokens from stream: {token_usage}")
     else:
         print(f"[TokenTracking] ⚠️ No tokens found in stream (usage will be 0)")
-        if last_chunk:
-            print(f"  - Chunk type: {type(last_chunk)}")
-            print(f"  - Has usage_metadata: {hasattr(last_chunk, 'usage_metadata')}")
-            print(f"  - Has response_metadata: {hasattr(last_chunk, 'response_metadata')}")
-            if hasattr(last_chunk, 'response_metadata'):
-                print(f"  - response_metadata: {last_chunk.response_metadata}")
     
-    # Accumulate tokens in state if provided
     if state is not None:
         if "token_usage" not in state or state["token_usage"] is None:
             state["token_usage"] = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
