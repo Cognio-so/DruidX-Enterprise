@@ -642,7 +642,7 @@ async def is_summarization_query(user_query: str) -> bool:
     return any(kw in q for kw in summary_keywords)
     
 import asyncio, random
-from langchain.schema import HumanMessage
+from langchain.messages import HumanMessage
 import base64
 async def extract_text_from_image(file_content: bytes, filename: str = "", state: GraphState = None) -> str:
     """Extract text and description from image using GPT-4 Vision or Gemini Vision"""
