@@ -14,7 +14,7 @@ from rank_bm25 import BM25Okapi
 import re
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 from prompt_cache import normalize_prefix
-from redis_client import redis_client, redis_client_binary
+from redis_client import ensure_redis_client, ensure_redis_client_binary
 import dill
 
 QDRANT_URL = os.getenv("QDRANT_URL", ":memory:")
@@ -71,50 +71,58 @@ import time
 
 
 
-def clear_kb_cache(collection_name: str = None):
+async def clear_kb_cache(collection_name: str = None):
     """Clear KB embedding cache for a specific collection or all collections"""
+    redis_client = await ensure_redis_client()
     if not redis_client:
         return
     if collection_name:
-        keys_to_delete = redis_client.keys(f"kb_cache:{collection_name}:*")
+        keys_to_delete = await redis_client.keys(f"kb_cache:{collection_name}:*")
         if keys_to_delete:
-            redis_client.delete(*keys_to_delete)
+            await redis_client.delete(*keys_to_delete)
         print(f"[RAG] Cleared KB cache for {collection_name}")
     else:
-        keys_to_delete = redis_client.keys("kb_cache:*")
+        keys_to_delete = await redis_client.keys("kb_cache:*")
         if keys_to_delete:
-            redis_client.delete(*keys_to_delete)
+            await redis_client.delete(*keys_to_delete)
         print("[RAG] Cleared all KB embedding cache")
 
-def clear_user_doc_cache(session_id: str = None):
+async def clear_user_doc_cache(session_id: str = None):
     """Clear user document embedding cache for a specific session or all sessions"""
+    redis_client = await ensure_redis_client()
+    redis_client_binary = await ensure_redis_client_binary()
     if not redis_client:
         return
     if session_id:
-        keys_to_delete = redis_client.keys(f"user_doc_cache:{session_id}:*")
-        keys_to_delete += redis_client_binary.keys(f"bm25_index:user_docs_{session_id}") 
+        keys_to_delete = await redis_client.keys(f"user_doc_cache:{session_id}:*")
+        if redis_client_binary:
+            binary_keys = await redis_client_binary.keys(f"bm25_index:user_docs_{session_id}")
+            keys_to_delete.extend(binary_keys)
         if keys_to_delete:
-            redis_client.delete(*keys_to_delete)
+            await redis_client.delete(*keys_to_delete)
         print(f"[RAG] Cleared user doc cache for session {session_id}")
     else:
-        keys_to_delete = redis_client.keys("user_doc_cache:*")
-        keys_to_delete += redis_client_binary.keys("bm25_index:*")
+        keys_to_delete = await redis_client.keys("user_doc_cache:*")
+        if redis_client_binary:
+            binary_keys = await redis_client_binary.keys("bm25_index:*")
+            keys_to_delete.extend(binary_keys)
         if keys_to_delete:
-            redis_client.delete(*keys_to_delete)
+            await redis_client.delete(*keys_to_delete)
         print("[RAG] Cleared all user document caches (embeddings, BM25)")
 
 
-def clear_image_cache(session_id: str = None):
+async def clear_image_cache(session_id: str = None):
     """Clear image analysis cache for a specific session or all sessions"""
+    redis_client = await ensure_redis_client()
     if not redis_client:
         return
     if session_id:
-        redis_client.delete(f"image_cache:{session_id}")
+        await redis_client.delete(f"image_cache:{session_id}")
         print(f"[RAG] Cleared image analysis cache for session {session_id}")
     else:
-        keys_to_delete = redis_client.keys("image_cache:*")
+        keys_to_delete = await redis_client.keys("image_cache:*")
         if keys_to_delete:
-            redis_client.delete(*keys_to_delete)
+            await redis_client.delete(*keys_to_delete)
         print("[RAG] Cleared all image analysis cache")
 
 async def preprocess_kb_documents(kb_docs: List[dict], session_id: str, is_hybrid: bool = False):
@@ -128,7 +136,8 @@ async def preprocess_kb_documents(kb_docs: List[dict], session_id: str, is_hybri
     collection_name = f"kb_{session_id}"
     cache_key = f"kb_cache:{collection_name}"
 
-    if redis_client and redis_client.exists(cache_key):
+    redis_client = await ensure_redis_client()
+    if redis_client and await redis_client.exists(cache_key):
         print(f"[RAG] KB already processed for session {session_id}")
         return
     
@@ -144,13 +153,13 @@ async def preprocess_kb_documents(kb_docs: List[dict], session_id: str, is_hybri
     await retreive_docs(kb_texts, collection_name, is_hybrid=is_hybrid, clear_existing=False, is_kb=True, session_id=session_id)
     
     if redis_client:
-        redis_client.hset(cache_key, mapping={
+        await redis_client.hset(cache_key, mapping={
             "collection_name": collection_name,
             "is_hybrid": str(is_hybrid),
             "processed_at": str(asyncio.get_event_loop().time()),
             "document_count": len(kb_texts)
         })
-        redis_client.expire(cache_key, 86400) # Expire after 24 hours
+        await redis_client.expire(cache_key, 86400) # Expire after 24 hours
     
     print(f"[RAG] Pre-processed and cached {len(kb_texts)} KB documents for session {session_id}")
 
@@ -171,12 +180,14 @@ async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid
     collection_name = f"user_docs_{session_id}"
     cache_key = f"user_doc_cache:{session_id}"
 
+    redis_client = await ensure_redis_client()
+    redis_client_binary = await ensure_redis_client_binary()
     if is_new_upload:
         if redis_client:
-            redis_client.delete(cache_key)
+            await redis_client.delete(cache_key)
             print(f"🔥 [CACHE-DEBUG] Cleared existing user doc cache for session {session_id}")
             if redis_client_binary:
-                redis_client_binary.delete(f"bm25_index:{collection_name}")
+                await redis_client_binary.delete(f"bm25_index:{collection_name}")
                 print(f"🔥 [CACHE-DEBUG] Cleared old BM25 index for {collection_name}")
     
         try:
@@ -203,13 +214,13 @@ async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid
     await retreive_docs(doc_texts, collection_name, is_hybrid=is_hybrid, clear_existing=is_new_upload, is_user_doc=True, session_id=session_id)
 
     if redis_client:
-        redis_client.hset(cache_key, mapping={
+        await redis_client.hset(cache_key, mapping={
             "collection_name": collection_name,
             "is_hybrid": str(is_hybrid),
             "processed_at": str(asyncio.get_event_loop().time()),
             "document_count": len(doc_texts)
         })
-        redis_client.expire(cache_key, 86400) # Expire after 24 hours
+        await redis_client.expire(cache_key, 86400) # Expire after 24 hours
     
     print(f"[RAG] Pre-processed and cached {len(doc_texts)} NEW user documents for session {session_id}")
 
@@ -218,17 +229,19 @@ async def preprocess_images(uploaded_images: List[Dict[str, Any]], state: GraphS
     Pre-process uploaded images to generate and cache their descriptions.
     This is called immediately after image upload to prepare for fast RAG retrieval.
     """
+    redis_client = await ensure_redis_client()
     if not uploaded_images or not redis_client:
         return
     session_id = state.get("session_id")
     session_cache_key = f"image_cache:{session_id}"
+    order_key = f"image_order:{session_id}"
 
     for image_data in uploaded_images:
         filename = image_data.get("filename", "")
         if not filename:
             continue
 
-        if redis_client.hexists(session_cache_key, filename):
+        if await redis_client.hexists(session_cache_key, filename):
             print(f"[ImagePreprocessor] Image '{filename}' already processed for session {session_id}.")
             continue
 
@@ -255,11 +268,15 @@ async def preprocess_images(uploaded_images: List[Dict[str, Any]], state: GraphS
         await send_status_update(state, f"🖼️ Analyzing image: {filename}...", progress=None)
         
         analysis = await extract_text_from_image(file_content, filename, state)
-        redis_client.hset(session_cache_key, filename, analysis)
+        await redis_client.hset(session_cache_key, filename, analysis)
+        
+        await redis_client.rpush(order_key, filename)
+
         print(f"[ImagePreprocessor] Cached analysis for '{filename}' in session {session_id}")
 
     if redis_client and uploaded_images:
-        redis_client.expire(session_cache_key, 86400) 
+        await redis_client.expire(session_cache_key, 86400) 
+        await redis_client.expire(order_key, 86400) # Also expire the order list
     if "uploaded_images" in state:
         state["uploaded_images"] = []
 
@@ -324,6 +341,7 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
     if is_hybrid:
         tokenized_docs = [tokenize(doc.page_content) for doc in chunked_docs]
         bm25 = await asyncio.to_thread(BM25Okapi, tokenized_docs)
+        redis_client_binary = await ensure_redis_client_binary()
         if redis_client_binary:
             try:
                 serialized_bm25 = dill.dumps({
@@ -332,8 +350,8 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
                     "tokens": tokenized_docs
                 })
                 redis_key = f"bm25_index:{name}"
-                redis_client_binary.set(redis_key, serialized_bm25)
-                redis_client_binary.expire(redis_key, 86400) # Expire after 24 hours
+                await redis_client_binary.set(redis_key, serialized_bm25)
+                await redis_client_binary.expire(redis_key, 86400) # Expire after 24 hours
                 print(f"[RAG] Stored BM25 index in Redis for {name}")
             except Exception as e:
                 print(f"[RAG] ERROR: Failed to serialize and store BM25 index in Redis: {e}")
@@ -426,9 +444,10 @@ async def _hybrid_search_rrf(collection_name: str, query: str, limit: int, k: in
     vector_ranking = [result.payload["text"] for result in vector_results]
 
     bm25_data = None
+    redis_client_binary = await ensure_redis_client_binary()
     if redis_client_binary:
         try:
-            serialized_data = redis_client_binary.get(f"bm25_index:{collection_name}")
+            serialized_data = await redis_client_binary.get(f"bm25_index:{collection_name}")
             if serialized_data:
                 bm25_data = dill.loads(serialized_data)
                 print(f"[HYBRID-RRF] Loaded BM25 index from Redis for {collection_name}")
@@ -481,9 +500,10 @@ async def _hybrid_search_intersection(collection_name: str, query: str, limit: i
     vector_docs = {result.payload["text"] for result in vector_results}
 
     bm25_data = None
+    redis_client_binary = await ensure_redis_client_binary()
     if redis_client_binary:
         try:
-            serialized_data = redis_client_binary.get(f"bm25_index:{collection_name}")
+            serialized_data = await redis_client_binary.get(f"bm25_index:{collection_name}")
             if serialized_data:
                 bm25_data = dill.loads(serialized_data)
                 print(f"[HYBRID-INTERSECTION] Loaded BM25 index from Redis for {collection_name}")
@@ -724,7 +744,8 @@ async def hierarchical_summarize(state, batch_size: int = 10):
     """
 
     session_id = state.get("session_id")
-    cache = redis_client.hgetall(f"user_doc_cache:{session_id}")
+    redis_client = await ensure_redis_client()
+    cache = await redis_client.hgetall(f"user_doc_cache:{session_id}")
     if not cache:
         raise Exception("No cached document found. Please upload a document first.")
 
@@ -911,9 +932,10 @@ async def _process_user_docs(state, docs, user_query, rag):
     
     await send_status_update(state, "🔍 Searching user documents...", 50)
     
+    redis_client = await ensure_redis_client()
     cache_data = {}
     if redis_client:
-        cache_data = redis_client.hgetall(f"user_doc_cache:{session_id}")
+        cache_data = await redis_client.hgetall(f"user_doc_cache:{session_id}")
 
     if not cache_data:
         raise Exception(f"User documents not pre-processed for session {session_id}. Please upload documents first.")
@@ -935,14 +957,13 @@ async def _process_kb_docs(state, kb_docs, user_query, rag):
     session_id = state.get("session_id", "default")
     
     await send_status_update(state, "🔍 Searching knowledge base...", 70)
-
-    # The collection name is derived from session_id for KB docs as well
     collection_name = f"kb_{session_id}"
     cache_key = f"kb_cache:{collection_name}"
     
+    redis_client = await ensure_redis_client()
     cache_data = {}
     if redis_client:
-        cache_data = redis_client.hgetall(cache_key)
+        cache_data = await redis_client.hgetall(cache_key)
 
     if not cache_data:
         print(f"[RAG] ERROR: KB not pre-processed for session {session_id}")
@@ -979,109 +1000,140 @@ async def Rag(state: GraphState) -> GraphState:
     if uploaded_images:
         await preprocess_images(uploaded_images, state)
 
-    image_analysis_cache = {}
-    if redis_client:
-        image_analysis_cache = redis_client.hgetall(f"image_cache:{session_id}")
+    redis_client = await ensure_redis_client()
+    image_analysis_cache = await redis_client.hgetall(f"image_cache:{session_id}")
+    image_intent = state.get("image_intent", {"intent": "none"})
+    intent = image_intent.get("intent", "none")
 
+    if intent != "none":
+        print(f"[RAG] Found image intent '{intent}'. Proceeding with image-related query flow.")
+        image_analysis_cache = {}
+        image_order = []
+        if redis_client:
+            image_analysis_cache = await redis_client.hgetall(f"image_cache:{session_id}")
+            image_order = await redis_client.lrange(f"image_order:{session_id}", 0, -1)
 
-    if image_analysis_cache:
-        print(f"[RAG] Found {len(image_analysis_cache)} cached image analysis. Proceeding with image-related query flow.")
-        await send_status_update(state, "🧠 Analyzing query with image context...", 10)
+        if not image_analysis_cache:
+            print("[RAG] Warning: Image intent was present, but image analysis cache is empty.")
+            pass
+        else:
+            selected_images = {}
+            
+            if intent in ["analyze_newest", "analyze_specific"]:
+                image_numbers = image_intent.get("image_numbers", [])
+                for num in image_numbers:
+                    if 0 < num <= len(image_order):
+                        filename = image_order[num - 1] 
+                        if filename in image_analysis_cache:
+                            selected_images[filename] = image_analysis_cache[filename]
+            elif intent == "analyze_all":
+                selected_images = image_analysis_cache
+            if not selected_images and image_analysis_cache:
+                selected_images = image_analysis_cache
 
-        source_decision = await intelligent_source_selection(
-            user_query=user_query,
-            has_user_docs=has_user_docs,
-            has_kb=has_kb,
-            custom_prompt=custom_system_prompt,
-            llm_model=llm_model
-        )
-        use_kb = source_decision.get("use_kb", False)
+            print(f"[RAG] Using {len(selected_images)} image(s) based on Orchestrator intent: '{intent}'")
+            combined_analysis_parts = []
+            if image_order:
+                for i, filename in enumerate(image_order):
+                    if filename in selected_images:
+                        analysis = selected_images[filename]
+                        combined_analysis_parts.append(f"**Image {i + 1}: {filename}**\n{analysis}")
+            
+            combined_analysis = "\n\n".join(combined_analysis_parts)
+            await send_status_update(state, "🧠 Deciding whether to use Knowledge Base with image...", 40)
+            augmented_query_for_decision = f"User Query: '{user_query}'\n\n--- Image Analysis Context ---\n{combined_analysis}"
+            
+            source_decision = await intelligent_source_selection(
+                user_query=augmented_query_for_decision,
+                has_user_docs=True, 
+                has_kb=has_kb,
+                custom_prompt=custom_system_prompt,
+                llm_model=llm_model
+            )
+            use_kb = source_decision.get("use_kb", False)
 
-        combined_analysis = "\n\n".join(
-            f"**Analysis of {filename}:**\n{analysis}"
-            for filename, analysis in image_analysis_cache.items()
-        )
-
-        llm = get_llm(llm_model, temperature=0.7)
-        final_answer = ""
-        kb_result = [] 
-        
-        if not use_kb:
-            # Case 1: Answer from image context only
-            await send_status_update(state, "✍️ Generating answer from image...", 50)
-            prompt = f"""The user asked: "{user_query}"
+            llm = get_llm(llm_model, temperature=0.7)
+            final_answer = ""
+            kb_result = [] 
+            
+            if not use_kb:
+               
+                await send_status_update(state, "✍️ Generating answer from image...", 50)
+                prompt = f"""The user asked: "{user_query}"
 
 Here is a detailed analysis of the relevant image(s):
 {combined_analysis}
 
 Based ONLY on the image analysis, provide a comprehensive answer."""
 
-            final_answer, _ = await stream_with_token_tracking(
-                llm,
-                [HumanMessage(content=prompt)],
-                chunk_callback=chunk_callback,
-                state=state
-            )
-        else:
-            # Case 2: RAG with image context
-            await send_status_update(state, "🔍 Searching knowledge base with image context...", 50)
-            
-            if has_kb and kb_docs:
-                collection_name = f"kb_{session_id}"
-                cache_key = f"kb_cache:{collection_name}"
-                cache_data = {}
-                if redis_client:
-                    cache_data = redis_client.hgetall(cache_key)
+                final_answer, _ = await stream_with_token_tracking(
+                    llm,
+                    [HumanMessage(content=prompt)],
+                    chunk_callback=chunk_callback,
+                    state=state
+                )
+            else:
+                await send_status_update(state, "🔍 Searching knowledge base with image context...", 50)
+                
+                if has_kb:
+                    collection_name = f"kb_{session_id}"
+                    cache_key = f"kb_cache:{collection_name}"
+                    redis_client = await ensure_redis_client()
+                    cache_data = {}
+                    if redis_client:
+                        cache_data = await redis_client.hgetall(cache_key)
 
-                if cache_data:
-                    is_hybrid = cache_data.get("is_hybrid", "False").lower() == "true"
-                    search_query = f"{user_query} {combined_analysis}"
-                    
-                    if is_hybrid:
-                        kb_result = await _hybrid_search_intersection(collection_name, search_query, limit=3)
-                    else:
-                        kb_result = await _hybrid_search_rrf(collection_name, search_query, limit=5, k=60)
-                    print(f"[RAG-IMAGE] Retrieved {len(kb_result)} KB chunks")
+                    if cache_data:
+                        is_hybrid = cache_data.get("is_hybrid", "False").lower() == "true"
+                        search_query = f"{user_query} {combined_analysis}"
+                        
+                        if is_hybrid:
+                            kb_result = await _hybrid_search_intersection(collection_name, search_query, limit=3)
+                        else:
+                            kb_result = await _hybrid_search_rrf(collection_name, search_query, limit=5, k=60)
+                        print(f"[RAG-IMAGE] Retrieved {len(kb_result)} KB chunks")
 
-            await send_status_update(state, "✍️ Generating answer from image and KB...", 90)
-            context_parts = [
-                f"USER QUESTION: {user_query}",
-                f"\nIMAGE DETAILS:\n{combined_analysis}"
-            ]
-            if kb_result:
-                context_parts.append(f"\nKNOWLEDGE BASE CONTEXT:\n{chr(10).join(kb_result)}")
-            if custom_system_prompt:
-                context_parts.append(f"\nCUSTOM GPT INSTRUCTIONS:\n{custom_system_prompt}")
+                await send_status_update(state, "✍️ Generating answer from image and KB...", 90)
+                context_parts = [
+                    f"USER QUESTION: {user_query}",
+                    f"\nIMAGE DETAILS:\n{combined_analysis}"
+                ]
+                if kb_result:
+                    context_parts.append(f"\nKNOWLEDGE BASE CONTEXT:\n{chr(10).join(kb_result)}")
+                if custom_system_prompt:
+                    context_parts.append(f"\nCUSTOM GPT INSTRUCTIONS:\n{custom_system_prompt}")
 
-            answer_prompt = f"""You are an AI assistant answering a user's question about an image with help from a knowledge base.
+                answer_prompt = f"""You are an AI assistant answering a user's question about an image with help from a knowledge base.
 
 **Your task:** Provide a comprehensive answer by combining information from the image analysis and the knowledge base.
 
 ---
 {chr(10).join(context_parts)}
 """
-            final_answer, _ = await stream_with_token_tracking(
-                llm,
-                [HumanMessage(content=answer_prompt)],
-                chunk_callback=chunk_callback,
-                state=state
-            )
+                final_answer, _ = await stream_with_token_tracking(
+                    llm,
+                    [HumanMessage(content=answer_prompt)],
+                    chunk_callback=chunk_callback,
+                    state=state
+                )
 
-        state["response"] = final_answer
-        state.setdefault("intermediate_results", []).append({
-            "node": "RAG",
-            "query": user_query,
-            "strategy": "image_analysis_with_kb" if use_kb else "image_analysis_only",
-            "sources_used": {
-                "images": len(image_analysis_cache),
-                "kb": len(kb_result)
-            },
-            "output": state["response"]
-        })
-        await send_status_update(state, "✅ Image analysis completed", 100)
-        return state
-    
-    # Continue with non-image RAG processing below...
+            state["response"] = final_answer
+            state.setdefault("intermediate_results", []).append({
+                "node": "RAG",
+                "query": user_query,
+                "strategy": "image_analysis_with_kb" if use_kb else "image_analysis_only",
+                "sources_used": {
+                    "images": len(selected_images),
+                    "kb": len(kb_result)
+                },
+                "output": state["response"]
+            })
+            await send_status_update(state, "✅ Image analysis completed", 100)
+            return state
+
+    # If we are here, it means it's a standard document-based RAG query
+    print("[RAG] No image intent detected. Proceeding with standard document RAG flow.")
+
     if await is_summarization_query(user_query):
         print("[RAG] Detected summarization intent — switching to Hierarchical Summarizer.")
         await send_status_update(state, "🧠 Summarizing entire document...", 20)
@@ -1114,9 +1166,10 @@ Based ONLY on the image analysis, provide a comprehensive answer."""
     custom_system_prompt = gpt_config.get("instruction", "")
     temperature = gpt_config.get("temperature", 0.0)
 
+    redis_client = await ensure_redis_client()
     has_user_docs = False
     if redis_client:
-        user_doc_cache_exists = redis_client.exists(f"user_doc_cache:{session_id}")
+        user_doc_cache_exists = await redis_client.exists(f"user_doc_cache:{session_id}")
         has_user_docs = bool(user_doc_cache_exists)
         if has_user_docs:
             print(f"[RAG] Found user document cache in Redis for session {session_id}")
@@ -1126,7 +1179,7 @@ Based ONLY on the image analysis, provide a comprehensive answer."""
     has_kb = False
     if redis_client:
         kb_collection_name = f"kb_{session_id}"
-        kb_cache_exists = redis_client.exists(f"kb_cache:{kb_collection_name}")
+        kb_cache_exists = await redis_client.exists(f"kb_cache:{kb_collection_name}")
         has_kb = bool(kb_cache_exists)
         if has_kb:
             print(f"[RAG] Found KB cache in Redis for session {session_id}")

@@ -41,3 +41,4 @@ class GraphState(TypedDict, total=False):
     gpt_id: Optional[str]
     token_usage: Optional[Dict[str, int]]  # Token usage: input_tokens, output_tokens, total_tokens
     image_analysis_cache: Optional[Dict[str, str]]
+    image_intent: Optional[Dict[str, Any]]
