@@ -37,6 +37,7 @@ composio
 PyMuPDF
 redis==5.0.7
 dill==0.3.8
+langchain_text_splitters
 
 aiofiles==25.1.0
 aiohttp==3.13.2
