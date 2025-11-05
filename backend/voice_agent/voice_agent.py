@@ -243,7 +243,7 @@ class VoiceAssistant:
             "LIVEKIT_URL": os.getenv("LIVEKIT_URL"),
             "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
             "DEEPGRAM_API_KEY": os.getenv("DEEPGRAM_API_KEY"),
-            "TAVILY_API_KEY": os.getenv("TAVily_API_KEY"),
+            "TAVILY_API_KEY": os.getenv("TAVILY_API_KEY"),
         }
 
         missing_keys = [key for key, value in required_keys.items() if not value]
