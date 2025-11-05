@@ -1157,16 +1157,28 @@ async def voice_disconnect(request: dict):
             livekit_api_key = os.getenv("LIVEKIT_API_KEY")
             livekit_api_secret = os.getenv("LIVEKIT_API_SECRET")
             
-            if livekit_url and livekit_api_key and livekit_api_secret:
+            if livekit_api_key and livekit_api_secret:
                 try:
-                    # Use async with to ensure the client session is properly closed
-                    async with livekit_api.LiveKitAPI(livekit_url, livekit_api_key, livekit_api_secret) as lk_api:
-                        await lk_api.room.delete_room(room=room_name)
-                        print(f"Deleted LiveKit room: {room_name}")
-                except Exception as e:
-                    # This can happen if the room is already deleted or another error occurs.
-                    # It's safe to ignore in the context of a disconnect.
-                    print(f"Could not delete LiveKit room '{room_name}': {e}")
+                    lk_api = livekit_api.LiveKitAPI(livekit_api_key, livekit_api_secret)
+                    # Get room info before deleting to check participants
+                    try:
+                        room_info = await lk_api.get_room(room_name)
+                        if room_info:
+                            # Delete the room which will disconnect all participants
+                            await lk_api.delete_room(room_name)
+                            print(f"Deleted LiveKit room: {room_name}")
+                    except Exception as room_err:
+                        # Room might not exist or already deleted
+                        print(f"Room {room_name} may not exist or already deleted: {room_err}")
+                        pass
+                except AttributeError:
+                    # Fallback for older API versions
+                    try:
+                        await lk_api.delete_room(room_name)
+                    except:
+                        pass
+                except Exception as api_err:
+                    print(f"Error deleting room via API: {api_err}")
         
         # Check if there are any remaining active voice rooms
         # If no active rooms, stop the agent worker
