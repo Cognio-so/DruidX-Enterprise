@@ -289,17 +289,6 @@ export function ComposioToolsGrid({
           ))}
         </div>
       )}
-
-      <div className="flex items-center justify-between text-sm text-muted-foreground pt-4 border-t">
-        <span>
-          Showing {filteredTools.length} of {tools.length} tools
-        </span>
-        {gptId && (
-          <span>
-            {activeConnections.length} connected
-          </span>
-        )}
-      </div>
     </div>
   );
 }

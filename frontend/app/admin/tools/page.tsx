@@ -50,11 +50,6 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
         <p className="text-muted-foreground">
           Browse and connect to available tools. These tools enable
           your GPTs to interact with external services and platforms.
-          {tools.length > 0 && (
-            <span className="block mt-1 text-sm font-medium">
-              {tools.length} tools available
-            </span>
-          )}
         </p>
       </div>
 
