@@ -9,7 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Loader2, Settings, RefreshCw, X } from "lucide-react";
+import { Loader2, Settings, RefreshCw, X, ToolCase } from "lucide-react";
 import { toast } from "sonner";
 
 interface ComposioTool {
@@ -256,7 +256,7 @@ export function ComposioToolSelector({
           className="h-7 w-7 rounded-full"
           disabled={disabled}
         >
-          <Settings className="h-3.5 w-3.5" />
+          <ToolCase className="h-3.5 w-3.5" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -270,7 +270,7 @@ export function ComposioToolSelector({
       >
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-sm">Composio Tools</h3>
+            <h3 className="font-semibold text-sm">Tools</h3>
           </div>
 
           {loading ? (

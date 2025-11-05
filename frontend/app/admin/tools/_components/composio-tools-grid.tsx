@@ -49,14 +49,12 @@ export function ComposioToolsGrid({
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Fetch connections on mount and when gptId changes
   useEffect(() => {
     if (gptId) {
       fetchConnections();
     }
   }, [gptId]);
 
-  // Filter tools based on search query
   useEffect(() => {
     if (!searchQuery.trim()) {
       setFilteredTools(tools);
@@ -164,9 +162,7 @@ export function ComposioToolsGrid({
 
       if (response.ok) {
         toast.success("Tool disconnected successfully");
-        // Remove from enabled tools
         setEnabledTools((prev) => prev.filter((t) => t !== toolSlug));
-        // Refresh connections after a short delay
         setTimeout(() => {
           fetchConnections();
         }, 1000);
@@ -184,7 +180,13 @@ export function ComposioToolsGrid({
     try {
       setLoading(true);
       const response = await fetch("/api/mcp/available-tools", {
-        cache: "no-store",
+        next: { 
+          revalidate: 300, 
+          tags: ['composio-tools']
+        },
+        headers: {
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
+        }
       });
 
       if (response.ok) {
@@ -220,7 +222,6 @@ export function ComposioToolsGrid({
 
   return (
     <div className="space-y-6">
-      {/* Search and Actions */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="relative flex-1 w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -254,7 +255,6 @@ export function ComposioToolsGrid({
         </div>
       </div>
 
-      {/* Tools Grid */}
       {filteredTools.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           {searchQuery ? (
@@ -290,7 +290,6 @@ export function ComposioToolsGrid({
         </div>
       )}
 
-      {/* Stats */}
       <div className="flex items-center justify-between text-sm text-muted-foreground pt-4 border-t">
         <span>
           Showing {filteredTools.length} of {tools.length} tools
