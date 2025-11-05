@@ -19,7 +19,6 @@ interface KnowledgeBase {
 
 interface KnowledgeBaseListProps {
   knowledgeBases: KnowledgeBase[];
-  onDelete?: () => void;
 }
 
 interface GroupedKnowledgeBase {
@@ -52,7 +51,6 @@ function groupKnowledgeBases(kbEntries: KnowledgeBase[]): GroupedKnowledgeBase[]
 
 export default function KnowledgeBaseList({
   knowledgeBases,
-  onDelete,
 }: KnowledgeBaseListProps) {
   const [previewBaseName, setPreviewBaseName] = useState<string | null>(null);
   const grouped = groupKnowledgeBases(knowledgeBases);
@@ -64,7 +62,7 @@ export default function KnowledgeBaseList({
           <FileText className="h-16 w-16 text-muted-foreground mb-4" />
           <p className="text-lg font-semibold text-foreground mb-2">No docs present</p>
           <p className="text-sm text-muted-foreground text-center max-w-md">
-            You haven't added any knowledge base documents yet. Click the "Add Knowledge Base"
+            You haven&apos;t added any knowledge base documents yet. Click the &quot;Add Knowledge Base&quot;
             button above to get started.
           </p>
         </CardContent>
