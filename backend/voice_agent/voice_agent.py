@@ -4,7 +4,7 @@ import asyncio
 import logging
 import time
 from datetime import date
-from typing import Optional, List, Callable, Any
+from typing import Optional, List, Callable, Any, AsyncIterable, AsyncGenerator
 import sys
 import subprocess
 import platform
@@ -14,14 +14,20 @@ from livekit.agents import (
     Agent,
     AgentSession,
     RoomInputOptions,
+    RoomOutputOptions,
     function_tool,
     RunContext,
+    ChatContext,
     JobProcess,
     AudioConfig,
     BackgroundAudioPlayer,
     BuiltinAudioClip,
+    stt,
+    tts,
+    ConversationItemAddedEvent,
+    UserInputTranscribedEvent,
 )
-from livekit.agents import stt, tts
+from livekit.agents.llm import ImageContent, AudioContent
 from livekit.plugins import (
     google,
     openai,
@@ -43,7 +49,7 @@ logging.basicConfig(
     stream=sys.stderr,  # Write to stderr so Railway can see it
 )
 # Set the logging level for langsmith.client to WARNING to hide DEBUG messages
-logging.getLogger("langsmith.client").setLevel(logging.WARNING)
+# logging.getLogger("langsmith.client").setLevel(logging.WARNING)
 logger = logging.getLogger("voice_assistant")
 
 load_dotenv()
@@ -146,6 +152,11 @@ class VoiceAssistant:
         self.tts_error_count = 0  # Track TTS errors
         self.tts_semaphore = asyncio.Semaphore(1)  # For handling concurrent TTS requests
 
+                # Add these two lines to track streaming state
+        self.last_printed_len = 0
+        self.last_role = None
+
+
     @function_tool
     async def web_search(
         self,
@@ -199,6 +210,14 @@ class VoiceAssistant:
             logger.error(f"Error during web search for '{query}': {e}")
             return "I'm sorry, I encountered an error while searching the web. Please try again."
 
+    async def transcription_node(
+        self, text: AsyncIterable[str | agents.voice.io.TimedString], model_settings: agents.ModelSettings
+    ) -> AsyncGenerator[str | agents.voice.io.TimedString, None]:
+        async for chunk in text:
+            if isinstance(chunk, agents.voice.io.TimedString):
+                logger.info(f"TimedString: '{chunk}' ({chunk.start_time} - {chunk.end_time})")
+            yield chunk
+
     def _create_agent(self) -> Agent:
         """Create the agent instance with instructions and tools"""
         # Create an agent with error handling for responses
@@ -224,7 +243,7 @@ class VoiceAssistant:
             "LIVEKIT_URL": os.getenv("LIVEKIT_URL"),
             "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
             "DEEPGRAM_API_KEY": os.getenv("DEEPGRAM_API_KEY"),
-            "TAVILY_API_KEY": os.getenv("TAVILY_API_KEY"),
+            "TAVILY_API_KEY": os.getenv("TAVily_API_KEY"),
         }
 
         missing_keys = [key for key, value in required_keys.items() if not value]
@@ -247,6 +266,13 @@ class VoiceAssistant:
         openai_api_key = os.getenv("OPENAI_API_KEY")
         deepgram_api_key = os.getenv("DEEPGRAM_API_KEY")
 
+        # Deepgram TTS
+        tts = deepgram.TTS(
+            model=self.deepgram_tts_model, api_key=deepgram_api_key
+        )
+        # tts.connect(self.transcription_node)
+
+
         # Create the agent session with enhanced components
         self.session = AgentSession(
             # Voice activity detection
@@ -268,10 +294,9 @@ class VoiceAssistant:
             llm=openai.LLM(
                 model=self.openai_model,
             ),
-            # Deepgram TTS
-            tts=deepgram.TTS(
-                model=self.deepgram_tts_model, api_key=deepgram_api_key
-            ),
+            tts=tts,
+            use_tts_aligned_transcript=True,
+            
         )
 
         return self.session
@@ -340,12 +365,70 @@ class VoiceAssistant:
             await ctx.room.local_participant.publish_data(
                 data, reliable=True, topic="transcription"
             )
-            logger.info(f"Sent transcription: {role} - {text[:50]}")
+            logger.info(f"Sent transcription: {role} - {text[:]}")
         except Exception as e:
             logger.error(f"Error sending transcription: {e}")
             import traceback
 
             traceback.print_exc()
+
+    def on_conversation_item_added(self, event: ConversationItemAddedEvent):
+        """Callback for when a conversation item is added, streaming word by word."""
+        if event.item.role == "assistant":
+            # Check if this is a new response from the assistant
+            if self.last_role != "assistant":
+                self.last_printed_len = 0
+                print(f"\n\nStreaming Assistant Response: ", end="", flush=True)
+
+            if event.item.text_content:
+                full_text = event.item.text_content
+                new_text = full_text[self.last_printed_len:]
+
+                # Print word by word to simulate typing
+                # We split by space to process words and handle chunks that may end mid-word
+                words = new_text.split(" ")
+                for i, word in enumerate(words):
+                    if not word:
+                        continue
+                    
+                    # Add a space after each word, except the last one in the chunk
+                    print(f"{word}{' ' if i < len(words) - 1 else ''}", end="", flush=True)
+
+                    # Optional: small delay for a more natural typing effect
+                    time.sleep(0.05)
+
+                self.last_printed_len = len(full_text)
+
+        # Update the last role seen to correctly detect the start of a new message
+        self.last_role = event.item.role
+
+        # logging.info(
+        #     f"Conversation item added from {event.item.role}: {event.item.text_content}."
+        # )
+        # logging.info(
+        #     f"Conversation item added from {event.item.role}: {event.item.text_content}. interrupted: {event.item.interrupted}"
+        # )    
+        # to iterate over all types of content:
+        # for content in event.item.content:
+        #     if isinstance(content, str):
+        #         logging.info(f" - text: {content}")
+        #     elif isinstance(content, ImageContent):
+        #         # image is either a rtc.VideoFrame or URL to the image
+        #         logging.info(f" - image: {content.image}")
+        #     elif isinstance(content, AudioContent):
+        #         # frame is a list[rtc.AudioFrame]
+        #         logging.info(
+        #             f" - audio frame count: {len(content.frame)}, transcript: {content.transcript}"
+        #         )
+
+    def on_user_input_transcribed(self, event: UserInputTranscribedEvent):
+        """Callback for when user input is transcribed"""
+        logging.info(
+            f"User input transcribed: {event.transcript}, "
+            f"language: {event.language}, "
+            f"final: {event.is_final}, "
+            f"speaker id: {event.speaker_id}"
+        )
 
     async def start(self, ctx: agents.JobContext) -> None:
         """Start the agent in the provided room context with error handling"""
@@ -401,7 +484,12 @@ class VoiceAssistant:
                     # Noise cancellation
                     noise_cancellation=noise_cancellation.BVC(),
                 ),
+                room_output_options=RoomOutputOptions(sync_transcription=True),
             )
+            # Register event listeners
+            self.session.on("conversation_item_added", self.on_conversation_item_added)
+            self.session.on("user_input_transcribed", self.on_user_input_transcribed)
+
             logger.info("Agent session started successfully")
             await self.background_audio.start(room=ctx.room, agent_session=self.session)
 
@@ -515,7 +603,7 @@ def prewarm(proc: JobProcess):
 
 # Updated entrypoint function
 async def entrypoint(ctx: agents.JobContext):
-    """Enhanced entrypoint with improved error handling"""
+    """Enhanced entrypoint with improved error handling and proper shutdown"""
     try:
         logger.info("=" * 70)
         logger.info(f"🎯 Agent entrypoint CALLED for room: {ctx.room.name}")
@@ -528,9 +616,13 @@ async def entrypoint(ctx: agents.JobContext):
     except Exception as e:
         logger.critical(f"❌ Critical error in entrypoint: {str(e)}")
         import traceback
-
         traceback.print_exc()
         raise  # Re-raise to let LiveKit know the job failed
+    finally:
+        # This block ensures that shutdown is always called, fixing the warning.
+        logger.info("Shutting down agent job context.")
+        ctx.shutdown()
+        logger.info("Agent job context shut down successfully.")
 
 
 if __name__ == "__main__":
