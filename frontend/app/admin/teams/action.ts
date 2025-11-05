@@ -192,7 +192,13 @@ export async function assignGptsToUser(data: {
   userId: string;
   gptIds: string[];
 }) {
-  await requireAdmin();
+  const session = await requireAdmin();
+  
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+  
+  const currentAdminId = session.user.id;
   
   const validatedFields = assignGptSchema.safeParse(data);
 
@@ -202,18 +208,33 @@ export async function assignGptsToUser(data: {
 
   const { userId, gptIds } = validatedFields.data;
 
-  // Get current admin user ID for assignedBy field
-  const adminUser = await prisma.user.findFirst({
-    where: { role: "admin" }
-  });
+  // Verify all GPTs belong to current admin
+  if (gptIds.length > 0) {
+    const adminGpts = await prisma.gpt.findMany({
+      where: {
+        id: { in: gptIds },
+        userId: currentAdminId
+      },
+      select: { id: true }
+    });
 
-  if (!adminUser) {
-    throw new Error("Admin user not found");
+    const adminGptIds = adminGpts.map(gpt => gpt.id);
+    const invalidGptIds = gptIds.filter(id => !adminGptIds.includes(id));
+
+    if (invalidGptIds.length > 0) {
+      return {
+        success: false,
+        error: `You can only assign GPTs you created. Invalid GPT IDs: ${invalidGptIds.join(', ')}`
+      };
+    }
   }
 
-  // First, remove all existing assignments for this user
+  // First, remove all existing assignments for this user (only those assigned by current admin)
   await prisma.assignGpt.deleteMany({
-    where: { userId }
+    where: {
+      userId,
+      assignedBy: currentAdminId
+    }
   });
 
   // Then create new assignments
@@ -222,7 +243,7 @@ export async function assignGptsToUser(data: {
       data: gptIds.map(gptId => ({
         userId,
         gptId,
-        assignedBy: adminUser.id
+        assignedBy: currentAdminId  // Use current admin's ID
       }))
     });
   }

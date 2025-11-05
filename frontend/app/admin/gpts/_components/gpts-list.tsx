@@ -1,8 +1,8 @@
-import { getGpts } from "@/data/get-gpts";
+import { getAdminGpts } from "@/data/get-admin-gpts";
 import { GptCard } from "./gpt-card";
 
 export async function GptsList() {
-  const gpts = await getGpts();
+  const gpts = await getAdminGpts();
 
   if (gpts.length === 0) {
     return (

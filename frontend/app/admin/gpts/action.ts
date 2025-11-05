@@ -5,8 +5,34 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 export async function deleteGptbyId(id: string) {
-    await requireAdmin();
+    const session = await requireAdmin();
+    
+    if (!session?.user) {
+        return {
+            success: false,
+            message: "Unauthorized"
+        };
+    }
+    
+    const currentAdminId = session.user.id;
+    
     try {
+        // First check if GPT exists and belongs to current admin
+        const existingGpt = await prisma.gpt.findFirst({
+            where: {
+                id,
+                userId: currentAdminId,  // Only allow deleting GPTs created by current admin
+            },
+        });
+
+        if (!existingGpt) {
+            return {
+                success: false,
+                message: "GPT not found or you don't have permission to delete it",
+            };
+        }
+
+        // Delete by id only (we already verified ownership above)
         await prisma.gpt.delete({
             where: {
                 id

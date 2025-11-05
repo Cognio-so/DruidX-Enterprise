@@ -2,10 +2,14 @@ import prisma from "@/lib/prisma";
 import { requireAdmin } from "./requireAdmin";
 
 export async function getAdminGpts() {
-  await requireAdmin();
+  const session = await requireAdmin();
+  
+  // Get current admin's user ID
+  const currentAdminId = session.user.id;
 
   const data = await prisma.gpt.findMany({
     where: {
+      userId: currentAdminId,  // Filter by current admin's user ID
       user: {
         role: "admin"
       }
@@ -19,7 +23,10 @@ export async function getAdminGpts() {
       description: true,
       model: true,
       image: true,
+      webBrowser: true,
+      hybridRag: true,
       createdAt: true,
+      updatedAt: true,
       user: {
         select: {
           name: true,

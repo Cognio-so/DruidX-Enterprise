@@ -80,7 +80,7 @@ export default function ChatMessage({
   };
 
   return (
-    <div ref={messageRef} className="w-full max-w-5xl mx-auto px-4">
+    <div ref={messageRef} className="w-full max-w-5xl mx-auto px-4 break-words">
       <Message from={isUser ? "user" : "assistant"}>
         {isUser ? (
           <>
@@ -167,7 +167,7 @@ export default function ChatMessage({
                   </div>
                 )}
                 {message ? (
-                  <div className="bg-muted/60 border border-border rounded-lg p-4">
+                  <div className="bg-muted/60 border border-border rounded-lg p-4 break-words">
                     <Response sources={sources}>{message}</Response>
                     {isStreaming && (
                       <div className="inline-flex items-center ml-2 mt-1">

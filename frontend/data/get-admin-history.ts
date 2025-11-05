@@ -2,9 +2,19 @@ import prisma from "@/lib/prisma";
 import { requireAdmin } from "./requireAdmin";
 
 export async function getAdminHistory() {
-  await requireAdmin();
+  const session = await requireAdmin();
+  
+  // Get current admin's user ID
+  const currentAdminId = session.user.id;
 
+  // Get conversations from GPTs created by current admin OR conversations created by current admin
   const conversations = await prisma.conversation.findMany({
+    where: {
+      OR: [
+        { userId: currentAdminId },  // Conversations created by current admin
+        { gpt: { userId: currentAdminId } }  // Conversations using GPTs created by current admin
+      ]
+    },
     include: {
       user: {
         select: {
