@@ -63,6 +63,11 @@ export type Conversation = $Result.DefaultSelection<Prisma.$ConversationPayload>
  * 
  */
 export type Message = $Result.DefaultSelection<Prisma.$MessagePayload>
+/**
+ * Model KnowledgeBase
+ * 
+ */
+export type KnowledgeBase = $Result.DefaultSelection<Prisma.$KnowledgeBasePayload>
 
 /**
  * Enums
@@ -325,6 +330,16 @@ export class PrismaClient<
     * ```
     */
   get message(): Prisma.MessageDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.knowledgeBase`: Exposes CRUD operations for the **KnowledgeBase** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more KnowledgeBases
+    * const knowledgeBases = await prisma.knowledgeBase.findMany()
+    * ```
+    */
+  get knowledgeBase(): Prisma.KnowledgeBaseDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -774,7 +789,8 @@ export namespace Prisma {
     Invitation: 'Invitation',
     AssignGpt: 'AssignGpt',
     Conversation: 'Conversation',
-    Message: 'Message'
+    Message: 'Message',
+    KnowledgeBase: 'KnowledgeBase'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -793,7 +809,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "session" | "account" | "verification" | "gpt" | "composioConnection" | "invitation" | "assignGpt" | "conversation" | "message"
+      modelProps: "user" | "session" | "account" | "verification" | "gpt" | "composioConnection" | "invitation" | "assignGpt" | "conversation" | "message" | "knowledgeBase"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1537,6 +1553,80 @@ export namespace Prisma {
           }
         }
       }
+      KnowledgeBase: {
+        payload: Prisma.$KnowledgeBasePayload<ExtArgs>
+        fields: Prisma.KnowledgeBaseFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.KnowledgeBaseFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KnowledgeBasePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.KnowledgeBaseFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KnowledgeBasePayload>
+          }
+          findFirst: {
+            args: Prisma.KnowledgeBaseFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KnowledgeBasePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.KnowledgeBaseFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KnowledgeBasePayload>
+          }
+          findMany: {
+            args: Prisma.KnowledgeBaseFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KnowledgeBasePayload>[]
+          }
+          create: {
+            args: Prisma.KnowledgeBaseCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KnowledgeBasePayload>
+          }
+          createMany: {
+            args: Prisma.KnowledgeBaseCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.KnowledgeBaseCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KnowledgeBasePayload>[]
+          }
+          delete: {
+            args: Prisma.KnowledgeBaseDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KnowledgeBasePayload>
+          }
+          update: {
+            args: Prisma.KnowledgeBaseUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KnowledgeBasePayload>
+          }
+          deleteMany: {
+            args: Prisma.KnowledgeBaseDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.KnowledgeBaseUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.KnowledgeBaseUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KnowledgeBasePayload>[]
+          }
+          upsert: {
+            args: Prisma.KnowledgeBaseUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KnowledgeBasePayload>
+          }
+          aggregate: {
+            args: Prisma.KnowledgeBaseAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateKnowledgeBase>
+          }
+          groupBy: {
+            args: Prisma.KnowledgeBaseGroupByArgs<ExtArgs>
+            result: $Utils.Optional<KnowledgeBaseGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.KnowledgeBaseCountArgs<ExtArgs>
+            result: $Utils.Optional<KnowledgeBaseCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1643,6 +1733,7 @@ export namespace Prisma {
     assignGpt?: AssignGptOmit
     conversation?: ConversationOmit
     message?: MessageOmit
+    knowledgeBase?: KnowledgeBaseOmit
   }
 
   /* Types for Logging */
@@ -13061,6 +13152,1014 @@ export namespace Prisma {
 
 
   /**
+   * Model KnowledgeBase
+   */
+
+  export type AggregateKnowledgeBase = {
+    _count: KnowledgeBaseCountAggregateOutputType | null
+    _min: KnowledgeBaseMinAggregateOutputType | null
+    _max: KnowledgeBaseMaxAggregateOutputType | null
+  }
+
+  export type KnowledgeBaseMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    url: string | null
+    fileType: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type KnowledgeBaseMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    url: string | null
+    fileType: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type KnowledgeBaseCountAggregateOutputType = {
+    id: number
+    name: number
+    url: number
+    fileType: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type KnowledgeBaseMinAggregateInputType = {
+    id?: true
+    name?: true
+    url?: true
+    fileType?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type KnowledgeBaseMaxAggregateInputType = {
+    id?: true
+    name?: true
+    url?: true
+    fileType?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type KnowledgeBaseCountAggregateInputType = {
+    id?: true
+    name?: true
+    url?: true
+    fileType?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type KnowledgeBaseAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which KnowledgeBase to aggregate.
+     */
+    where?: KnowledgeBaseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KnowledgeBases to fetch.
+     */
+    orderBy?: KnowledgeBaseOrderByWithRelationInput | KnowledgeBaseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: KnowledgeBaseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KnowledgeBases from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KnowledgeBases.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned KnowledgeBases
+    **/
+    _count?: true | KnowledgeBaseCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: KnowledgeBaseMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: KnowledgeBaseMaxAggregateInputType
+  }
+
+  export type GetKnowledgeBaseAggregateType<T extends KnowledgeBaseAggregateArgs> = {
+        [P in keyof T & keyof AggregateKnowledgeBase]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateKnowledgeBase[P]>
+      : GetScalarType<T[P], AggregateKnowledgeBase[P]>
+  }
+
+
+
+
+  export type KnowledgeBaseGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: KnowledgeBaseWhereInput
+    orderBy?: KnowledgeBaseOrderByWithAggregationInput | KnowledgeBaseOrderByWithAggregationInput[]
+    by: KnowledgeBaseScalarFieldEnum[] | KnowledgeBaseScalarFieldEnum
+    having?: KnowledgeBaseScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: KnowledgeBaseCountAggregateInputType | true
+    _min?: KnowledgeBaseMinAggregateInputType
+    _max?: KnowledgeBaseMaxAggregateInputType
+  }
+
+  export type KnowledgeBaseGroupByOutputType = {
+    id: string
+    name: string
+    url: string
+    fileType: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: KnowledgeBaseCountAggregateOutputType | null
+    _min: KnowledgeBaseMinAggregateOutputType | null
+    _max: KnowledgeBaseMaxAggregateOutputType | null
+  }
+
+  type GetKnowledgeBaseGroupByPayload<T extends KnowledgeBaseGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<KnowledgeBaseGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof KnowledgeBaseGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], KnowledgeBaseGroupByOutputType[P]>
+            : GetScalarType<T[P], KnowledgeBaseGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type KnowledgeBaseSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    url?: boolean
+    fileType?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["knowledgeBase"]>
+
+  export type KnowledgeBaseSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    url?: boolean
+    fileType?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["knowledgeBase"]>
+
+  export type KnowledgeBaseSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    url?: boolean
+    fileType?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["knowledgeBase"]>
+
+  export type KnowledgeBaseSelectScalar = {
+    id?: boolean
+    name?: boolean
+    url?: boolean
+    fileType?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type KnowledgeBaseOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "url" | "fileType" | "createdAt" | "updatedAt", ExtArgs["result"]["knowledgeBase"]>
+
+  export type $KnowledgeBasePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "KnowledgeBase"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      url: string
+      fileType: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["knowledgeBase"]>
+    composites: {}
+  }
+
+  type KnowledgeBaseGetPayload<S extends boolean | null | undefined | KnowledgeBaseDefaultArgs> = $Result.GetResult<Prisma.$KnowledgeBasePayload, S>
+
+  type KnowledgeBaseCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<KnowledgeBaseFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: KnowledgeBaseCountAggregateInputType | true
+    }
+
+  export interface KnowledgeBaseDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['KnowledgeBase'], meta: { name: 'KnowledgeBase' } }
+    /**
+     * Find zero or one KnowledgeBase that matches the filter.
+     * @param {KnowledgeBaseFindUniqueArgs} args - Arguments to find a KnowledgeBase
+     * @example
+     * // Get one KnowledgeBase
+     * const knowledgeBase = await prisma.knowledgeBase.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends KnowledgeBaseFindUniqueArgs>(args: SelectSubset<T, KnowledgeBaseFindUniqueArgs<ExtArgs>>): Prisma__KnowledgeBaseClient<$Result.GetResult<Prisma.$KnowledgeBasePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one KnowledgeBase that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {KnowledgeBaseFindUniqueOrThrowArgs} args - Arguments to find a KnowledgeBase
+     * @example
+     * // Get one KnowledgeBase
+     * const knowledgeBase = await prisma.knowledgeBase.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends KnowledgeBaseFindUniqueOrThrowArgs>(args: SelectSubset<T, KnowledgeBaseFindUniqueOrThrowArgs<ExtArgs>>): Prisma__KnowledgeBaseClient<$Result.GetResult<Prisma.$KnowledgeBasePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first KnowledgeBase that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KnowledgeBaseFindFirstArgs} args - Arguments to find a KnowledgeBase
+     * @example
+     * // Get one KnowledgeBase
+     * const knowledgeBase = await prisma.knowledgeBase.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends KnowledgeBaseFindFirstArgs>(args?: SelectSubset<T, KnowledgeBaseFindFirstArgs<ExtArgs>>): Prisma__KnowledgeBaseClient<$Result.GetResult<Prisma.$KnowledgeBasePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first KnowledgeBase that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KnowledgeBaseFindFirstOrThrowArgs} args - Arguments to find a KnowledgeBase
+     * @example
+     * // Get one KnowledgeBase
+     * const knowledgeBase = await prisma.knowledgeBase.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends KnowledgeBaseFindFirstOrThrowArgs>(args?: SelectSubset<T, KnowledgeBaseFindFirstOrThrowArgs<ExtArgs>>): Prisma__KnowledgeBaseClient<$Result.GetResult<Prisma.$KnowledgeBasePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more KnowledgeBases that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KnowledgeBaseFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all KnowledgeBases
+     * const knowledgeBases = await prisma.knowledgeBase.findMany()
+     * 
+     * // Get first 10 KnowledgeBases
+     * const knowledgeBases = await prisma.knowledgeBase.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const knowledgeBaseWithIdOnly = await prisma.knowledgeBase.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends KnowledgeBaseFindManyArgs>(args?: SelectSubset<T, KnowledgeBaseFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KnowledgeBasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a KnowledgeBase.
+     * @param {KnowledgeBaseCreateArgs} args - Arguments to create a KnowledgeBase.
+     * @example
+     * // Create one KnowledgeBase
+     * const KnowledgeBase = await prisma.knowledgeBase.create({
+     *   data: {
+     *     // ... data to create a KnowledgeBase
+     *   }
+     * })
+     * 
+     */
+    create<T extends KnowledgeBaseCreateArgs>(args: SelectSubset<T, KnowledgeBaseCreateArgs<ExtArgs>>): Prisma__KnowledgeBaseClient<$Result.GetResult<Prisma.$KnowledgeBasePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many KnowledgeBases.
+     * @param {KnowledgeBaseCreateManyArgs} args - Arguments to create many KnowledgeBases.
+     * @example
+     * // Create many KnowledgeBases
+     * const knowledgeBase = await prisma.knowledgeBase.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends KnowledgeBaseCreateManyArgs>(args?: SelectSubset<T, KnowledgeBaseCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many KnowledgeBases and returns the data saved in the database.
+     * @param {KnowledgeBaseCreateManyAndReturnArgs} args - Arguments to create many KnowledgeBases.
+     * @example
+     * // Create many KnowledgeBases
+     * const knowledgeBase = await prisma.knowledgeBase.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many KnowledgeBases and only return the `id`
+     * const knowledgeBaseWithIdOnly = await prisma.knowledgeBase.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends KnowledgeBaseCreateManyAndReturnArgs>(args?: SelectSubset<T, KnowledgeBaseCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KnowledgeBasePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a KnowledgeBase.
+     * @param {KnowledgeBaseDeleteArgs} args - Arguments to delete one KnowledgeBase.
+     * @example
+     * // Delete one KnowledgeBase
+     * const KnowledgeBase = await prisma.knowledgeBase.delete({
+     *   where: {
+     *     // ... filter to delete one KnowledgeBase
+     *   }
+     * })
+     * 
+     */
+    delete<T extends KnowledgeBaseDeleteArgs>(args: SelectSubset<T, KnowledgeBaseDeleteArgs<ExtArgs>>): Prisma__KnowledgeBaseClient<$Result.GetResult<Prisma.$KnowledgeBasePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one KnowledgeBase.
+     * @param {KnowledgeBaseUpdateArgs} args - Arguments to update one KnowledgeBase.
+     * @example
+     * // Update one KnowledgeBase
+     * const knowledgeBase = await prisma.knowledgeBase.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends KnowledgeBaseUpdateArgs>(args: SelectSubset<T, KnowledgeBaseUpdateArgs<ExtArgs>>): Prisma__KnowledgeBaseClient<$Result.GetResult<Prisma.$KnowledgeBasePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more KnowledgeBases.
+     * @param {KnowledgeBaseDeleteManyArgs} args - Arguments to filter KnowledgeBases to delete.
+     * @example
+     * // Delete a few KnowledgeBases
+     * const { count } = await prisma.knowledgeBase.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends KnowledgeBaseDeleteManyArgs>(args?: SelectSubset<T, KnowledgeBaseDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more KnowledgeBases.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KnowledgeBaseUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many KnowledgeBases
+     * const knowledgeBase = await prisma.knowledgeBase.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends KnowledgeBaseUpdateManyArgs>(args: SelectSubset<T, KnowledgeBaseUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more KnowledgeBases and returns the data updated in the database.
+     * @param {KnowledgeBaseUpdateManyAndReturnArgs} args - Arguments to update many KnowledgeBases.
+     * @example
+     * // Update many KnowledgeBases
+     * const knowledgeBase = await prisma.knowledgeBase.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more KnowledgeBases and only return the `id`
+     * const knowledgeBaseWithIdOnly = await prisma.knowledgeBase.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends KnowledgeBaseUpdateManyAndReturnArgs>(args: SelectSubset<T, KnowledgeBaseUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KnowledgeBasePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one KnowledgeBase.
+     * @param {KnowledgeBaseUpsertArgs} args - Arguments to update or create a KnowledgeBase.
+     * @example
+     * // Update or create a KnowledgeBase
+     * const knowledgeBase = await prisma.knowledgeBase.upsert({
+     *   create: {
+     *     // ... data to create a KnowledgeBase
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the KnowledgeBase we want to update
+     *   }
+     * })
+     */
+    upsert<T extends KnowledgeBaseUpsertArgs>(args: SelectSubset<T, KnowledgeBaseUpsertArgs<ExtArgs>>): Prisma__KnowledgeBaseClient<$Result.GetResult<Prisma.$KnowledgeBasePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of KnowledgeBases.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KnowledgeBaseCountArgs} args - Arguments to filter KnowledgeBases to count.
+     * @example
+     * // Count the number of KnowledgeBases
+     * const count = await prisma.knowledgeBase.count({
+     *   where: {
+     *     // ... the filter for the KnowledgeBases we want to count
+     *   }
+     * })
+    **/
+    count<T extends KnowledgeBaseCountArgs>(
+      args?: Subset<T, KnowledgeBaseCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], KnowledgeBaseCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a KnowledgeBase.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KnowledgeBaseAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends KnowledgeBaseAggregateArgs>(args: Subset<T, KnowledgeBaseAggregateArgs>): Prisma.PrismaPromise<GetKnowledgeBaseAggregateType<T>>
+
+    /**
+     * Group by KnowledgeBase.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KnowledgeBaseGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends KnowledgeBaseGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: KnowledgeBaseGroupByArgs['orderBy'] }
+        : { orderBy?: KnowledgeBaseGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, KnowledgeBaseGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetKnowledgeBaseGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the KnowledgeBase model
+   */
+  readonly fields: KnowledgeBaseFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for KnowledgeBase.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__KnowledgeBaseClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the KnowledgeBase model
+   */
+  interface KnowledgeBaseFieldRefs {
+    readonly id: FieldRef<"KnowledgeBase", 'String'>
+    readonly name: FieldRef<"KnowledgeBase", 'String'>
+    readonly url: FieldRef<"KnowledgeBase", 'String'>
+    readonly fileType: FieldRef<"KnowledgeBase", 'String'>
+    readonly createdAt: FieldRef<"KnowledgeBase", 'DateTime'>
+    readonly updatedAt: FieldRef<"KnowledgeBase", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * KnowledgeBase findUnique
+   */
+  export type KnowledgeBaseFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KnowledgeBase
+     */
+    select?: KnowledgeBaseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KnowledgeBase
+     */
+    omit?: KnowledgeBaseOmit<ExtArgs> | null
+    /**
+     * Filter, which KnowledgeBase to fetch.
+     */
+    where: KnowledgeBaseWhereUniqueInput
+  }
+
+  /**
+   * KnowledgeBase findUniqueOrThrow
+   */
+  export type KnowledgeBaseFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KnowledgeBase
+     */
+    select?: KnowledgeBaseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KnowledgeBase
+     */
+    omit?: KnowledgeBaseOmit<ExtArgs> | null
+    /**
+     * Filter, which KnowledgeBase to fetch.
+     */
+    where: KnowledgeBaseWhereUniqueInput
+  }
+
+  /**
+   * KnowledgeBase findFirst
+   */
+  export type KnowledgeBaseFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KnowledgeBase
+     */
+    select?: KnowledgeBaseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KnowledgeBase
+     */
+    omit?: KnowledgeBaseOmit<ExtArgs> | null
+    /**
+     * Filter, which KnowledgeBase to fetch.
+     */
+    where?: KnowledgeBaseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KnowledgeBases to fetch.
+     */
+    orderBy?: KnowledgeBaseOrderByWithRelationInput | KnowledgeBaseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for KnowledgeBases.
+     */
+    cursor?: KnowledgeBaseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KnowledgeBases from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KnowledgeBases.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of KnowledgeBases.
+     */
+    distinct?: KnowledgeBaseScalarFieldEnum | KnowledgeBaseScalarFieldEnum[]
+  }
+
+  /**
+   * KnowledgeBase findFirstOrThrow
+   */
+  export type KnowledgeBaseFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KnowledgeBase
+     */
+    select?: KnowledgeBaseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KnowledgeBase
+     */
+    omit?: KnowledgeBaseOmit<ExtArgs> | null
+    /**
+     * Filter, which KnowledgeBase to fetch.
+     */
+    where?: KnowledgeBaseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KnowledgeBases to fetch.
+     */
+    orderBy?: KnowledgeBaseOrderByWithRelationInput | KnowledgeBaseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for KnowledgeBases.
+     */
+    cursor?: KnowledgeBaseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KnowledgeBases from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KnowledgeBases.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of KnowledgeBases.
+     */
+    distinct?: KnowledgeBaseScalarFieldEnum | KnowledgeBaseScalarFieldEnum[]
+  }
+
+  /**
+   * KnowledgeBase findMany
+   */
+  export type KnowledgeBaseFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KnowledgeBase
+     */
+    select?: KnowledgeBaseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KnowledgeBase
+     */
+    omit?: KnowledgeBaseOmit<ExtArgs> | null
+    /**
+     * Filter, which KnowledgeBases to fetch.
+     */
+    where?: KnowledgeBaseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KnowledgeBases to fetch.
+     */
+    orderBy?: KnowledgeBaseOrderByWithRelationInput | KnowledgeBaseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing KnowledgeBases.
+     */
+    cursor?: KnowledgeBaseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KnowledgeBases from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KnowledgeBases.
+     */
+    skip?: number
+    distinct?: KnowledgeBaseScalarFieldEnum | KnowledgeBaseScalarFieldEnum[]
+  }
+
+  /**
+   * KnowledgeBase create
+   */
+  export type KnowledgeBaseCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KnowledgeBase
+     */
+    select?: KnowledgeBaseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KnowledgeBase
+     */
+    omit?: KnowledgeBaseOmit<ExtArgs> | null
+    /**
+     * The data needed to create a KnowledgeBase.
+     */
+    data: XOR<KnowledgeBaseCreateInput, KnowledgeBaseUncheckedCreateInput>
+  }
+
+  /**
+   * KnowledgeBase createMany
+   */
+  export type KnowledgeBaseCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many KnowledgeBases.
+     */
+    data: KnowledgeBaseCreateManyInput | KnowledgeBaseCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * KnowledgeBase createManyAndReturn
+   */
+  export type KnowledgeBaseCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KnowledgeBase
+     */
+    select?: KnowledgeBaseSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the KnowledgeBase
+     */
+    omit?: KnowledgeBaseOmit<ExtArgs> | null
+    /**
+     * The data used to create many KnowledgeBases.
+     */
+    data: KnowledgeBaseCreateManyInput | KnowledgeBaseCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * KnowledgeBase update
+   */
+  export type KnowledgeBaseUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KnowledgeBase
+     */
+    select?: KnowledgeBaseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KnowledgeBase
+     */
+    omit?: KnowledgeBaseOmit<ExtArgs> | null
+    /**
+     * The data needed to update a KnowledgeBase.
+     */
+    data: XOR<KnowledgeBaseUpdateInput, KnowledgeBaseUncheckedUpdateInput>
+    /**
+     * Choose, which KnowledgeBase to update.
+     */
+    where: KnowledgeBaseWhereUniqueInput
+  }
+
+  /**
+   * KnowledgeBase updateMany
+   */
+  export type KnowledgeBaseUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update KnowledgeBases.
+     */
+    data: XOR<KnowledgeBaseUpdateManyMutationInput, KnowledgeBaseUncheckedUpdateManyInput>
+    /**
+     * Filter which KnowledgeBases to update
+     */
+    where?: KnowledgeBaseWhereInput
+    /**
+     * Limit how many KnowledgeBases to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * KnowledgeBase updateManyAndReturn
+   */
+  export type KnowledgeBaseUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KnowledgeBase
+     */
+    select?: KnowledgeBaseSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the KnowledgeBase
+     */
+    omit?: KnowledgeBaseOmit<ExtArgs> | null
+    /**
+     * The data used to update KnowledgeBases.
+     */
+    data: XOR<KnowledgeBaseUpdateManyMutationInput, KnowledgeBaseUncheckedUpdateManyInput>
+    /**
+     * Filter which KnowledgeBases to update
+     */
+    where?: KnowledgeBaseWhereInput
+    /**
+     * Limit how many KnowledgeBases to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * KnowledgeBase upsert
+   */
+  export type KnowledgeBaseUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KnowledgeBase
+     */
+    select?: KnowledgeBaseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KnowledgeBase
+     */
+    omit?: KnowledgeBaseOmit<ExtArgs> | null
+    /**
+     * The filter to search for the KnowledgeBase to update in case it exists.
+     */
+    where: KnowledgeBaseWhereUniqueInput
+    /**
+     * In case the KnowledgeBase found by the `where` argument doesn't exist, create a new KnowledgeBase with this data.
+     */
+    create: XOR<KnowledgeBaseCreateInput, KnowledgeBaseUncheckedCreateInput>
+    /**
+     * In case the KnowledgeBase was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<KnowledgeBaseUpdateInput, KnowledgeBaseUncheckedUpdateInput>
+  }
+
+  /**
+   * KnowledgeBase delete
+   */
+  export type KnowledgeBaseDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KnowledgeBase
+     */
+    select?: KnowledgeBaseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KnowledgeBase
+     */
+    omit?: KnowledgeBaseOmit<ExtArgs> | null
+    /**
+     * Filter which KnowledgeBase to delete.
+     */
+    where: KnowledgeBaseWhereUniqueInput
+  }
+
+  /**
+   * KnowledgeBase deleteMany
+   */
+  export type KnowledgeBaseDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which KnowledgeBases to delete
+     */
+    where?: KnowledgeBaseWhereInput
+    /**
+     * Limit how many KnowledgeBases to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * KnowledgeBase without action
+   */
+  export type KnowledgeBaseDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KnowledgeBase
+     */
+    select?: KnowledgeBaseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the KnowledgeBase
+     */
+    omit?: KnowledgeBaseOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -13219,6 +14318,18 @@ export namespace Prisma {
   };
 
   export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]
+
+
+  export const KnowledgeBaseScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    url: 'url',
+    fileType: 'fileType',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type KnowledgeBaseScalarFieldEnum = (typeof KnowledgeBaseScalarFieldEnum)[keyof typeof KnowledgeBaseScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -14091,6 +15202,63 @@ export namespace Prisma {
     timestamp?: DateTimeWithAggregatesFilter<"Message"> | Date | string
   }
 
+  export type KnowledgeBaseWhereInput = {
+    AND?: KnowledgeBaseWhereInput | KnowledgeBaseWhereInput[]
+    OR?: KnowledgeBaseWhereInput[]
+    NOT?: KnowledgeBaseWhereInput | KnowledgeBaseWhereInput[]
+    id?: StringFilter<"KnowledgeBase"> | string
+    name?: StringFilter<"KnowledgeBase"> | string
+    url?: StringFilter<"KnowledgeBase"> | string
+    fileType?: StringNullableFilter<"KnowledgeBase"> | string | null
+    createdAt?: DateTimeFilter<"KnowledgeBase"> | Date | string
+    updatedAt?: DateTimeFilter<"KnowledgeBase"> | Date | string
+  }
+
+  export type KnowledgeBaseOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    url?: SortOrder
+    fileType?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type KnowledgeBaseWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: KnowledgeBaseWhereInput | KnowledgeBaseWhereInput[]
+    OR?: KnowledgeBaseWhereInput[]
+    NOT?: KnowledgeBaseWhereInput | KnowledgeBaseWhereInput[]
+    name?: StringFilter<"KnowledgeBase"> | string
+    url?: StringFilter<"KnowledgeBase"> | string
+    fileType?: StringNullableFilter<"KnowledgeBase"> | string | null
+    createdAt?: DateTimeFilter<"KnowledgeBase"> | Date | string
+    updatedAt?: DateTimeFilter<"KnowledgeBase"> | Date | string
+  }, "id">
+
+  export type KnowledgeBaseOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    url?: SortOrder
+    fileType?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: KnowledgeBaseCountOrderByAggregateInput
+    _max?: KnowledgeBaseMaxOrderByAggregateInput
+    _min?: KnowledgeBaseMinOrderByAggregateInput
+  }
+
+  export type KnowledgeBaseScalarWhereWithAggregatesInput = {
+    AND?: KnowledgeBaseScalarWhereWithAggregatesInput | KnowledgeBaseScalarWhereWithAggregatesInput[]
+    OR?: KnowledgeBaseScalarWhereWithAggregatesInput[]
+    NOT?: KnowledgeBaseScalarWhereWithAggregatesInput | KnowledgeBaseScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"KnowledgeBase"> | string
+    name?: StringWithAggregatesFilter<"KnowledgeBase"> | string
+    url?: StringWithAggregatesFilter<"KnowledgeBase"> | string
+    fileType?: StringNullableWithAggregatesFilter<"KnowledgeBase"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"KnowledgeBase"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"KnowledgeBase"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     name: string
@@ -14937,6 +16105,69 @@ export namespace Prisma {
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type KnowledgeBaseCreateInput = {
+    id?: string
+    name: string
+    url: string
+    fileType?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KnowledgeBaseUncheckedCreateInput = {
+    id?: string
+    name: string
+    url: string
+    fileType?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KnowledgeBaseUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KnowledgeBaseUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KnowledgeBaseCreateManyInput = {
+    id?: string
+    name: string
+    url: string
+    fileType?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KnowledgeBaseUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KnowledgeBaseUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    fileType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -15549,6 +16780,33 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumMessageRoleFilter<$PrismaModel>
     _max?: NestedEnumMessageRoleFilter<$PrismaModel>
+  }
+
+  export type KnowledgeBaseCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    url?: SortOrder
+    fileType?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type KnowledgeBaseMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    url?: SortOrder
+    fileType?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type KnowledgeBaseMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    url?: SortOrder
+    fileType?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type SessionCreateNestedManyWithoutUserInput = {

@@ -90,3 +90,22 @@ export const assignGptSchema = z.object({
 });
 
 export type AssignGptValues = z.infer<typeof assignGptSchema>;
+
+export const knowledgeBaseSchema = z.object({
+  name: z
+    .string()
+    .min(3, { message: "Name must be at least 3 characters long" })
+    .max(100, { message: "Name must not exceed 100 characters" }),
+  files: z
+    .array(
+      z.object({
+        url: z.string().url({ message: "Invalid file URL" }),
+        fileType: z.string().optional(),
+        fileName: z.string(),
+      })
+    )
+    .min(1, { message: "At least one file is required" })
+    .max(5, { message: "You can upload at most 5 files at once" }),
+});
+
+export type KnowledgeBaseFormValues = z.infer<typeof knowledgeBaseSchema>;

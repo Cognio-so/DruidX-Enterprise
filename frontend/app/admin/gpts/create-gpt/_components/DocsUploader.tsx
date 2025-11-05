@@ -16,11 +16,37 @@ import {
 
 import { formatBytes } from "@/hooks/use-file-upload";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { useState, useCallback, useRef } from "react";
+
+interface KnowledgeBaseEntry {
+  id: string;
+  name: string;
+  url: string;
+  fileType: string | null;
+}
+
+interface KnowledgeBaseGroup {
+  baseName: string;
+  files: Array<{
+    id: string;
+    name: string;
+    url: string;
+    fileType: string | null;
+  }>;
+}
 
 type DocsUploaderProps = {
   value: string[]; 
   onChange: (urls: string[]) => void;
+  knowledgeBases?: KnowledgeBaseEntry[];
 };
 
 type UploadingFile = {
@@ -66,13 +92,60 @@ const getFileIcon = (fileName: string, fileType?: string) => {
   return <FileIcon className="size-4 opacity-60" />;
 };
 
-export default function DocsUploader({ value, onChange }: DocsUploaderProps) {
+export default function DocsUploader({ value, onChange, knowledgeBases = [] }: DocsUploaderProps) {
   const maxSize = 100 * 1024 * 1024; // 100MB
   const maxFiles = 10;
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const groupKnowledgeBases = (kbEntries: KnowledgeBaseEntry[]): KnowledgeBaseGroup[] => {
+    const groups = new Map<string, KnowledgeBaseGroup>();
+
+    kbEntries.forEach((entry) => {
+      const baseName = entry.name.split(" - ")[0];
+      
+      if (!groups.has(baseName)) {
+        groups.set(baseName, {
+          baseName,
+          files: [],
+        });
+      }
+
+      const fileName = entry.name.includes(" - ") 
+        ? entry.name.split(" - ")[1] 
+        : entry.name;
+
+      groups.get(baseName)!.files.push({
+        id: entry.id,
+        name: fileName,
+        url: entry.url,
+        fileType: entry.fileType,
+      });
+    });
+
+    return Array.from(groups.values());
+  };
+
+  const handleKnowledgeBaseSelect = (baseName: string) => {
+    const grouped = groupKnowledgeBases(knowledgeBases);
+    const selectedGroup = grouped.find((kb) => kb.baseName === baseName);
+    if (!selectedGroup) return;
+
+    const newUrls = selectedGroup.files.map((file) => file.url);
+    const combinedUrls = [...value, ...newUrls];
+    
+    if (combinedUrls.length > maxFiles) {
+      setErrors([`Adding this knowledge base would exceed the maximum of ${maxFiles} files.`]);
+      return;
+    }
+
+    onChange(combinedUrls);
+    setErrors([]);
+  };
+
+  const groupedKnowledgeBases = groupKnowledgeBases(knowledgeBases);
 
   const uploadToS3 = async (file: File, onProgress: (progress: number) => void): Promise<string> => {
     // Step 1: Get presigned URL from your API
@@ -336,7 +409,28 @@ export default function DocsUploader({ value, onChange }: DocsUploaderProps) {
   ];
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-4">
+      {/* Knowledge Base Selector */}
+      {groupedKnowledgeBases.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="knowledge-base-select">Select from Knowledge Base</Label>
+          <Select
+            onValueChange={handleKnowledgeBaseSelect}
+          >
+            <SelectTrigger id="knowledge-base-select" className="w-full">
+              <SelectValue placeholder="Choose a knowledge base" />
+            </SelectTrigger>
+            <SelectContent>
+              {groupedKnowledgeBases.map((kb) => (
+                <SelectItem key={kb.baseName} value={kb.baseName}>
+                  {kb.baseName} ({kb.files.length} file{kb.files.length !== 1 ? "s" : ""})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       {/* Drop area */}
       <div
         role="button"

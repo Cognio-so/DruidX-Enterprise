@@ -2,8 +2,11 @@ import { CreateGptForm } from "./_components/create-gpt-form";
 import { buttonVariants } from "@/components/ui/button";
 import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
+import { getKnowledgeBases } from "@/data/get-knowledge-base";
 
-export default function Gpt() {
+export default async function Gpt() {
+  const knowledgeBases = await getKnowledgeBases();
+
   return (
     <div className="container mx-auto py-8 px-4">
       {/* Header */}
@@ -20,7 +23,7 @@ export default function Gpt() {
         </div>
       </div>
 
-      <CreateGptForm />
+      <CreateGptForm knowledgeBases={knowledgeBases} />
     </div>
   );
 }

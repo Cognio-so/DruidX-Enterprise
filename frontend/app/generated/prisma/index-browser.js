@@ -237,6 +237,15 @@ exports.Prisma.MessageScalarFieldEnum = {
   timestamp: 'timestamp'
 };
 
+exports.Prisma.KnowledgeBaseScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  url: 'url',
+  fileType: 'fileType',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -286,7 +295,8 @@ exports.Prisma.ModelName = {
   Invitation: 'Invitation',
   AssignGpt: 'AssignGpt',
   Conversation: 'Conversation',
-  Message: 'Message'
+  Message: 'Message',
+  KnowledgeBase: 'KnowledgeBase'
 };
 
 /**

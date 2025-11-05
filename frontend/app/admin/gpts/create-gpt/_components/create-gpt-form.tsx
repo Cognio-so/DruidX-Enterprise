@@ -36,6 +36,11 @@ import DocsUploader from "./DocsUploader";
 import { PreviewGpt } from "./preview-gpt";
 import { GptFormValues, gptSchema } from "@/lib/zodSchema";
 import { createGpt } from "../action";
+import { KnowledgeBase } from "@/data/get-knowledge-base";
+
+interface CreateGptFormProps {
+  knowledgeBases?: KnowledgeBase[];
+}
 
 const GptModels = [
   { id: "gemini_2_5_flash", name: "Gemini 2.5 Flash" },
@@ -56,7 +61,7 @@ const GptModels = [
   { id: "kimi_k2_0905", name: "Kimi K2 0905" },
 ];
 
-export function CreateGptForm() {
+export function CreateGptForm({ knowledgeBases = [] }: CreateGptFormProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -264,6 +269,7 @@ export function CreateGptForm() {
                         <DocsUploader
                           value={field.value}
                           onChange={field.onChange}
+                          knowledgeBases={knowledgeBases}
                         />
                       </FormControl>
                       <FormMessage />
