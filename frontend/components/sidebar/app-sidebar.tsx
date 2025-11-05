@@ -9,6 +9,7 @@ import {
   Wrench,
   History,
   Settings,
+  Database,
 } from "lucide-react";
 
 import { NavMain } from "@/components/sidebar/nav-main";
@@ -43,6 +44,11 @@ const navItems = [
     title: "Tools",
     url: "/admin/tools",
     icon: Wrench,
+  },
+  {
+    title: "KnowledgeBase",
+    url: "/admin/knowledgebase",
+    icon: Database,
   },
   {
     title: "History",

@@ -190,3 +190,14 @@ enum MessageRole {
   assistant
   system
 }
+
+model KnowledgeBase {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  fileType  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("knowledge_base")
+}
