@@ -5,6 +5,7 @@ import { Sparkles, User, ExternalLink, Download } from "lucide-react";
 import { Message, MessageContent } from "@/components/ai-elements/message";
 import { Response } from "@/components/ai-elements/response";
 import { Orb } from "@/components/ui/orb";
+import { Loader } from "@/components/ai-elements/loader";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
@@ -118,7 +119,9 @@ export default function ChatMessage({
                 )}
                 <Response sources={sources}>{message}</Response>
                 {isStreaming && (
-                  <span className="inline-block animate-pulse ml-1">⚪</span>
+                  <div className="inline-flex items-center ml-2 mt-1">
+                    <Loader size={14} className="text-muted-foreground" />
+                  </div>
                 )}
                 <div className="text-xs mt-1 opacity-70 text-muted-foreground">
                   {timestamp}
@@ -163,17 +166,23 @@ export default function ChatMessage({
                     ))}
                   </div>
                 )}
-                {message && (
+                {message ? (
                   <div className="bg-muted/60 border border-border rounded-lg p-4">
                     <Response sources={sources}>{message}</Response>
                     {isStreaming && (
-                      <span className="inline-block animate-pulse ml-1">⚪</span>
+                      <div className="inline-flex items-center ml-2 mt-1">
+                        <Loader size={14} className="text-muted-foreground" />
+                      </div>
                     )}
                     <div className="text-xs mt-1 opacity-70 text-muted-foreground">
                       {timestamp}
                     </div>
                   </div>
-                )}
+                ) : isStreaming ? (
+                  <div className="flex items-center gap-2">
+                    <Loader size={16} className="text-muted-foreground" />
+                  </div>
+                ) : null}
               </div>
             </div>
           </MessageContent>
