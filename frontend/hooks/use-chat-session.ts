@@ -111,6 +111,7 @@ export function useChatSession(): ChatSessionHook {
           name: gpt.name,
           description: gpt.description,
           gpt_id: gptId,
+          userId: gpt.userId,  // Include userId for MCP operations
         };
 
         setGptConfig(gptConfigData);

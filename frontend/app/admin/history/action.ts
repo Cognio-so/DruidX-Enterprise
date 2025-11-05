@@ -89,7 +89,28 @@ export async function saveConversation(conversationData: ConversationData) {
 
 export async function deleteConversation(conversationId: string) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
+    
+    if (!session?.user) {
+      return { success: false, error: "Unauthorized" };
+    }
+    
+    const currentAdminId = session.user.id;
+    
+    // Verify conversation belongs to admin's GPTs or was created by admin
+    const existingConversation = await prisma.conversation.findFirst({
+      where: {
+        id: conversationId,
+        OR: [
+          { userId: currentAdminId },
+          { gpt: { userId: currentAdminId } }
+        ]
+      }
+    });
+
+    if (!existingConversation) {
+      return { success: false, error: "Conversation not found or you don't have permission to delete it" };
+    }
     
     await prisma.conversation.delete({
       where: { id: conversationId }

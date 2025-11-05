@@ -91,7 +91,7 @@ const Markdown: React.FC<MarkdownProps> = ({ content, className, sources = [] })
   console.log('Markdown processed content:', cleanContent);
 
   return (
-    <div className={cn("prose prose-sm dark:prose-invert max-w-none", className)}>
+    <div className={cn("prose prose-sm dark:prose-invert max-w-none break-words", className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex]}
@@ -103,7 +103,7 @@ const Markdown: React.FC<MarkdownProps> = ({ content, className, sources = [] })
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:text-primary/80 underline underline-offset-4 transition-colors font-medium"
+                className="text-primary hover:text-primary/80 underline underline-offset-4 transition-colors font-medium break-words break-all"
                 {...props}
               >
                 {children}
@@ -142,7 +142,7 @@ const Markdown: React.FC<MarkdownProps> = ({ content, className, sources = [] })
           // Custom paragraph with proper spacing
           p({ children, ...props }) {
             return (
-              <p className="leading-7 [&:not(:first-child)]:mt-6" {...props}>
+              <p className="leading-7 [&:not(:first-child)]:mt-6 break-words" {...props}>
                 {children}
               </p>
             );
@@ -165,7 +165,7 @@ const Markdown: React.FC<MarkdownProps> = ({ content, className, sources = [] })
           // Custom list item styling
           li({ children, ...props }) {
             return (
-              <li className="mt-2" {...props}>
+              <li className="mt-2 break-words" {...props}>
                 {children}
               </li>
             );
@@ -204,7 +204,7 @@ const Markdown: React.FC<MarkdownProps> = ({ content, className, sources = [] })
           // Custom blockquote styling
           blockquote({ children, ...props }) {
             return (
-              <blockquote className="mt-6 border-l-2 pl-6 italic" {...props}>
+              <blockquote className="mt-6 border-l-2 pl-6 italic break-words" {...props}>
                 {children}
               </blockquote>
             );
@@ -232,7 +232,7 @@ const Markdown: React.FC<MarkdownProps> = ({ content, className, sources = [] })
           th({ children, ...props }) {
             return (
               <th
-                className="border border-border px-4 py-2 text-left font-bold bg-muted/50 [&[align=center]]:text-center [&[align=right]]:text-right"
+                className="border border-border px-4 py-2 text-left font-bold bg-muted/50 [&[align=center]]:text-center [&[align=right]]:text-right break-words"
                 {...props}
               >
                 {children}
@@ -242,7 +242,7 @@ const Markdown: React.FC<MarkdownProps> = ({ content, className, sources = [] })
           td({ children, ...props }) {
             return (
               <td
-                className="border border-border px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right"
+                className="border border-border px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right break-words"
                 {...props}
               >
                 {children}

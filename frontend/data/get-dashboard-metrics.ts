@@ -19,13 +19,16 @@ export interface ChartData {
 }
 
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
-  await requireAdmin();
+  const session = await requireAdmin();
+  
+  // Get current admin's user ID
+  const currentAdminId = session.user.id;
 
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  // Get basic counts
+  // Get basic counts - filter by current admin's GPTs and conversations
   const [
     totalUsers,
     totalGpts,
@@ -36,10 +39,35 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     usersLastMonth,
     conversationsLastMonth,
   ] = await Promise.all([
-    prisma.user.count(),
-    prisma.gpt.count(),
-    prisma.conversation.count(),
-    prisma.message.count(),
+    // Count users who have conversations with admin's GPTs
+    prisma.user.count({
+      where: {
+        conversations: {
+          some: {
+            gpt: { userId: currentAdminId }
+          }
+        }
+      }
+    }),
+    // Count GPTs created by current admin
+    prisma.gpt.count({
+      where: { userId: currentAdminId }
+    }),
+    // Count conversations using admin's GPTs
+    prisma.conversation.count({
+      where: {
+        gpt: { userId: currentAdminId }
+      }
+    }),
+    // Count messages in conversations using admin's GPTs
+    prisma.message.count({
+      where: {
+        conversation: {
+          gpt: { userId: currentAdminId }
+        }
+      }
+    }),
+    // Count active users who have conversations with admin's GPTs
     prisma.user.count({
       where: {
         sessions: {
@@ -49,27 +77,42 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
             },
           },
         },
+        conversations: {
+          some: {
+            gpt: { userId: currentAdminId }
+          }
+        }
       },
     }),
+    // Count recent conversations using admin's GPTs
     prisma.conversation.count({
       where: {
         createdAt: {
           gte: sevenDaysAgo,
         },
+        gpt: { userId: currentAdminId }
       },
     }),
+    // Count users who started conversations with admin's GPTs in last month
     prisma.user.count({
       where: {
         createdAt: {
           gte: thirtyDaysAgo,
         },
+        conversations: {
+          some: {
+            gpt: { userId: currentAdminId }
+          }
+        }
       },
     }),
+    // Count conversations using admin's GPTs in last month
     prisma.conversation.count({
       where: {
         createdAt: {
           gte: thirtyDaysAgo,
         },
+        gpt: { userId: currentAdminId }
       },
     }),
   ]);
@@ -91,16 +134,25 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
 }
 
 export async function getUserGrowthData(): Promise<ChartData[]> {
-  await requireAdmin();
+  const session = await requireAdmin();
+  
+  // Get current admin's user ID
+  const currentAdminId = session.user.id;
 
   const now = new Date();
   const sixMonthsAgo = new Date(now.getTime() - 6 * 30 * 24 * 60 * 60 * 1000);
 
+  // Get users who have conversations with admin's GPTs
   const userData = await prisma.user.findMany({
     where: {
       createdAt: {
         gte: sixMonthsAgo,
       },
+      conversations: {
+        some: {
+          gpt: { userId: currentAdminId }
+        }
+      }
     },
     select: {
       createdAt: true,
@@ -136,16 +188,21 @@ export async function getUserGrowthData(): Promise<ChartData[]> {
 }
 
 export async function getConversationTrends(): Promise<ChartData[]> {
-  await requireAdmin();
+  const session = await requireAdmin();
+  
+  // Get current admin's user ID
+  const currentAdminId = session.user.id;
 
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
+  // Get conversations using admin's GPTs
   const conversationData = await prisma.conversation.findMany({
     where: {
       createdAt: {
         gte: thirtyDaysAgo,
       },
+      gpt: { userId: currentAdminId }
     },
     select: {
       createdAt: true,
@@ -181,9 +238,14 @@ export async function getConversationTrends(): Promise<ChartData[]> {
 }
 
 export async function getGptUsageStats(): Promise<ChartData[]> {
-  await requireAdmin();
+  const session = await requireAdmin();
+  
+  // Get current admin's user ID
+  const currentAdminId = session.user.id;
 
+  // Get GPTs created by current admin
   const gptStats = await prisma.gpt.findMany({
+    where: { userId: currentAdminId },
     include: {
       _count: {
         select: {
@@ -206,10 +268,17 @@ export async function getGptUsageStats(): Promise<ChartData[]> {
 }
 
 export async function getRecentActivity() {
-  await requireAdmin();
+  const session = await requireAdmin();
+  
+  // Get current admin's user ID
+  const currentAdminId = session.user.id;
 
   const [recentConversations, recentUsers, recentGpts] = await Promise.all([
+    // Get recent conversations using admin's GPTs
     prisma.conversation.findMany({
+      where: {
+        gpt: { userId: currentAdminId }
+      },
       take: 5,
       orderBy: {
         createdAt: 'desc',
@@ -234,7 +303,15 @@ export async function getRecentActivity() {
         },
       },
     }),
+    // Get recent users who have conversations with admin's GPTs
     prisma.user.findMany({
+      where: {
+        conversations: {
+          some: {
+            gpt: { userId: currentAdminId }
+          }
+        }
+      },
       take: 5,
       orderBy: {
         createdAt: 'desc',
@@ -247,7 +324,9 @@ export async function getRecentActivity() {
         createdAt: true,
       },
     }),
+    // Get recent GPTs created by current admin
     prisma.gpt.findMany({
+      where: { userId: currentAdminId },
       take: 5,
       orderBy: {
         createdAt: 'desc',

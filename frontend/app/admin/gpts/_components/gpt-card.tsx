@@ -17,7 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Gpt } from "@/data/get-gpts";
+import { AdminGpt } from "@/data/get-admin-gpts";
 import {
   Bot,
   Calendar,
@@ -49,7 +49,7 @@ const modelDisplayNames: Record<string, string> = {
 };
 
 interface GptCardProps {
-  gpt: Gpt;
+  gpt: AdminGpt;
 }
 
 export function GptCard({ gpt }: GptCardProps) {

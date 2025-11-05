@@ -1,12 +1,64 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireUser } from "@/data/requireUser";
 
 const backendUrl = process.env.BACKEND_URL || "http://localhost:8000";
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await requireUser();
+    const currentUserId = session.user.id;
+    const userRole = session.user.role;
+    
     const body = await request.json();
     const { gpt_id, connection_id } = body;
+    
+    if (!gpt_id) {
+      return NextResponse.json(
+        { error: "gpt_id is required" },
+        { status: 400 }
+      );
+    }
+
+    // Verify GPT belongs to current user (for admins) or is assigned to them (for regular users)
+    const gpt = await prisma.gpt.findUnique({
+      where: { id: gpt_id },
+      select: { userId: true }
+    });
+
+    if (!gpt) {
+      return NextResponse.json(
+        { error: "GPT not found" },
+        { status: 404 }
+      );
+    }
+
+    // If user is admin, only allow access to GPTs they created
+    if (userRole === "admin" && gpt.userId !== currentUserId) {
+      return NextResponse.json(
+        { error: "Access denied" },
+        { status: 403 }
+      );
+    }
+
+    // For regular users, check if GPT is assigned to them or they created it
+    if (userRole === "user" && gpt.userId !== currentUserId) {
+      const isAssigned = await prisma.assignGpt.findUnique({
+        where: {
+          userId_gptId: {
+            userId: currentUserId,
+            gptId: gpt_id
+          }
+        }
+      });
+
+      if (!isAssigned) {
+        return NextResponse.json(
+          { error: "Access denied" },
+          { status: 403 }
+        );
+      }
+    }
     
     // First, delete from Composio API
     const response = await fetch(`${backendUrl}/api/mcp/disconnect`, {

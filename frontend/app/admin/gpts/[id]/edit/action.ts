@@ -53,9 +53,14 @@ export async function getGptById(id: string) {
     };
   }
 
+  const currentAdminId = session.user.id;
+
   try {
-    const gpt = await prisma.gpt.findUnique({
-      where: { id },
+    const gpt = await prisma.gpt.findFirst({
+      where: { 
+        id,
+        userId: currentAdminId,  // Only allow access to GPTs created by current admin
+      },
       select: {
         id: true,
         name: true,
@@ -118,7 +123,24 @@ export async function editGpt(data: {
     };
   }
 
+  const currentAdminId = session.user.id;
+
   try {
+    // First check if GPT exists and belongs to current admin
+    const existingGpt = await prisma.gpt.findFirst({
+      where: {
+        id: data.id,
+        userId: currentAdminId,  // Only allow editing GPTs created by current admin
+      },
+    });
+
+    if (!existingGpt) {
+      return {
+        success: false,
+        error: "GPT not found or you don't have permission to edit it",
+      };
+    }
+
     const validation = gptSchema.safeParse(data);
 
     if (!validation.success) {
@@ -144,6 +166,7 @@ export async function editGpt(data: {
           : null,
     };
 
+    // Update by id only (we already verified ownership above)
     const gpt = await prisma.gpt.update({
       where: {
         id: data.id,

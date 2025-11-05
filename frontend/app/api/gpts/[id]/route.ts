@@ -7,7 +7,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireUser();
+    const session = await requireUser();
+    const currentUserId = session.user.id;
+    const userRole = session.user.role;
 
     const { id } = await params;
 
@@ -15,6 +17,7 @@ export async function GET(
       where: { id },
       select: {
         id: true,
+        userId: true,
         name: true,
         description: true,
         model: true,
@@ -30,6 +33,27 @@ export async function GET(
 
     if (!gpt) {
       return NextResponse.json({ error: "GPT not found" }, { status: 404 });
+    }
+
+    // If user is admin, only allow access to GPTs they created
+    if (userRole === "admin" && gpt.userId !== currentUserId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
+    // For regular users, check if GPT is assigned to them or they created it
+    if (userRole === "user" && gpt.userId !== currentUserId) {
+      const isAssigned = await prisma.assignGpt.findUnique({
+        where: {
+          userId_gptId: {
+            userId: currentUserId,
+            gptId: id
+          }
+        }
+      });
+
+      if (!isAssigned) {
+        return NextResponse.json({ error: "Access denied" }, { status: 403 });
+      }
     }
 
     return NextResponse.json(gpt);

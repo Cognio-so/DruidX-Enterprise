@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { requireUser } from "@/data/requireUser";
 
 export async function POST(request: NextRequest) {
   try {
+    // Get current user to ensure authentication
+    await requireUser();
+    
     const body = await request.json();
     const { gpt_id, app_name, redirect_url } = body;
     
@@ -12,6 +17,21 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // Fetch GPT from database to get userId
+    const gpt = await prisma.gpt.findUnique({
+      where: { id: gpt_id },
+      select: { userId: true },
+    });
+    
+    if (!gpt) {
+      return NextResponse.json(
+        { error: "GPT not found" },
+        { status: 404 }
+      );
+    }
+    
+    const user_id = gpt.userId;
+    
     const backendUrl = process.env.BACKEND_URL || "http://localhost:8000";
     const response = await fetch(`${backendUrl}/api/mcp/connect`, {
       method: "POST",
@@ -20,6 +40,7 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         gpt_id,
+        user_id,
         app_name,
         redirect_url: redirect_url || `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/mcp/callback?state=${gpt_id}&app_name=${app_name}`
       }),

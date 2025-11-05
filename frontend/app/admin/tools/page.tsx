@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { ComposioToolsGrid } from "./_components/composio-tools-grid";
 import ToolsLoading from "./loading";
-import { getGpts } from "@/data/get-gpts";
+import { getAdminGpts } from "@/data/get-admin-gpts";
 
 
 
@@ -38,7 +38,7 @@ interface ToolsPageProps {
 export default async function ToolsPage({ searchParams }: ToolsPageProps) {
   const [tools, gpts] = await Promise.all([
     getComposioTools(),
-    getGpts(),
+    getAdminGpts(),
   ]);
   const params = await searchParams;
   const gptId = params?.gptId;

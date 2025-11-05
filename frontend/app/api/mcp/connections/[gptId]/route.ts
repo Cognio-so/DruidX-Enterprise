@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireUser } from "@/data/requireUser";
 
 const backendUrl = process.env.BACKEND_URL || "http://localhost:8000";
 
@@ -8,6 +9,10 @@ export async function GET(
   { params }: { params: Promise<{ gptId: string }> }
 ) {
   try {
+    const session = await requireUser();
+    const currentUserId = session.user.id;
+    const userRole = session.user.role;
+    
     const { gptId } = await params;
     
     if (!gptId) {
@@ -15,6 +20,46 @@ export async function GET(
         { error: "gptId is required" },
         { status: 400 }
       );
+    }
+
+    // Verify GPT belongs to current user (for admins) or is assigned to them (for regular users)
+    const gpt = await prisma.gpt.findUnique({
+      where: { id: gptId },
+      select: { userId: true }
+    });
+
+    if (!gpt) {
+      return NextResponse.json(
+        { error: "GPT not found" },
+        { status: 404 }
+      );
+    }
+
+    // If user is admin, only allow access to GPTs they created
+    if (userRole === "admin" && gpt.userId !== currentUserId) {
+      return NextResponse.json(
+        { error: "Access denied" },
+        { status: 403 }
+      );
+    }
+
+    // For regular users, check if GPT is assigned to them or they created it
+    if (userRole === "user" && gpt.userId !== currentUserId) {
+      const isAssigned = await prisma.assignGpt.findUnique({
+        where: {
+          userId_gptId: {
+            userId: currentUserId,
+            gptId: gptId
+          }
+        }
+      });
+
+      if (!isAssigned) {
+        return NextResponse.json(
+          { error: "Access denied" },
+          { status: 403 }
+        );
+      }
     }
 
     // First, try to get connections from database
@@ -32,7 +77,18 @@ export async function GET(
       if (dbConnections.length > 0) {
         // Verify connections are still active in Composio
         try {
-          const response = await fetch(`${backendUrl}/api/mcp/connections/${gptId}`);
+          // Fetch GPT to get userId
+          const gpt = await prisma.gpt.findUnique({
+            where: { id: gptId },
+            select: { userId: true },
+          });
+          
+          const user_id = gpt?.userId;
+          const url = user_id 
+            ? `${backendUrl}/api/mcp/connections/${gptId}?user_id=${user_id}`
+            : `${backendUrl}/api/mcp/connections/${gptId}`;
+          
+          const response = await fetch(url);
           if (response.ok) {
             const composioData = await response.json();
             const activeComposioConnections = composioData.connections || [];
@@ -104,7 +160,18 @@ export async function GET(
 
     // Fallback to Composio API
     try {
-      const response = await fetch(`${backendUrl}/api/mcp/connections/${gptId}`);
+      // Fetch GPT to get userId
+      const gpt = await prisma.gpt.findUnique({
+        where: { id: gptId },
+        select: { userId: true },
+      });
+      
+      const user_id = gpt?.userId;
+      const url = user_id 
+        ? `${backendUrl}/api/mcp/connections/${gptId}?user_id=${user_id}`
+        : `${backendUrl}/api/mcp/connections/${gptId}`;
+      
+      const response = await fetch(url);
       
       if (!response.ok) {
         throw new Error(`Backend responded with status: ${response.status}`);
