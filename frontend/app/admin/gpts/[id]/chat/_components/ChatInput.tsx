@@ -157,8 +157,8 @@ export default function ChatInput({
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
     const allowedTypes = [
       "image/",
@@ -169,24 +169,73 @@ export default function ChatInput({
       "application/json",
     ];
 
-    const isAllowed = allowedTypes.some(type => file.type.startsWith(type));
-    if (!isAllowed) {
-      alert("Please upload a PDF, Word document, Markdown, JSON, or image file.");
+    // Check if total files exceed 5 (including already uploaded)
+    const totalFiles = uploadedDocs.length + files.length;
+    if (totalFiles > 5) {
+      alert(`You can only upload up to 5 documents at once. You currently have ${uploadedDocs.length} document(s) uploaded.`);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       return;
     }
 
+    // Validate all files
+    const invalidFiles: string[] = [];
+    const validFiles: File[] = [];
+
+    Array.from(files).forEach((file) => {
+      const isAllowed = allowedTypes.some(type => file.type.startsWith(type));
+      if (!isAllowed) {
+        invalidFiles.push(file.name);
+      } else {
+        validFiles.push(file);
+      }
+    });
+
+    if (invalidFiles.length > 0) {
+      alert(`The following files are not supported: ${invalidFiles.join(", ")}\n\nPlease upload PDF, Word document, Markdown, JSON, or image files only.`);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      if (validFiles.length === 0) return;
+    }
+
     setIsUploading(true);
+    const uploadedDocsList: UploadedDoc[] = [];
+    const errors: string[] = [];
+
     try {
-      const fileUrl = await uploadToS3(file);
-      const newDoc: UploadedDoc = {
-        url: fileUrl,
-        filename: file.name,
-        type: file.type
-      };
-      
-      setUploadedDocs(prev => [...prev, newDoc]);
-      onDocumentUploaded?.(fileUrl, file.name);
+      // Upload files sequentially to avoid overwhelming the server
+      for (const file of validFiles) {
+        try {
+          const fileUrl = await uploadToS3(file);
+          const newDoc: UploadedDoc = {
+            url: fileUrl,
+            filename: file.name,
+            type: file.type
+          };
+          uploadedDocsList.push(newDoc);
+          onDocumentUploaded?.(fileUrl, file.name);
+        } catch (error) {
+          errors.push(file.name);
+          console.error(`Failed to upload ${file.name}:`, error);
+        }
+      }
+
+      // Add all successfully uploaded docs to state
+      if (uploadedDocsList.length > 0) {
+        setUploadedDocs(prev => [...prev, ...uploadedDocsList]);
+      }
+
+      // Show error message if some files failed
+      if (errors.length > 0) {
+        alert(`Failed to upload the following files: ${errors.join(", ")}\n\n${uploadedDocsList.length} file(s) uploaded successfully.`);
+      } else if (uploadedDocsList.length > 1) {
+        // Success message for multiple files
+        console.log(`Successfully uploaded ${uploadedDocsList.length} files`);
+      }
     } catch (error) {
+      console.error("Upload error:", error);
       alert("Upload failed. Please try again.");
     } finally {
       setIsUploading(false);
@@ -271,8 +320,8 @@ export default function ChatInput({
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask anything..."
-              disabled={isLoading || connecting}
+              placeholder={isUploading ? "Uploading documents..." : "Ask anything..."}
+              disabled={isLoading || connecting || isUploading}
               className="w-full min-h-[50px] resize-none outline-none text-lg leading-snug bg-transparent placeholder:text-muted-foreground disabled:opacity-50"
               rows={2}
             />
@@ -281,7 +330,7 @@ export default function ChatInput({
 
         <div className="flex items-center justify-between px-3 py-2">
           <div className="flex items-center gap-2">
-            <Select value={selectedModel} onValueChange={handleModelChange} disabled={isLoading || connected}>
+            <Select value={selectedModel} onValueChange={handleModelChange} disabled={isLoading || connected || isUploading}>
               <SelectTrigger className="h-7 px-2 rounded-full text-sm border-border bg-muted hover:bg-accent focus:ring-0 focus:ring-offset-0">
                 <div className="flex items-center gap-2">
                   <Sparkle className="size-4 text-primary" />
@@ -306,7 +355,7 @@ export default function ChatInput({
               size="icon"
               className="h-7 w-7 rounded-full"
               onClick={() => setWebSearch(!webSearch)}
-              disabled={isLoading || connected}
+              disabled={isLoading || connected || isUploading}
             >
               <Globe className="h-3.5 w-3.5" />
             </Button>
@@ -315,7 +364,7 @@ export default function ChatInput({
               size="icon"
               className="h-7 w-7 rounded-full"
               onClick={() => setDeepSearch(!deepSearch)}
-              disabled={isLoading || connected}
+              disabled={isLoading || connected || isUploading}
             >
               <Telescope className="size-4"/>
             </Button>
@@ -324,7 +373,7 @@ export default function ChatInput({
               <ComposioToolSelector
                 gptId={gptId}
                 onToolsChange={setComposioTools}
-                disabled={isLoading || connected}
+                disabled={isLoading || connected || isUploading}
               />
             )}
           </div>
@@ -350,6 +399,7 @@ export default function ChatInput({
             <input
               ref={fileInputRef}
               type="file"
+              multiple
               accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,application/json"
               onChange={handleFileUpload}
               className="hidden"
@@ -366,7 +416,7 @@ export default function ChatInput({
 
             <Button
               onClick={handleSend}
-              disabled={!message.trim() || isLoading || connected}
+              disabled={!message.trim() || isLoading || connected || isUploading}
               size="icon"
               className="h-7 w-7 rounded-full"
             >
