@@ -52,7 +52,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000","https://emsa-gpt.vercel.app" ],
+    allow_origins=["http://localhost:3000", "https://druidx.co"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -75,6 +75,7 @@ class SessionManager:
             "messages": [],
             "uploaded_docs": [],
             "new_uploaded_docs": [],
+            "uploaded_images": [],
             "kb": [],
             "gpt_config": None,
             "created_at": datetime.now().isoformat(),
@@ -181,7 +182,7 @@ async def set_gpt_config(session_id: str, gpt_config: dict):
     session["gpt_config"] = gpt_config
     mcp_connections = gpt_config.get("mcpConnections", [])
     session["mcp_connections"] = mcp_connections
-    
+    # print(f"gpt_config-----------------//: {gpt_config}")
 
     if session.get("kb"):
         try:
@@ -321,15 +322,18 @@ async def add_documents_by_url(session_id: str, request: dict):
         #         "size": img.get("size")
         #     }
         #     uploaded_files.append(clean_img)
+        flag=session.get("doc_embeddings",False)
         for d in processed_docs:
             clean_doc = {
                 "filename": d.get("filename"),
                 "file_url": d.get("file_url"),
-                "file_type": "image" if d.get("file_type") == "image" else "document",  # Check d.get("file_type") instead of is_image
+                "file_type": "image" if d.get("file_type") == "image" else "document",  
                 "id": d.get("id"),
                 "size": d.get("size")
             }
             uploaded_files.append(clean_doc)
+            if d.get("file_type") == "image" and flag:
+                print(f"Processed document is an image: {d.get('filename')}")
         session.setdefault("new_uploaded_docs", []).extend(uploaded_files)
         print(f"uploaded_files------------------------------//: {session['new_uploaded_docs']}")
 
@@ -338,7 +342,7 @@ async def add_documents_by_url(session_id: str, request: dict):
         try:
             from Rag.Rag import preprocess_user_documents, clear_user_doc_cache, preprocess_images, clear_image_cache
             
-            # await clear_image_cache(session_id) # Removed to preserve image history
+            # await clear_image_cache(session_id) 
             print(f"[MAIN] Cleared old user document and image caches for session {session_id}")
             if uploaded_images:
                 print(f"[MAIN] Pre-processing {len(uploaded_images)} image(s)...")
@@ -424,6 +428,7 @@ async def stream_chat(session_id: str, request: ChatRequest):
     session["messages"].append({"role": "user", "content": request.message})
     print(f"Added user message to session. Total messages: {len(session['messages'])}")
     gpt_config = session.get("gpt_config")
+    # print("GPT Config from session:", gpt_config)
     if not gpt_config:
         gpt_config = {
             "model": "gpt-4o-mini",
@@ -907,9 +912,10 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
                 if state.get("route"):
                     session["last_route"] = state["route"]
                     await SessionManager.update_session(session_id, session)
-
-                session["doc_embeddings"] = True
-            
+                if session.get("new_uploaded_docs"):
+                   session["doc_embeddings"] = True
+                else: 
+                    session["doc_embeddings"] = False
                 if "new_uploaded_docs" in session:
                     session["new_uploaded_docs"] = []
                 from Rag.Rag import preprocess_user_documents, clear_user_doc_cache, preprocess_images, clear_image_cache
