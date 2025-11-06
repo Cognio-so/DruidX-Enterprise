@@ -21,11 +21,10 @@ export default function GptsPage() {
           <Link
             href="/admin/gpts/create-gpt"
             className={buttonVariants({
-              variant: "outline",
-              className: "w-full sm:w-auto",
+              className: "w-full sm:w-auto ",
             })}
           >
-            <Plus className="w-4 h-4 mr-2 text-primary" />
+            <Plus className="w-4 h-4 mr-2" />
             <span className="hidden sm:inline">Create New GPT</span>
             <span className="sm:hidden">Create GPT</span>
           </Link>

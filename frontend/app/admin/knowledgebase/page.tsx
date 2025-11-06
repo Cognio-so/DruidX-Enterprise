@@ -12,8 +12,8 @@ async function KnowledgeBaseContent() {
     <div className="space-y-6 p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Knowledge Base</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-3xl font-bold text-primary">Knowledge Base</h1>
+          <p className="text-muted-foreground/80 mt-1">
             Manage your knowledge base files and documents
           </p>
         </div>

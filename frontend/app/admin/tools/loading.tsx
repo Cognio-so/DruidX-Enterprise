@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 
 export default function ToolsLoading() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4">
       {/* Search and Actions Skeleton */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <Skeleton className="h-10 w-full sm:max-w-md" />

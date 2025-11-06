@@ -212,10 +212,11 @@ export default function AddKnowledgeBase({ onSuccess }: AddKnowledgeBaseProps) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Knowledge Base Entry</DialogTitle>
-          <DialogDescription>
-            Upload up to 5 files at once. Supported formats: PDF, Word, Markdown, JSON, Text, and Images.
+          <DialogTitle className="text-primary">Add Knowledge Base Entry</DialogTitle>
+          <DialogDescription className="text-muted-foreground/80">
+            Upload up to 5 files at once.
           </DialogDescription>
+          <DialogDescription className="text-muted-foreground/80">Supported formats: PDF, Word, Markdown, JSON, Text, and Images.</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">

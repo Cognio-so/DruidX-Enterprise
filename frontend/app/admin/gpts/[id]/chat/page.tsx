@@ -100,6 +100,7 @@ export default function ChatGptById() {
                   timestamp={new Date(msg.timestamp).toLocaleTimeString()}
                   isStreaming={msg.isStreaming}
                   imageUrls={msg.imageUrls}
+                  tokenUsage={msg.tokenUsage}
                 />
               ))}
             </div>

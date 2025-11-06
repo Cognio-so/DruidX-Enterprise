@@ -1,5 +1,11 @@
 import { useState, useCallback, useRef } from 'react';
 
+interface TokenUsage {
+  input_tokens: number;
+  output_tokens: number;
+  total_tokens: number;
+}
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -7,6 +13,7 @@ interface Message {
   timestamp: string;
   isStreaming?: boolean;
   imageUrls?: string[];
+  tokenUsage?: TokenUsage;
 }
 
 interface ChatRequest {
@@ -115,10 +122,10 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
               const data = JSON.parse(line.slice(6));
               
               if (data.type === 'content' && data.data) {
-                const { content, full_response, is_complete, img_urls } = data.data;
+                const { content, full_response, is_complete, img_urls, token_usage } = data.data;
                 
                 // Debug logging to see what we're receiving
-                console.log('Streaming data received:', { content, full_response, is_complete, img_urls });
+                console.log('Streaming data received:', { content, full_response, is_complete, img_urls, token_usage });
                 
                 setMessages(prev => prev.map(msg => 
                   msg.id === assistantMessageId 
@@ -126,6 +133,7 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
                         ...msg,
                         content: full_response || content || '',
                         imageUrls: img_urls || msg.imageUrls, // Preserve existing if not in update
+                        tokenUsage: token_usage || msg.tokenUsage, // Preserve existing if not in update
                         isStreaming: !is_complete,
                       }
                     : msg

@@ -1,6 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -81,10 +87,8 @@ export function ComposioToolCard({
 
   const handleSwitchToggle = async (enabled: boolean) => {
     if (enabled && !isConnected) {
-      // If switch is toggled on but not connected, trigger connect
       await handleConnect();
     } else if (onToggle) {
-      // If already connected, just toggle enabled state
       onToggle(tool.slug, enabled);
     }
   };
@@ -125,8 +129,7 @@ export function ComposioToolCard({
               </CardDescription>
             </div>
           </div>
-          
-          {/* Switch and Disconnect Button - positioned like ChatInput */}
+
           <div className="flex items-center gap-1.5 flex-shrink-0">
             {isConnected ? (
               <>
@@ -175,11 +178,7 @@ export function ComposioToolCard({
         {tool.tools && tool.tools.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {tool.tools.slice(0, 3).map((toolName, index) => (
-              <Badge
-                key={index}
-                variant="outline"
-                className="text-xs"
-              >
+              <Badge key={index} variant="outline" className="text-xs">
                 {toolName}
               </Badge>
             ))}
@@ -194,4 +193,3 @@ export function ComposioToolCard({
     </Card>
   );
 }
-

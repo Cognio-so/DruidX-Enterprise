@@ -242,12 +242,12 @@ export function ComposioToolsGrid({
           >
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="w-4 h-4 mr-2 animate-spin text-primary" />
                 Refreshing...
               </>
             ) : (
               <>
-                <RefreshCw className="w-4 h-4 mr-2" />
+                <RefreshCw className="w-4 h-4 mr-2 text-primary" />
                 Refresh
               </>
             )}
