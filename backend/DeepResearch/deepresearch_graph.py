@@ -33,7 +33,8 @@ def create_deep_research_graph():
     g.add_conditional_edges("human_approval",
         route_deep_research, {
             "execute_research": "execute_research",
-            "plan_research": "plan_research"
+            "plan_research": "plan_research",
+            "END": END
         })
     g.add_conditional_edges("execute_research",
         route_deep_research, {

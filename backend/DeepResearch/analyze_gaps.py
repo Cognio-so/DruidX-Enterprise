@@ -16,9 +16,16 @@ async def analyze_gaps_node(state: GraphState) -> GraphState:
     llm_model = state.get("deep_research_llm_model","alibaba/tongyi-deepresearch-30b-a3b:free")
 
     chunk_callback = state.get("_chunk_callback")
-    gap_intro = "## 🔍 Gap Analysis Phase\n\nAnalyzing gathered information and identifying knowledge gaps...\n\n"
+    # Send status event instead of content for gap analysis phase
+    import json
     if chunk_callback:
-        await chunk_callback(gap_intro)
+        await chunk_callback(json.dumps({
+            "type": "status",
+            "data": {
+                "phase": "gap_analysis",
+                "message": "Analyzing gathered information and identifying knowledge gaps..."
+            }
+        }))
 
     info_summary = []
     for item in research_state_dict["gathered_information"][-10:]:
@@ -30,24 +37,7 @@ async def analyze_gaps_node(state: GraphState) -> GraphState:
     answered_questions = [item['query'] for item in research_state_dict["gathered_information"]]
     answered_text = "\n".join([f"- {q}" for q in answered_questions[-10:]])
 
-    analysis_info = f"**Analyzing Research Progress:**\n"
-    analysis_info += f"📊 **Total Findings:** {len(research_state_dict['gathered_information'])}\n"
-    analysis_info += f"🔄 **Current Iteration:** {research_state_dict['current_iteration']}/{research_state_dict['max_iterations']}\n"
-    analysis_info += f"📝 **Answered Questions:** {len(answered_questions)}\n\n"
-    
-    if chunk_callback:
-        await chunk_callback(analysis_info)
-    if answered_questions:
-        answered_section = "**Questions Already Answered:**\n"
-        for i, q in enumerate(answered_questions[-5:], 1): 
-            answered_section += f"{i}. {q}\n"
-        answered_section += "\n"
-        if chunk_callback:
-            await chunk_callback(answered_section)
-
-    generating_msg = "🤔 **Generating gap analysis...**\n\n"
-    if chunk_callback:
-        await chunk_callback(generating_msg)
+    # Don't send intermediate content - only status events
     
     analysis_prompt = PROMPTS['gap_analysis_prompt_template'].format(
         system_prompt=PROMPTS['system_prompt'],
@@ -59,15 +49,15 @@ async def analyze_gaps_node(state: GraphState) -> GraphState:
         info_summary=info_summary_text
     )
     llm2 = get_reasoning_llm(llm_model)
-    response_prefix = gap_intro + analysis_info + (answered_section if answered_questions else "") + generating_msg
     
+    # Don't stream gap analysis content - only status events
     llm_response, _ = await stream_with_token_tracking(
         llm2,
         [HumanMessage(content=analysis_prompt)],
-        chunk_callback=chunk_callback,
+        chunk_callback=None,  # Don't stream intermediate content
         state=state
     )
-    full_response = response_prefix + llm_response
+    full_response = llm_response
 
     analysis = {
         "confidence": 0.5,
@@ -114,43 +104,7 @@ async def analyze_gaps_node(state: GraphState) -> GraphState:
     except Exception as e:
         print(f"[DeepResearch] Error parsing gap analysis: {e}")
         print(f"[DeepResearch] Raw content: {full_response[:500]}")
-    confidence_msg = f"\n\n## 📊 Analysis Results\n\n"
-    confidence_msg += f"**Confidence Score:** {analysis['confidence']:.2f}/1.0\n"
-    
-    if analysis['confidence'] >= 0.85:
-        confidence_msg += f"🎯 **High Confidence** - Research is comprehensive!\n"
-    elif analysis['confidence'] >= 0.6:
-        confidence_msg += f"⚠️ **Medium Confidence** - Some gaps may remain\n"
-    else:
-        confidence_msg += f"❌ **Low Confidence** - Significant gaps identified\n"
-    
-    if chunk_callback:
-        await chunk_callback(confidence_msg)
-
-    if analysis['follow_up_questions']:
-        gaps_msg = f"\n**🔍 Knowledge Gaps Identified:** {len(analysis['follow_up_questions'])}\n\n"
-        for i, gap in enumerate(analysis['follow_up_questions'][:5], 1):  
-            gaps_msg += f"{i}. {gap}\n"
-        if len(analysis['follow_up_questions']) > 5:
-            gaps_msg += f"... and {len(analysis['follow_up_questions']) - 5} more\n"
-        gaps_msg += "\n"
-        if chunk_callback:
-            await chunk_callback(gaps_msg)
-    else:
-        no_gaps_msg = f"\n**✅ No Knowledge Gaps** - All research questions have been adequately addressed!\n\n"
-        if chunk_callback:
-            await chunk_callback(no_gaps_msg)
-    if analysis['confidence'] >= 0.85:
-        next_step = "🎉 **Next Step:** Moving to final synthesis (high confidence reached)\n\n"
-    elif not analysis['follow_up_questions']:
-        next_step = "✅ **Next Step:** Moving to final synthesis (no gaps to fill)\n\n"
-    else:
-        next_step = f"🔄 **Next Step:** Executing additional research for {len(analysis['follow_up_questions'])} identified gaps\n\n"
-    
-    if chunk_callback:
-        await chunk_callback(next_step)
-    
-    full_response += confidence_msg + (gaps_msg if analysis['follow_up_questions'] else no_gaps_msg) + next_step
+    # Don't send intermediate analysis results - only status events
     
     print(f"[DeepResearch] Gap Analysis - Confidence: {analysis['confidence']:.2f}, Follow-ups: {len(analysis['follow_up_questions'])}")
     if analysis['reasoning']:

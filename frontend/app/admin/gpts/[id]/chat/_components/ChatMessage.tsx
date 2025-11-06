@@ -8,6 +8,8 @@ import { Orb } from "@/components/ui/orb";
 import { Loader } from "@/components/ai-elements/loader";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { ResearchTimeline } from "@/components/ResearchTimeline";
+import { ResearchPhaseShimmer } from "@/components/ResearchPhaseShimmer";
 
 interface UploadedDoc {
   url: string;
@@ -26,6 +28,22 @@ interface TokenUsage {
   total_tokens: number;
 }
 
+interface ResearchPhase {
+  phase: string;
+  message?: string;
+  iteration?: number;
+  maxIterations?: number;
+  status?: "pending" | "active" | "completed";
+}
+
+interface StatusPhase {
+  phase: string;
+  message: string;
+  iteration?: number;
+  max_iterations?: number;
+  [key: string]: any;
+}
+
 interface ChatMessageProps {
   message: string;
   isUser: boolean;
@@ -35,6 +53,8 @@ interface ChatMessageProps {
   sources?: Source[];
   imageUrls?: string[];
   tokenUsage?: TokenUsage;
+  researchPhases?: ResearchPhase[];
+  currentPhase?: StatusPhase | null;
 }
 
 export function scrollToEnd(containerRef: React.RefObject<HTMLElement>) {
@@ -59,6 +79,8 @@ export default function ChatMessage({
   sources = [],
   imageUrls = [],
   tokenUsage,
+  researchPhases = [],
+  currentPhase = null,
 }: ChatMessageProps) {
   const messageRef = useRef<HTMLDivElement>(null);
 
@@ -152,6 +174,25 @@ export default function ChatMessage({
                 <Orb className="h-full w-full" />
               </div>
               <div className="flex-1 space-y-2">
+                {/* Deep Research Timeline - show for assistant messages when phases exist */}
+                {!isUser && researchPhases.length > 0 && (
+                  <ResearchTimeline
+                    phases={researchPhases}
+                    currentPhase={currentPhase?.phase}
+                  />
+                )}
+                {/* Deep Research Shimmer - show for assistant messages when no timeline but phase active */}
+                {!isUser &&
+                  currentPhase &&
+                  currentPhase.phase !== "waiting_approval" &&
+                  researchPhases.length === 0 && (
+                    <ResearchPhaseShimmer
+                      phase={currentPhase.phase}
+                      message={currentPhase.message}
+                      iteration={currentPhase.iteration}
+                      maxIterations={currentPhase.max_iterations}
+                    />
+                  )}
                 {imageUrls && imageUrls.length > 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     {imageUrls.map((url, idx) => (

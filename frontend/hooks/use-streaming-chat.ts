@@ -26,6 +26,17 @@ interface ChatRequest {
   composio_tools?: string[];
 }
 
+interface ApprovalRequest {
+  plan: string[];
+  total_questions: number;
+}
+
+interface StatusPhase {
+  phase: string;
+  message: string;
+  [key: string]: any;
+}
+
 interface StreamingChatHook {
   messages: Message[];
   isLoading: boolean;
@@ -33,12 +44,31 @@ interface StreamingChatHook {
   sendMessage: (request: ChatRequest) => Promise<void>;
   clearMessages: () => void;
   addMessage: (message: Omit<Message, 'id'>) => void;
+  approvalRequest: ApprovalRequest | null;
+  clearApprovalRequest: () => void;
+  currentPhase: StatusPhase | null;
+  researchPhases: Array<{
+    phase: string;
+    message?: string;
+    iteration?: number;
+    maxIterations?: number;
+    status?: "pending" | "active" | "completed";
+  }>;
 }
 
 export function useStreamingChat(sessionId: string): StreamingChatHook {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [approvalRequest, setApprovalRequest] = useState<ApprovalRequest | null>(null);
+  const [currentPhase, setCurrentPhase] = useState<StatusPhase | null>(null);
+  const [researchPhases, setResearchPhases] = useState<Array<{
+    phase: string;
+    message?: string;
+    iteration?: number;
+    maxIterations?: number;
+    status?: "pending" | "active" | "completed";
+  }>>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const sendMessage = useCallback(async (request: ChatRequest) => {
@@ -120,8 +150,74 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
           if (line.startsWith('data: ')) {
             try {
               const data = JSON.parse(line.slice(6));
+              console.log('📨 Received SSE data:', data.type, data);
               
-              if (data.type === 'content' && data.data) {
+              if (data.type === 'approval_required' && data.data) {
+                // Handle approval request event
+                console.log('🔔 Approval required event received:', data.data);
+                const { plan, total_questions } = data.data;
+                console.log('🔔 Plan data:', plan, 'Total questions:', total_questions);
+                setApprovalRequest({
+                  plan: plan || [],
+                  total_questions: total_questions || 0,
+                });
+                // Clear current phase when approval is required
+                setCurrentPhase(null);
+              } else if (data.type === 'status' && data.data) {
+                // Handle status events for different phases
+                const phaseData = data.data;
+                
+                // If status is explicitly "completed", mark as completed and clear current phase
+                if (phaseData.status === "completed") {
+                  setResearchPhases((prev) => {
+                    const existingIndex = prev.findIndex((p) => p.phase === phaseData.phase);
+                    if (existingIndex >= 0) {
+                      const updated = [...prev];
+                      updated[existingIndex] = { ...updated[existingIndex], status: "completed" as const };
+                      return updated;
+                    }
+                    return prev;
+                  });
+                  // Clear current phase if this was the active one
+                  if (currentPhase?.phase === phaseData.phase) {
+                    setCurrentPhase(null);
+                  }
+                } else {
+                  // Active phase - set as current and update timeline
+                  setCurrentPhase(phaseData);
+                  
+                  // Update research phases timeline
+                  setResearchPhases((prev) => {
+                    const existingIndex = prev.findIndex((p) => p.phase === phaseData.phase);
+                    const newPhase = {
+                      phase: phaseData.phase,
+                      message: phaseData.message,
+                      iteration: phaseData.iteration,
+                      maxIterations: phaseData.max_iterations,
+                      status: "active" as const,
+                    };
+                    
+                    if (existingIndex >= 0) {
+                      // Update existing phase (e.g., execution with different iteration)
+                      const updated = [...prev];
+                      // If it's execution phase with iteration, update the message but keep it active
+                      if (phaseData.phase === "execution" && phaseData.iteration) {
+                        updated[existingIndex] = { ...updated[existingIndex], ...newPhase };
+                      } else {
+                        // For other phases, mark previous as completed and update
+                        updated[existingIndex] = { ...updated[existingIndex], ...newPhase };
+                      }
+                      return updated;
+                    } else {
+                      // Mark previous phases as completed and add new one
+                      const updated = prev.map((p) => ({ ...p, status: "completed" as const }));
+                      return [...updated, newPhase];
+                    }
+                  });
+                }
+                
+                // Don't add status messages to content - they're for UI state only
+              } else if (data.type === 'content' && data.data) {
                 const { content, full_response, is_complete, img_urls, token_usage } = data.data;
                 
                 // Debug logging to see what we're receiving
@@ -199,6 +295,10 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
     setMessages(prev => [...prev, newMessage]);
   }, []);
 
+  const clearApprovalRequest = useCallback(() => {
+    setApprovalRequest(null);
+  }, []);
+
   return {
     messages,
     isLoading,
@@ -206,5 +306,9 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
     sendMessage,
     clearMessages,
     addMessage,
+    approvalRequest,
+    clearApprovalRequest,
+    currentPhase,
+    researchPhases,
   };
 }
