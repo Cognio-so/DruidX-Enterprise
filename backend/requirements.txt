@@ -67,4 +67,3 @@ python-dotenv==1.2.1
 requests==2.32.5
 tenacity==9.1.2
 typing-extensions==4.15.0
-TensorFlow
