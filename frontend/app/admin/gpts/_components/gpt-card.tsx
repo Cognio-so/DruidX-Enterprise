@@ -122,28 +122,27 @@ export function GptCard({ gpt }: GptCardProps) {
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 p-0 text-primary hover:text-primary/80"
                 >
                   <MoreHorizontal className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44 sm:w-48">
                 <DropdownMenuItem asChild>
-                  <Link href={`/admin/gpts/${gpt.id}/edit`}>
-                    <Pencil className="w-4 h-4 mr-2" />
+                  <Link href={`/admin/gpts/${gpt.id }/edit`}>
+                    <Pencil className="w-4 h-4 mr-2 text-green-600" />
                     <span className="text-sm">Edit GPT</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={handleDelete}
-                  className="text-destructive"
                   disabled={isPending}
                 >
                   {isPending ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
-                    <Trash className="w-4 h-4 mr-2" />
+                    <Trash className="w-4 h-4 mr-2 text-destructive" />
                   )}
                   <span className="text-sm">Delete GPT</span>
                 </DropdownMenuItem>

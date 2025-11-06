@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DataTable, UserAvatar, RelativeTime } from "./data-table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bot, User } from "lucide-react";
+import { Bot, MessageCircle, User } from "lucide-react";
 
 interface RecentActivity {
   recentConversations: Array<{
@@ -80,7 +80,8 @@ export function RecentActivityTable({ data }: { data: {
       id: "messageCount",
       header: "Messages",
       cell: ({ row }) => (
-        <Badge variant="secondary">
+        <Badge variant="outline" className="text-primary">
+          <MessageCircle className="w-3 h-3" />
           {row.getValue("messageCount")} messages
         </Badge>
       ),
@@ -155,8 +156,8 @@ export function RecentActivityTable({ data }: { data: {
       id: "conversationCount",
       header: "Usage",
       cell: ({ row }) => (
-        <Badge variant="secondary">
-          {row.getValue("conversationCount")} conversations
+        <Badge variant="outline" className="text-primary">
+          {row.getValue("conversationCount")} 
         </Badge>
       ),
     },

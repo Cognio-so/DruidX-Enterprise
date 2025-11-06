@@ -21,6 +21,7 @@ export async function getAdminHistory() {
           id: true,
           name: true,
           email: true,
+          image: true,
         }
       },
       gpt: {

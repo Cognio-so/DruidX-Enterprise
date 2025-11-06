@@ -20,6 +20,12 @@ interface Source {
   title: string;
 }
 
+interface TokenUsage {
+  input_tokens: number;
+  output_tokens: number;
+  total_tokens: number;
+}
+
 interface ChatMessageProps {
   message: string;
   isUser: boolean;
@@ -28,6 +34,7 @@ interface ChatMessageProps {
   uploadedDocs?: UploadedDoc[];
   sources?: Source[];
   imageUrls?: string[];
+  tokenUsage?: TokenUsage;
 }
 
 export function scrollToEnd(containerRef: React.RefObject<HTMLElement>) {
@@ -51,6 +58,7 @@ export default function ChatMessage({
   uploadedDocs = [],
   sources = [],
   imageUrls = [],
+  tokenUsage,
 }: ChatMessageProps) {
   const messageRef = useRef<HTMLDivElement>(null);
 
@@ -174,8 +182,26 @@ export default function ChatMessage({
                         <Loader size={14} className="text-muted-foreground" />
                       </div>
                     )}
-                    <div className="text-xs mt-1 opacity-70 text-muted-foreground">
-                      {timestamp}
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="text-xs opacity-70 text-muted-foreground">
+                        {timestamp}
+                      </div>
+                      {tokenUsage && !isStreaming && (
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <span className="opacity-70">Input:</span>
+                            <span className="font-medium">{tokenUsage.input_tokens.toLocaleString()}</span>
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <span className="opacity-70">Output:</span>
+                            <span className="font-medium">{tokenUsage.output_tokens.toLocaleString()}</span>
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <span className="opacity-70">Total:</span>
+                            <span className="font-medium text-primary">{tokenUsage.total_tokens.toLocaleString()}</span>
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : isStreaming ? (

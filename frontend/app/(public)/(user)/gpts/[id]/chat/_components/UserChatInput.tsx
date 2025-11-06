@@ -15,7 +15,7 @@ interface ChatInputProps {
     uploaded_docs?: UploadedDoc[];
     model?: string;
   }) => void;
-  onDocumentUploaded?: (url: string, filename: string) => void;
+  onDocumentUploaded?: (docs: UploadedDoc[]) => Promise<void>;
   hasMessages: boolean;
   isLoading?: boolean;
   hybridRag?: boolean;
@@ -115,8 +115,8 @@ export default function ChatInput({
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
     const allowedTypes = [
       "image/",
@@ -127,24 +127,71 @@ export default function ChatInput({
       "application/json",
     ];
 
-    const isAllowed = allowedTypes.some(type => file.type.startsWith(type));
-    if (!isAllowed) {
-      alert("Please upload a PDF, Word document, Markdown, JSON, or image file.");
+    // Check if total files exceed 5 (including already uploaded)
+    const totalFiles = uploadedDocs.length + files.length;
+    if (totalFiles > 5) {
+      alert(`You can only upload up to 5 documents at once. You currently have ${uploadedDocs.length} document(s) uploaded.`);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       return;
     }
 
+    // Validate all files
+    const invalidFiles: string[] = [];
+    const validFiles: File[] = [];
+
+    Array.from(files).forEach((file) => {
+      const isAllowed = allowedTypes.some(type => file.type.startsWith(type));
+      if (!isAllowed) {
+        invalidFiles.push(file.name);
+      } else {
+        validFiles.push(file);
+      }
+    });
+
+    if (invalidFiles.length > 0) {
+      alert(`The following files are not supported: ${invalidFiles.join(", ")}\n\nPlease upload PDF, Word document, Markdown, JSON, or image files only.`);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      if (validFiles.length === 0) return;
+    }
+
     setIsUploading(true);
+    const uploadedDocsList: UploadedDoc[] = [];
+    const errors: string[] = [];
+
     try {
-      const fileUrl = await uploadToS3(file);
-      const newDoc: UploadedDoc = {
-        url: fileUrl,
-        filename: file.name,
-        type: file.type
-      };
-      
-      setUploadedDocs(prev => [...prev, newDoc]);
-      onDocumentUploaded?.(fileUrl, file.name);
+      // Upload files sequentially to avoid overwhelming the server
+      for (const file of validFiles) {
+        try {
+          const fileUrl = await uploadToS3(file);
+          const newDoc: UploadedDoc = {
+            url: fileUrl,
+            filename: file.name,
+            type: file.type
+          };
+          uploadedDocsList.push(newDoc);
+        } catch (error) {
+          errors.push(file.name);
+          console.error(`Failed to upload ${file.name}:`, error);
+        }
+      }
+
+      // Add all successfully uploaded docs to state
+      if (uploadedDocsList.length > 0) {
+        setUploadedDocs(prev => [...prev, ...uploadedDocsList]);
+        // Batch upload all documents as an array to backend
+        await onDocumentUploaded?.(uploadedDocsList);
+      }
+
+      // Show error message if some files failed
+      if (errors.length > 0) {
+        alert(`Failed to upload the following files: ${errors.join(", ")}\n\n${uploadedDocsList.length} file(s) uploaded successfully.`);
+      }
     } catch (error) {
+      console.error("Upload error:", error);
       alert("Upload failed. Please try again.");
     } finally {
       setIsUploading(false);
@@ -266,6 +313,7 @@ export default function ChatInput({
             <input
               ref={fileInputRef}
               type="file"
+              multiple
               accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,application/json"
               onChange={handleFileUpload}
               className="hidden"

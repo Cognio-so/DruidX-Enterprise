@@ -47,6 +47,7 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { deleteHistory } from "../action";
 import { ConversationPreviewDialog } from "./conversation-preview-dialog";
+import Link from "next/link";
 
 interface HistoryDataTableProps {
   data: AdminHistory[];
@@ -147,8 +148,12 @@ export function HistoryDataTable({ data }: HistoryDataTableProps) {
         return (
           <div className="flex items-center gap-2">
             <Avatar className="w-6 h-6">
+              <AvatarImage
+                src={history.user.image || undefined}
+                alt={history.user.name}
+              />
               <AvatarFallback className="text-xs">
-                {getInitials(history.user.name)}
+                {getInitials(history.user.name)}  
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
@@ -164,7 +169,8 @@ export function HistoryDataTable({ data }: HistoryDataTableProps) {
       },
     },
     {
-      accessorKey: "_count.messages",
+      accessorFn: (row) => row._count.messages,
+      id: "messages",
       header: ({ column }) => {
         return (
           <Button
@@ -178,11 +184,11 @@ export function HistoryDataTable({ data }: HistoryDataTableProps) {
         );
       },
       cell: ({ row }) => {
-        const count = row.getValue("_count.messages") as number;
+        const count = row.getValue("messages") as number;
         return (
-          <Badge variant="secondary" className="gap-1">
-            <MessageCircle className="w-3 h-3" />
-            {count}
+          <Badge variant="outline" className="gap-1">
+            <MessageCircle className="w-3 h-3 text-primary" />
+            {count} messages
           </Badge>
         );
       },
@@ -220,7 +226,7 @@ export function HistoryDataTable({ data }: HistoryDataTableProps) {
           <div className="flex items-center gap-2">
             <ConversationPreviewDialog history={history}>
               <Button variant="outline" size="sm" className="gap-2">
-                <Eye className="w-4 h-4" />
+                <Eye className="w-4 h-4 text-primary" />
                 Preview
               </Button>
             </ConversationPreviewDialog>
@@ -232,21 +238,20 @@ export function HistoryDataTable({ data }: HistoryDataTableProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <a href={`/admin/gpts/${history.gpt.id}/chat?conversation=${history.id}`}>
-                    <Eye className="w-4 h-4 mr-2" />
+                  <Link href={`/admin/gpts/${history.gpt.id}/chat?conversation=${history.id}`}>
+                    <Eye className="w-4 h-4 mr-2 text-primary" />
                     Open in Chat
-                  </a>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => handleDelete(history.id)}
-                  className="text-destructive"
+                  onClick={() => handleDelete(history.id)} 
                   disabled={isPending}
                 >
                   {isPending ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
-                    <Trash className="w-4 h-4 mr-2" />
+                    <Trash className="w-4 h-4 mr-2 text-destructive" />
                   )}
                   Delete
                 </DropdownMenuItem>

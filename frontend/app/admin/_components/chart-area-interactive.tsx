@@ -59,7 +59,7 @@ export function ChartAreaInteractive({
                             <span className="text-[0.70rem] uppercase text-muted-foreground">
                               {label}
                             </span>
-                            <span className="font-bold text-muted-foreground">
+                            <span className="font-bold text-primary">
                               {payload[0].value}
                             </span>
                           </div>

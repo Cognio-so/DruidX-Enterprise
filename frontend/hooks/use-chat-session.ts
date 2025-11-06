@@ -4,12 +4,18 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { frontendToBackend } from "@/lib/modelMapping";
 
+interface UploadedDoc {
+  url: string;
+  filename: string;
+  type: string;
+}
+
 interface ChatSessionHook {
   sessionId: string | null;
   isInitializing: boolean;
   error: string | null;
   hybridRag: boolean;
-  uploadDocument: (fileUrl: string, filename: string) => Promise<void>;
+  uploadDocument: (docs: UploadedDoc[]) => Promise<void>;
   loadGPTKnowledgeBase: (gptId: string) => Promise<void>;
   updateGPTConfig: (model: string) => Promise<void>;
 }
@@ -189,17 +195,27 @@ export function useChatSession(): ChatSessionHook {
     []
   );
 
-  // Handle document upload from user
+  // Handle document upload from user - accepts array of documents
   const uploadDocument = useCallback(
-    async (fileUrl: string, filename: string) => {
+    async (docs: UploadedDoc[]) => {
       if (!sessionId) {
         throw new Error("No session ID available");
       }
 
-      try {
-        
+      if (!docs || docs.length === 0) {
+        return; // No documents to upload
+      }
 
-        // Send user document to backend
+      try {
+        // Send all documents as an array to backend in one request
+        const documentsPayload = docs.map((doc, index) => ({
+          id: `${Date.now()}-${index}`,
+          filename: doc.filename,
+          file_url: doc.url,
+          file_type: doc.type || "application/pdf", // Backend will detect actual type, but provide what we know
+          size: 0,
+        }));
+
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/sessions/${sessionId}/add-documents`,
           {
@@ -208,15 +224,7 @@ export function useChatSession(): ChatSessionHook {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              documents: [
-                {
-                  id: Date.now().toString(),
-                  filename: filename,
-                  file_url: fileUrl,
-                  file_type: "application/pdf", // Backend will detect actual type
-                  size: 0,
-                },
-              ],
+              documents: documentsPayload,
               doc_type: "user",
             }),
           }
@@ -224,10 +232,11 @@ export function useChatSession(): ChatSessionHook {
 
         if (!response.ok) {
           const errorText = await response.text();
-          throw new Error(`Failed to upload document: ${response.status}`);
+          throw new Error(`Failed to upload documents: ${response.status}`);
         }
 
         const responseData = await response.json();
+        console.log(`Successfully uploaded ${docs.length} document(s) as an array`);
       } catch (error) {
         throw error;
       }

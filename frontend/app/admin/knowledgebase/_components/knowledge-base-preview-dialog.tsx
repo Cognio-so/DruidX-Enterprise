@@ -97,7 +97,7 @@ export function KnowledgeBasePreviewDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{baseName}</DialogTitle>
+            <DialogTitle className="text-primary">{baseName}</DialogTitle>
             <DialogDescription>
               {files.length} file{files.length !== 1 ? "s" : ""} in this knowledge base
             </DialogDescription>

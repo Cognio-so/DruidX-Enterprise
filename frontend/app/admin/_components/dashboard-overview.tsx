@@ -4,15 +4,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SectionCards } from "./section-cards";
 import { ChartAreaInteractive } from "./chart-area-interactive";
 import { RecentActivityTable } from "./recent-activity-table";
-import { 
-  getDashboardMetrics, 
-  getUserGrowthData, 
-  getConversationTrends, 
+import {
+  getDashboardMetrics,
+  getUserGrowthData,
+  getConversationTrends,
   getGptUsageStats,
-  getRecentActivity 
+  getRecentActivity,
 } from "@/data/get-dashboard-metrics";
 
-// Loading skeleton components
 function MetricsSkeleton() {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -70,7 +69,6 @@ function TableSkeleton() {
   );
 }
 
-// Async data fetching components
 async function MetricsCards() {
   const metrics = await getDashboardMetrics();
   return <SectionCards metrics={metrics} />;
@@ -118,32 +116,27 @@ async function RecentActivityData() {
   return <RecentActivityTable data={data} />;
 }
 
-// Main dashboard component
 export function DashboardOverview() {
   return (
     <div className="space-y-6">
-      {/* Metrics Cards */}
       <Suspense fallback={<MetricsSkeleton />}>
         <MetricsCards />
       </Suspense>
 
-      {/* Charts Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
         <Suspense fallback={<ChartSkeleton />}>
           <UserGrowthChart />
         </Suspense>
-        
+
         <Suspense fallback={<ChartSkeleton />}>
           <ConversationTrendsChart />
         </Suspense>
       </div>
 
-      {/* GPT Usage Chart - Full Width */}
       <Suspense fallback={<ChartSkeleton />}>
         <GptUsageChart />
       </Suspense>
 
-      {/* Recent Activity Tables */}
       <Suspense fallback={<TableSkeleton />}>
         <RecentActivityData />
       </Suspense>

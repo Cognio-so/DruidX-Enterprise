@@ -53,7 +53,7 @@ export default async function SettingsUI() {
     <div className="container mx-auto px-4 py-6 max-w-4xl">
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Profile Settings</h1>
+          <h1 className="text-3xl font-bold text-primary">Profile Settings</h1>
           <p className="text-muted-foreground">
             Manage your profile information
           </p>
@@ -63,7 +63,7 @@ export default async function SettingsUI() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="w-5 h-5" />
-              Profile Information
+              Your Information
             </CardTitle>
             <CardDescription>
               Update your personal information and profile details

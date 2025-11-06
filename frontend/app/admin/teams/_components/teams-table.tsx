@@ -262,7 +262,7 @@ export default function TeamsTable({
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1 text-sm text-primary">
                       <Calendar className="h-3 w-3" />
                       {new Date(member.createdAt).toLocaleDateString('en-US')}
                     </div>

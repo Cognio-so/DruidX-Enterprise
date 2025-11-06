@@ -27,7 +27,7 @@ interface ChatInputProps {
     model?: string;
     composio_tools?: string[];
   }) => void;
-  onDocumentUploaded?: (url: string, filename: string) => void;
+  onDocumentUploaded?: (docs: UploadedDoc[]) => Promise<void>;
   hasMessages: boolean;
   isLoading?: boolean;
   hybridRag?: boolean;
@@ -215,7 +215,6 @@ export default function ChatInput({
             type: file.type
           };
           uploadedDocsList.push(newDoc);
-          onDocumentUploaded?.(fileUrl, file.name);
         } catch (error) {
           errors.push(file.name);
           console.error(`Failed to upload ${file.name}:`, error);
@@ -225,6 +224,8 @@ export default function ChatInput({
       // Add all successfully uploaded docs to state
       if (uploadedDocsList.length > 0) {
         setUploadedDocs(prev => [...prev, ...uploadedDocsList]);
+        // Batch upload all documents as an array to backend
+        await onDocumentUploaded?.(uploadedDocsList);
       }
 
       // Show error message if some files failed
