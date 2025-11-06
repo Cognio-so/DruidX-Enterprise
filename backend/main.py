@@ -77,7 +77,8 @@ class SessionManager:
             "new_uploaded_docs": [],
             "kb": [],
             "gpt_config": None,
-            "created_at": datetime.now().isoformat()
+            "created_at": datetime.now().isoformat(),
+            "doc_embeddings":False,
         }
         redis_client = await ensure_redis_client()
         if redis_client:
@@ -325,7 +326,7 @@ async def add_documents_by_url(session_id: str, request: dict):
 
         try:
             from Rag.Rag import preprocess_user_documents, clear_user_doc_cache, preprocess_images, clear_image_cache
-            await clear_user_doc_cache(session_id)
+            
             # await clear_image_cache(session_id) # Removed to preserve image history
             print(f"[MAIN] Cleared old user document and image caches for session {session_id}")
             if uploaded_images:
@@ -345,14 +346,14 @@ async def add_documents_by_url(session_id: str, request: dict):
             
             if image_count > 0:
                 print(f"[MAIN] Skipping {image_count} image(s) from embedding preprocessing")
-
+            replace=bool(session.get("doc_embeddings",False))
             if non_image_docs:
                 hybrid_rag = session.get("gpt_config", {}).get("hybridRag", False)
                 await preprocess_user_documents(
                     non_image_docs,  
                     session_id, 
                     is_hybrid=hybrid_rag,
-                    is_new_upload=True  
+                    is_new_upload=replace
                 )
                 print(f"✅ [MAIN] Pre-processed {len(non_image_docs)} non-image documents with embeddings")
             else:
@@ -607,12 +608,12 @@ async def stream_chat(session_id: str, request: ChatRequest):
                 if state.get("route"):
                     session["last_route"] = state["route"]
                     await SessionManager.update_session(session_id, session)
-                
-                # After the graph has run, clear the new_uploaded_docs state
-                # to prevent it from persisting to the next turn.
+                session["doc_embeddings"] = True
+            
                 if "new_uploaded_docs" in session:
                     session["new_uploaded_docs"] = []
-                    
+                from Rag.Rag import preprocess_user_documents, clear_user_doc_cache, preprocess_images, clear_image_cache
+                await clear_user_doc_cache(session_id)    
                 await SessionManager.update_session(session_id, session)
                 
                 yield f"data: {json.dumps({'type': 'done', 'data': {'session_id': session_id}})}\n\n"
@@ -836,7 +837,14 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
                 if state.get("route"):
                     session["last_route"] = state["route"]
                     await SessionManager.update_session(session_id, session)
-                
+
+                session["doc_embeddings"] = True
+            
+                if "new_uploaded_docs" in session:
+                    session["new_uploaded_docs"] = []
+                from Rag.Rag import preprocess_user_documents, clear_user_doc_cache, preprocess_images, clear_image_cache
+                await clear_user_doc_cache(session_id)     
+                await SessionManager.update_session(session_id, session)
                 yield f"data: {json.dumps({'type': 'done', 'data': {'session_id': session_id}})}\n\n"
                 
             except Exception as e:

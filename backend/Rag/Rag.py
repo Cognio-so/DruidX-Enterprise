@@ -205,13 +205,31 @@ async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid
     print(f"[RAG] Pre-processing {len(docs)} NEW user documents for session {session_id}")
 
     doc_texts = []
+    doc_metas = []
     for doc in docs:
         if isinstance(doc, dict) and "content" in doc:
             doc_texts.append(doc["content"])
         else:
             doc_texts.append(str(doc))
+        # Attach provenance metadata for each document
+        if isinstance(doc, dict):
+            doc_metas.append({
+                "doc_id": doc.get("id"),
+                "filename": doc.get("filename"),
+                "file_type": doc.get("file_type"),
+            })
+        else:
+            doc_metas.append({})
 
-    await retreive_docs(doc_texts, collection_name, is_hybrid=is_hybrid, clear_existing=is_new_upload, is_user_doc=True, session_id=session_id)
+    await retreive_docs(
+        doc_texts,
+        collection_name,
+        is_hybrid=is_hybrid,
+        clear_existing=is_new_upload,
+        is_user_doc=True,
+        session_id=session_id,
+        metadatas=doc_metas,
+    )
 
     if redis_client:
         await redis_client.hset(cache_key, mapping={
@@ -293,9 +311,13 @@ async def send_status_update(state: GraphState, message: str, progress: int = No
                 "progress": progress
             }
         })
-async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clear_existing: bool = False, is_kb: bool = False, is_user_doc: bool = False, session_id: str = "default"):
+async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clear_existing: bool = False, is_kb: bool = False, is_user_doc: bool = False, session_id: str = "default", metadatas: Optional[List[Dict[str, Any]]] = None):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-    chunked_docs = text_splitter.create_documents(doc)
+    # Propagate per-document metadata to all chunks if provided
+    if metadatas and len(metadatas) == len(doc):
+        chunked_docs = text_splitter.create_documents(doc, metadatas=metadatas)
+    else:
+        chunked_docs = text_splitter.create_documents(doc)
     chunk_texts = [doc.page_content for doc in chunked_docs]
     embeddings = await embed_chunks_parallel(chunk_texts, batch_size=200)
     
@@ -328,14 +350,18 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
             models.PointStruct(
                 id=str(uuid.uuid4()),
                 vector=embedding,
-                payload={"text": doc.page_content,
-                         "page": doc.metadata.get("page", 0),
-                         "chunk_index":i,
-                        "heading": await extract_heading(doc.page_content)
-                         },
-                
+                payload={
+                    "text": d.page_content,
+                    "page": d.metadata.get("page", 0),
+                    "chunk_index": i,
+                    "heading": await extract_heading(d.page_content),
+                    # Provenance fields (if available)
+                    "doc_id": d.metadata.get("doc_id"),
+                    "filename": d.metadata.get("filename"),
+                    "file_type": d.metadata.get("file_type"),
+                },
             )
-            for i, (doc, embedding) in enumerate(zip(chunked_docs, embeddings))
+            for i, (d, embedding) in enumerate(zip(chunked_docs, embeddings))
         ]
     )
     if is_hybrid:
@@ -783,6 +809,170 @@ async def hierarchical_summarize(state, batch_size: int = 10):
             if re.match(r"^(UNIT[\s–-]*[IVXLC0-9]+|CHAPTER[\s–-]*\d+|^\d+(\.\d+)+|[A-Z][A-Za-z\s]{4,})", l):
                 return re.sub(r"^[\d.:\s–-]+", "", l).strip(":–- ")
         return None
+    # If multiple documents are present, summarize each independently using the same mode logic
+    # to avoid large docs overshadowing short ones, and stream results one-by-one.
+    docs_by_id: Dict[str, Dict[str, Any]] = {}
+    for payload in chunks:
+        did = payload.get("doc_id") or payload.get("filename") or "unknown"
+        grp = docs_by_id.setdefault(did, {
+            "filename": payload.get("filename") or "unknown",
+            "file_type": payload.get("file_type") or "unknown",
+            "chunks": []
+        })
+        grp["chunks"].append(payload)
+    if len(docs_by_id) > 1:
+        await send_status_update(state, "🧠 Summarizing each document separately...", 40)
+        combined_outputs: list[str] = []
+        for idx, (did, info) in enumerate(docs_by_id.items(), start=1):
+            doc_chunks = info.get("chunks", [])
+            if not doc_chunks:
+                continue
+            doc_total_tokens = sum(len(c.get("text", "").split()) for c in doc_chunks)
+            if doc_total_tokens < 1200:
+                doc_mode = "brief"
+            elif doc_total_tokens < 12000:
+                doc_mode = "normal"
+            else:
+                doc_mode = "hierarchical"
+
+            header = f"\n**Document {idx}: {info.get('filename', 'unknown')} ({info.get('file_type', 'unknown')})**\n"
+            if chunk_callback:
+                await chunk_callback(header)
+
+            if doc_mode == "brief":
+                text = "\n".join(c.get("text", "") for c in doc_chunks)
+                prompt = f"""
+You are a professional summarizer.
+Summarize the document in detail while preserving the flow and factual integrity.
+
+### Guidelines:
+- Maintain original heading flow and key examples.
+- Include definitions and technical details.
+- Avoid repetition or generic statements.
+{text[:16000]}
+"""
+                resp, _ = await stream_with_token_tracking(
+                    reduce_llm,
+                    [HumanMessage(content=prompt)],
+                    chunk_callback=chunk_callback,
+                    state=state
+                )
+                combined_outputs.append(f"{header}{resp.strip()}")
+                continue
+
+            if doc_mode == "normal":
+                text = "\n".join(c.get("text", "") for c in doc_chunks)
+                prompt = f"""
+
+You are a professional summarizer.
+Summarize the document in detail while preserving the flow and factual integrity.
+
+### Guidelines:
+- Maintain original heading flow and key examples.
+- Include definitions and technical details.
+- Avoid repetition or generic statements.
+- Whole summary must be between 500 and 1000 words.
+---
+{text[:32000]}
+"""
+                resp, _ = await stream_with_token_tracking(
+                    reduce_llm,
+                    [HumanMessage(content=prompt)],
+                    chunk_callback=chunk_callback,
+                    state=state
+                )
+                combined_outputs.append(f"{header}{resp.strip()}")
+                continue
+
+            # hierarchical per-document
+            avg_len = max(1, sum(len(c.get("text", "")) for c in doc_chunks) // len(doc_chunks))
+            doc_batch_size = min(10, max(3, 8000 // avg_len))
+            doc_batches = [doc_chunks[i:i + doc_batch_size] for i in range(0, len(doc_chunks), doc_batch_size)]
+
+            async def summarize_batch(batch):
+                combined_text = "\n".join([f"{(b.get('heading') or '')}\n{b.get('text', '')}" for b in batch])
+                sub_prompt = f"""
+
+You are summarizing a structured academic document.
+
+### Task:
+- Automatically detect and preserve natural headings (UNIT, CHAPTER, etc.).
+- Summarize each section clearly and concisely (~200-300 words total).
+- **Even within the word limit, do not merge or remove distinct sections.**
+---
+{combined_text}
+"""
+                resp = await map_llm.ainvoke([HumanMessage(content=sub_prompt)])
+                if state:
+                    token_usage = _extract_usage(resp)
+                    if "token_usage" not in state or state["token_usage"] is None:
+                        state["token_usage"] = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+                    state["token_usage"]["input_tokens"] += token_usage["input_tokens"]
+                    state["token_usage"]["output_tokens"] += token_usage["output_tokens"]
+                    state["token_usage"]["total_tokens"] += token_usage["total_tokens"]
+                return resp.content.strip()
+
+            map_results = await asyncio.gather(*[summarize_batch(b) for b in doc_batches])
+
+            async def recursive_reduce(summaries: list[str]) -> str:
+                if len(summaries) <= 5:
+                    block = "\n\n".join(summaries)
+                    reduce_prompt = f"""
+You are merging partial summaries of a structured textbook/document.
+
+### Task:
+- Combine them while preserving all detected headings, subheadings, and their order.
+- If similar headings appear across summaries, merge their content intelligently under one heading.
+- Ensure the final text reads like a clean, organized outline with clear section boundaries.
+- Keep the merged summary between **350 and 600 words**.
+
+---
+{block}
+"""
+                    resp = await map_llm.ainvoke([HumanMessage(content=reduce_prompt)])
+                    if state:
+                        token_usage = _extract_usage(resp)
+                        if "token_usage" not in state or state["token_usage"] is None:
+                            state["token_usage"] = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+                        state["token_usage"]["input_tokens"] += token_usage["input_tokens"]
+                        state["token_usage"]["output_tokens"] += token_usage["output_tokens"]
+                        state["token_usage"]["total_tokens"] += token_usage["total_tokens"]
+                    return resp.content.strip()
+                merged = []
+                for i in range(0, len(summaries), 5):
+                    partial = await recursive_reduce(summaries[i:i + 5])
+                    merged.append(partial)
+                return await recursive_reduce(merged)
+
+            reduced_summary = await recursive_reduce(map_results)
+            final_prompt = f"""
+{custom_prefix} 
+- **Only use the  custom gpt instructions when relevant to summarization.**
+You are writing the final comprehensive summary of a structured document.
+
+### Rules:
+- Retain headings/subheadings automatically detected.
+- Format them clearly (bold or sectioned).
+- The total length should be about **1000-2000 words**.
+- Focus on clarity and coverage rather than repetition.
+
+
+---
+{reduced_summary}
+"""
+            await send_status_update(state, "✍️ Writing per-document detailed summary...", 75)
+            final_output, _ = await stream_with_token_tracking(
+                reduce_llm,
+                [HumanMessage(content=final_prompt)],
+                chunk_callback=chunk_callback,
+                state=state
+            )
+            if chunk_callback:
+                await chunk_callback("\n\n")
+            combined_outputs.append(f"{header}{final_output.strip()}")
+        if chunk_callback:
+            await chunk_callback("\n\n")
+        return "\n\n".join(combined_outputs)
     avg_len = max(1, sum(len(c["text"]) for c in chunks) // len(chunks))
     batch_size = min(10, max(3, 8000 // avg_len))
     batches = [chunks[i:i + batch_size] for i in range(0, len(chunks), batch_size)]
@@ -943,12 +1133,64 @@ async def _process_user_docs(state, docs, user_query, rag):
     collection_name = cache_data["collection_name"]
     is_hybrid = cache_data.get("is_hybrid", "False").lower() == "true"
     
-    if is_hybrid:
-        res = await _hybrid_search_rrf(collection_name, user_query, limit=20, k=60)
-    else:
-        res = await _search_collection(collection_name, user_query, limit=20)
-    
-    return ("user", res)
+    # Diversified per-document retrieval to ensure coverage from each uploaded doc
+    async def _search_per_doc(collection_name: str, query: str, per_doc: int = 3, max_candidates: int = 200, max_docs: int = 10) -> List[Dict[str, Any]]:
+        query_embedding = await embed_query(query)
+        candidates = await asyncio.to_thread(
+            QDRANT_CLIENT.search,
+            collection_name=collection_name,
+            query_vector=query_embedding,
+            limit=max_candidates
+        )
+        # Pick distinct docs in candidate order
+        doc_keys = []  # list of (doc_id, filename, file_type)
+        seen = set()
+        for r in candidates:
+            pl = r.payload or {}
+            did = pl.get("doc_id") or pl.get("filename") or "unknown"
+            if did in seen:
+                continue
+            seen.add(did)
+            doc_keys.append((did, pl.get("filename") or "unknown", pl.get("file_type") or "unknown"))
+            if len(doc_keys) >= max_docs:
+                break
+        # Fetch top per_doc for each doc using a filter
+        async def fetch_for_doc(did: str, fname: str, ftype: str):
+            flt = models.Filter(
+                must=[models.FieldCondition(key="doc_id", match=models.MatchValue(value=did))]
+            )
+            res = await asyncio.to_thread(
+                QDRANT_CLIENT.search,
+                collection_name=collection_name,
+                query_vector=query_embedding,
+                limit=per_doc,
+                query_filter=flt
+            )
+            return {
+                "doc_id": did,
+                "filename": fname,
+                "file_type": ftype,
+                "chunks": [p.payload.get("text", "") for p in res if p.payload and p.payload.get("text")]
+            }
+        per_doc_results = await asyncio.gather(*[fetch_for_doc(*t) for t in doc_keys])
+        return [r for r in per_doc_results if r.get("chunks")]
+
+    per_doc_sets = await _search_per_doc(collection_name, user_query, per_doc=3, max_candidates=200, max_docs=10)
+    if not per_doc_sets:
+        # Fallback to previous behavior
+        if is_hybrid:
+            res = await _hybrid_search_rrf(collection_name, user_query, limit=20, k=60)
+        else:
+            res = await _search_collection(collection_name, user_query, limit=20)
+        return ("user", res)
+
+    # Build grouped blocks with filename/type headers
+    grouped_blocks: List[str] = []
+    for entry in per_doc_sets:
+        header = f"=== Document: {entry['filename']} ({entry['file_type']}) ==="
+        body = "\n".join(entry["chunks"]) if entry.get("chunks") else ""
+        grouped_blocks.append(f"{header}\n{body}")
+    return ("user", grouped_blocks)
 
 async def _process_kb_docs(state, kb_docs, user_query, rag):
     """
