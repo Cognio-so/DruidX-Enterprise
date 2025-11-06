@@ -109,7 +109,7 @@ class VoiceAssistant:
         tools: List[Callable] = None,
         openai_model: str = "gpt-4.1-nano",
         deepgram_stt_model: str = "nova-2",
-        deepgram_tts_model: str = "aura-orpheus-en",
+        deepgram_tts_model: str = "aura-2-ophelia-en",
         initial_greeting: str = "Greet the user warmly, introduce yourself as a voice assistant, and offer your assistance.",
         enable_parallel_tts: bool = False,
     ):
