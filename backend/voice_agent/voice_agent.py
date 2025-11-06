@@ -21,7 +21,7 @@ from livekit.agents import (
     JobProcess,
     AudioConfig,
     BackgroundAudioPlayer,
-    BuiltinAudioClip,
+    # BuiltinAudioClip,
     stt,
     tts,
     ConversationItemAddedEvent,
@@ -128,10 +128,14 @@ class VoiceAssistant:
         self.deepgram_tts_model = deepgram_tts_model
         self.initial_greeting = initial_greeting
         self.enable_parallel_tts = enable_parallel_tts
+
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+
+        audio_file_path = os.path.join(current_dir, "assets", "web_search_bgm.mp3")
         self.background_audio = BackgroundAudioPlayer(
             # ambient_sound=AudioConfig(BuiltinAudioClip.OFFICE_AMBIENCE, volume=0.1),
             thinking_sound=[
-                AudioConfig(BuiltinAudioClip.KEYBOARD_TYPING2, volume=0.3),
+                AudioConfig(audio_file_path, volume=0.1),
             ],
         )
 
