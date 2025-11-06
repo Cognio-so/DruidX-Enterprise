@@ -118,6 +118,10 @@ export function useChatSession(): ChatSessionHook {
           description: gpt.description,
           gpt_id: gptId,
           userId: gpt.userId,  // Include userId for MCP operations
+          image: gpt.imageEnabled || false,
+          video: gpt.videoEnabled || false,
+          imageModel: gpt.imageModel || undefined,
+          videoModel: gpt.videoModel || undefined,
         };
 
         setGptConfig(gptConfigData);

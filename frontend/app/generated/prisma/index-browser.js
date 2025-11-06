@@ -182,6 +182,10 @@ exports.Prisma.GptScalarFieldEnum = {
   hybridRag: 'hybridRag',
   image: 'image',
   knowledgeBase: 'knowledgeBase',
+  imageEnabled: 'imageEnabled',
+  videoEnabled: 'videoEnabled',
+  imageModel: 'imageModel',
+  videoModel: 'videoModel',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

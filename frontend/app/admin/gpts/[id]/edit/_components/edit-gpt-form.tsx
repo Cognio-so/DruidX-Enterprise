@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTransition, useRef } from "react";
+import { useTransition, useRef, useState } from "react";
 import { Loader2, Sparkle } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -34,6 +34,8 @@ import { ImageUploader } from "../../../create-gpt/_components/ImageUploader";
 import { RichTextEditor } from "@/components/rich-text-editor/Editor";
 import DocsUploader from "../../../create-gpt/_components/DocsUploader";
 import { PreviewGpt } from "../../../create-gpt/_components/preview-gpt";
+import { ImageModelDialog } from "../../../create-gpt/_components/ImageModelDialog";
+import { VideoModelDialog } from "../../../create-gpt/_components/VideoModelDialog";
 import { GptFormValues, gptSchema } from "@/lib/zodSchema";
 import { editGpt } from "../action";
 
@@ -67,6 +69,10 @@ interface EditGptFormProps {
     webBrowser: boolean;
     hybridRag: boolean;
     image: string;
+    imageEnabled?: boolean;
+    videoEnabled?: boolean;
+    imageModel?: string | null;
+    videoModel?: string | null;
     docs: string[];
   };
 }
@@ -75,6 +81,8 @@ export function EditGptForm({ gptId, initialData }: EditGptFormProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const isSubmittingRef = useRef(false);
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false);
 
   const form = useForm<GptFormValues>({
     resolver: zodResolver(gptSchema),
@@ -87,6 +95,10 @@ export function EditGptForm({ gptId, initialData }: EditGptFormProps) {
       hybridRag: initialData.hybridRag,
       docs: initialData.docs,
       imageUrl: initialData.image !== "default-avatar.png" ? initialData.image : "",
+      image: Boolean(initialData.imageEnabled ?? false),
+      video: Boolean(initialData.videoEnabled ?? false),
+      imageModel: initialData.imageModel ?? undefined,
+      videoModel: initialData.videoModel ?? undefined,
     },
   });
 
@@ -274,6 +286,74 @@ export function EditGptForm({ gptId, initialData }: EditGptFormProps) {
                   )}
                 />
 
+                {/* Image Generation Toggle */}
+                <FormField
+                  control={form.control}
+                  name="image"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5 flex-1">
+                        <FormLabel className="text-base">Enable Image Generation</FormLabel>
+                        <div className="text-sm text-muted-foreground">
+                          Allow the GPT to generate images using AI models
+                        </div>
+                        {field.value && form.watch("imageModel") && (
+                          <div className="text-sm font-medium text-primary mt-1">
+                            Selected: {form.watch("imageModel")}
+                          </div>
+                        )}
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            if (checked) {
+                              setImageDialogOpen(true);
+                            } else {
+                              form.setValue("imageModel", undefined);
+                            }
+                          }}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {/* Video Generation Toggle */}
+                <FormField
+                  control={form.control}
+                  name="video"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5 flex-1">
+                        <FormLabel className="text-base">Enable Video Generation</FormLabel>
+                        <div className="text-sm text-muted-foreground">
+                          Allow the GPT to generate videos using AI models
+                        </div>
+                        {field.value && form.watch("videoModel") && (
+                          <div className="text-sm font-medium text-primary mt-1">
+                            Selected: {form.watch("videoModel")}
+                          </div>
+                        )}
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            if (checked) {
+                              setVideoDialogOpen(true);
+                            } else {
+                              form.setValue("videoModel", undefined);
+                            }
+                          }}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
                 <Separator />
 
                 {/* Document Upload */}
@@ -310,6 +390,26 @@ export function EditGptForm({ gptId, initialData }: EditGptFormProps) {
               <PreviewGpt data={formData} />
             </TabsContent>
           </Tabs>
+
+          {/* Image Model Dialog */}
+          <ImageModelDialog
+            open={imageDialogOpen}
+            onOpenChange={setImageDialogOpen}
+            selectedModel={form.watch("imageModel")}
+            onSelect={(modelId) => {
+              form.setValue("imageModel", modelId);
+            }}
+          />
+
+          {/* Video Model Dialog */}
+          <VideoModelDialog
+            open={videoDialogOpen}
+            onOpenChange={setVideoDialogOpen}
+            selectedModel={form.watch("videoModel")}
+            onSelect={(modelId) => {
+              form.setValue("videoModel", modelId);
+            }}
+          />
         </form>
       </Form>
     </Card>

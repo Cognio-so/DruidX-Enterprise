@@ -32,6 +32,10 @@ export async function createGpt(data: {
   hybridRag: boolean;
   docs: string[];
   imageUrl?: string;
+  image: boolean;
+  video: boolean;
+  imageModel?: string;
+  videoModel?: string;
 }) {
   const session = await requireAdmin();
 
@@ -63,6 +67,10 @@ export async function createGpt(data: {
       webBrowser: validatedData.webSearch,
       hybridRag: validatedData.hybridRag,
       image: validatedData.imageUrl || "default-avatar.png",
+      imageEnabled: validatedData.image,
+      videoEnabled: validatedData.video,
+      imageModel: validatedData.imageModel || null,
+      videoModel: validatedData.videoModel || null,
       knowledgeBase:
         validatedData.docs.length > 0
           ? JSON.stringify(validatedData.docs)

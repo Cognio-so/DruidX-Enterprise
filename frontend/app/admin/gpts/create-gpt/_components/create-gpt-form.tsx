@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTransition } from "react";
+import { useTransition, useState } from "react";
 import { Loader2, Sparkle } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -34,6 +34,8 @@ import { ImageUploader } from "./ImageUploader";
 import { RichTextEditor } from "@/components/rich-text-editor/Editor";
 import DocsUploader from "./DocsUploader";
 import { PreviewGpt } from "./preview-gpt";
+import { ImageModelDialog } from "./ImageModelDialog";
+import { VideoModelDialog } from "./VideoModelDialog";
 import { GptFormValues, gptSchema } from "@/lib/zodSchema";
 import { createGpt } from "../action";
 import { KnowledgeBase } from "@/data/get-knowledge-base";
@@ -64,6 +66,8 @@ const GptModels = [
 export function CreateGptForm({ knowledgeBases = [] }: CreateGptFormProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false);
 
   const form = useForm<GptFormValues>({
     resolver: zodResolver(gptSchema),
@@ -76,6 +80,10 @@ export function CreateGptForm({ knowledgeBases = [] }: CreateGptFormProps) {
       hybridRag: false,
       docs: [],
       imageUrl: "",
+      image: false,
+      video: false,
+      imageModel: undefined,
+      videoModel: undefined,
     },
   });
 
@@ -255,6 +263,73 @@ export function CreateGptForm({ knowledgeBases = [] }: CreateGptFormProps) {
                   )}
                 />
 
+                {/* Image Generation Toggle */}
+                <FormField
+                  control={form.control}
+                  name="image"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5 flex-1">
+                        <FormLabel className="text-base">Enable Image Generation</FormLabel>
+                        <div className="text-sm text-muted-foreground">
+                          Allow the GPT to generate images using AI models
+                        </div>
+                        {field.value && form.watch("imageModel") && (
+                          <div className="text-sm font-medium text-primary mt-1">
+                            Selected: {form.watch("imageModel")}
+                          </div>
+                        )}
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            if (checked) {
+                              setImageDialogOpen(true);
+                            } else {
+                              form.setValue("imageModel", undefined);
+                            }
+                          }}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {/* Video Generation Toggle */}
+                <FormField
+                  control={form.control}
+                  name="video"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5 flex-1">
+                        <FormLabel className="text-base">Enable Video Generation</FormLabel>
+                        <div className="text-sm text-muted-foreground">
+                          Allow the GPT to generate videos using AI models
+                        </div>
+                        {field.value && form.watch("videoModel") && (
+                          <div className="text-sm font-medium text-primary mt-1">
+                            Selected: {form.watch("videoModel")}
+                          </div>
+                        )}
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            if (checked) {
+                              setVideoDialogOpen(true);
+                            } else {
+                              form.setValue("videoModel", undefined);
+                            }
+                          }}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
 
                 <Separator />
 
@@ -293,6 +368,26 @@ export function CreateGptForm({ knowledgeBases = [] }: CreateGptFormProps) {
               <PreviewGpt data={formData} />
             </TabsContent>
           </Tabs>
+
+          {/* Image Model Dialog */}
+          <ImageModelDialog
+            open={imageDialogOpen}
+            onOpenChange={setImageDialogOpen}
+            selectedModel={form.watch("imageModel")}
+            onSelect={(modelId) => {
+              form.setValue("imageModel", modelId);
+            }}
+          />
+
+          {/* Video Model Dialog */}
+          <VideoModelDialog
+            open={videoDialogOpen}
+            onOpenChange={setVideoDialogOpen}
+            selectedModel={form.watch("videoModel")}
+            onSelect={(modelId) => {
+              form.setValue("videoModel", modelId);
+            }}
+          />
         </form>
       </Form>
     </Card>

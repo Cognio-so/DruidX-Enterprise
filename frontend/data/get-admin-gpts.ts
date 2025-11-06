@@ -25,6 +25,8 @@ export async function getAdminGpts() {
       image: true,
       webBrowser: true,
       hybridRag: true,
+      imageEnabled: true,
+      videoEnabled: true,
       createdAt: true,
       updatedAt: true,
       user: {
