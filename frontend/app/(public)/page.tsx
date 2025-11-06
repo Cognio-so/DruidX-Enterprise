@@ -1,9 +1,15 @@
-import { buttonVariants } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ui/themeToggle";
-import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import HeroSection from "@/app/(public)/_components/hero-section";
+import LogoCloud from "@/app/(public)/_components/logo-cloud";
+import FeaturesSection from "@/app/(public)/_components/features-8";
+import IntegrationsSection from "@/app/(public)/_components/integrations-7";
+import WallOfLoveSection from "@/app/(public)/_components/testimonials";
+import Pricing from "@/app/(public)/_components/pricing";
+import FAQsThree from "@/components/faqs-3";
+import FooterSection from "@/app/(public)/_components/footer";
+import ContentSection from "./_components/content-7";
 
 export default async function Home() {
   const session = await auth.api.getSession({
@@ -22,18 +28,15 @@ export default async function Home() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <div className="flex flex-col justify-between items-center">
-        <Link
-          href={"/login"}
-          className={buttonVariants({
-            variant: "outline",
-          })}
-        >
-          Get Started
-        </Link>
-        <ThemeToggle />
-      </div>
-    </div>
+    <>
+      <HeroSection />
+      <FeaturesSection />
+      <IntegrationsSection />
+      <ContentSection />
+      <WallOfLoveSection />
+      <Pricing />
+      <FAQsThree />
+      <FooterSection />
+    </>
   );
 }

@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
 
 const sender = {
   email: process.env.GMAIL_USERNAME || "",
-  name: process.env.MAIL_SENDER_NAME || "EMSA",
+  name: process.env.MAIL_SENDER_NAME || "DruidX",
 };
 
 const INVITATION_EMAIL_TEMPLATE = `
@@ -20,7 +20,7 @@ const INVITATION_EMAIL_TEMPLATE = `
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Invitation to join EMSA</title>
+  <title>Invitation to join DruidX</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(to right, #4CAF50, #45a049); padding: 20px; text-align: center;">
@@ -28,14 +28,14 @@ const INVITATION_EMAIL_TEMPLATE = `
   </div>
   <div style="background-color: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
     <p>Hello {name},</p>
-    <p>You've been invited to join EMSA as a <strong>{role}</strong>. Click the button below to accept the invitation and set up your account:</p>
+    <p>You've been invited to join DruidX as a <strong>{role}</strong>. Click the button below to accept the invitation and set up your account:</p>
     {message && <p><em>"{message}"</em></p>}
     <div style="text-align: center; margin: 30px 0;">
       <a href="{invitationToken}" style="background-color: #4CAF50; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Accept Invitation</a>
     </div>
     <p>This invitation link will expire in 7 days for security reasons.</p>
     <p>If you didn't expect this invitation, please ignore this email.</p>
-    <p>Best regards,<br>The EMSA Team</p>
+    <p>Best regards,<br>The DruidX Team</p>
   </div>
   <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
     <p>This is an automated message, please do not reply to this email.</p>
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const subject = "Invitation to join EMSA";
+    const subject = "Invitation to join DruidX";
     const htmlBody = INVITATION_EMAIL_TEMPLATE.replace("{name}", name)
       .replace("{role}", role)
       .replace("{message}", message || "")

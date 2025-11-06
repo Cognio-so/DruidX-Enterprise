@@ -12,11 +12,11 @@ export function MobileHeader() {
     <header className="flex items-center justify-between p-4 border-b md:hidden">
       <SidebarTrigger className="h-8 w-8" />
       
-      {/* EMSA Logo in center */}
+      {/* DruidX Logo in center */}
       <div className="flex-1 flex justify-center ">
         <Image
-          src="/Horizontal EMSA logo.png"
-          alt="EMSA"
+          src="/Horizontal DruidX logo.png"
+          alt="DruidX"
           width={120}
           height={40}
           className="h-8 w-auto bg-white rounded-md"
