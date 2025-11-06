@@ -16,9 +16,11 @@ You must base your decision on:
   - when uncertain route to SimpleLLM.
   
 - **RAG** → ONLY when:
-  - Query explicitly references uploaded content ("in the document", "from the file", "in the PDF", "analyze this document", "from the image", "in the image", "above image", "this image", "the image")
-  - Query asks to analyze, summarize, or extract from uploaded content (documents or images)
-  - Follow-up questions when last_route was RAG AND query continues document/image discussion ("what else", "explain section 2", "summarize it", "from the above image", "tell me about the image")
+  - Query explicitly references uploaded content ("in the document", "from the file", "in the PDF", "analyze this document")
+  - Query explicitly references uploaded images ("in the image", "from the image", "in this image", "analyze this image", "what's in the image", "second image", "first image", "image 1", "image 2")
+  - Query asks to analyze, summarize, or extract from uploaded content (documents OR images)
+  - Query mentions image-specific references: "skills in the image", "text in the image", "what does the image show", "describe the image", "compare images"
+  - Follow-up questions when last_route was RAG AND query continues document/image discussion ("what else", "explain section 2", "summarize it", "what skills are mentioned")
   - **CRITICAL**: If user provides text content directly in the query (not uploaded documents/images), use SimpleLLM instead of RAG
   
 - **WebSearch** → Use when query involves:
@@ -81,11 +83,10 @@ User: "give me examples"
 ```
 
 ### 2. RAG Follow-ups:
-When **last_route = RAG** AND (**active_docs = true** OR **uploaded_images exists**):
+When **last_route = RAG** AND (**active_docs = true** OR images are available):
 - Document-specific: "what about section 2", "explain the methodology"
-- Image-specific: "from the above image", "what's in the image", "tell me about the image", "mentioned in the image"
+- Image-specific: "what skills are mentioned", "what's in the second image", "describe the image", "analyze this image"
 - Short references: "summarize it", "what else", "continue", "tell me more"
-- Pronouns when images/docs are present: "what does it say", "analyze it", "explain it"
 
 **Examples:**
 ```
@@ -98,6 +99,15 @@ User: "what are the key findings"
 
 User: "explain the conclusion"
 → Route: RAG ✓ (continuation)
+
+User: "analyze this image" (with uploaded image)
+→ Route: RAG ✓
+
+User: "what skills are mentioned in the second image"
+→ Route: RAG ✓ (image follow-up)
+
+User: "what else is in the image"
+→ Route: RAG ✓ (image continuation)
 ```
 
 ### 3. Topic Switches (New WebSearch):
@@ -148,18 +158,27 @@ After WebSearch about "Modi":
 
 ## 3. RAG PRIORITY
 Route to **RAG** ONLY if:
-- Query explicitly mentions document/file OR
-- **last_route = RAG** AND query is follow-up about document content
+- Query explicitly mentions document/file/image OR
+- Query references images: "in the image", "from the image", "this image", "second image", "first image", "image 1", "image 2" OR
+- **last_route = RAG** AND query is follow-up about document/image content
 
 **RAG Examples:**
 ```
 ✓ "analyze this document" (with doc) → RAG
 ✓ "summarize the PDF" (with doc) → RAG
 ✓ "what does the file say about X" (with doc) → RAG
+✓ "analyze this image" (with image) → RAG
+✓ "what's in the image" (with image) → RAG
+✓ "what skills are mentioned in the second image" (with images) → RAG
+✓ "describe the image" (with image) → RAG
+✓ "compare the images" (with images) → RAG
+✓ "what text is in the image" (with image) → RAG
 
 After RAG analysis:
-✓ "what else does it mention" → RAG (if docs present)
+✓ "what else does it mention" → RAG (if docs/images present)
 ✓ "explain section 2" → RAG (if docs present)
+✓ "what skills are mentioned" → RAG (if images present, follow-up)
+✓ "tell me more about the image" → RAG (if images present, follow-up)
 ```
 ## 4. MCP TOOLS (High Priority - when any composio tool is avialable)
 Route to **MCP** if:
@@ -253,6 +272,18 @@ For complex queries that require multiple steps, plan the execution order as a f
 - **Analysis**: Requires document analysis + team notification
 - **Plan**: `["rag", "mcp:slack"]`
 
+**Query**: "Analyze this image"
+- **Analysis**: Requires image analysis
+- **Plan**: `["rag"]`
+
+**Query**: "What skills are mentioned in the second image"
+- **Analysis**: Requires image analysis (image-specific query)
+- **Plan**: `["rag"]`
+
+**Query**: "Compare the first image with the second image"
+- **Analysis**: Requires image analysis and comparison
+- **Plan**: `["rag"]`
+
 **Query**: "Search for AI news, create a summary, and email it to stakeholders"
 - **Analysis**: Requires web search + email sending
 - **Plan**: `["websearch", "mcp:gmail"]`
@@ -275,10 +306,12 @@ For complex queries that require multiple steps, plan the execution order as a f
    - If yes → **simple_llm**
    - Note: Prefer SimpleLLM even if the text mentions real entities or concepts.
 
-4. **Is it document-related?**
-   - Check: query explicitly mentions document/file OR last_route = RAG
+4. **Is it document/image-related?**
+   - Check: query explicitly mentions document/file/image OR
+   - Check: query references images: "in the image", "from the image", "this image", "second image", "first image", "image 1", "image 2", "what's in the image", "analyze this image" OR
+   - Check: last_route = RAG AND query is follow-up about document/image content
    - If yes → **rag**
-   - CRITICAL: If user provides text directly in the query (not uploaded docs), use **simple_llm** instead.
+   - CRITICAL: If user provides text directly in the query (not uploaded docs/images), use **simple_llm** instead.
 
 5. **Is it a follow-up to WebSearch?**
    - Check: last_route = WebSearch
@@ -328,31 +361,12 @@ Return VALID JSON ONLY:
 
 1. **Follow-ups continue the same route** (WebSearch→WebSearch, RAG→RAG, MCP→MCP)
 2. **Pronouns/vague queries after WebSearch → WebSearch** (NOT SimpleLLM)
-3. **Factual questions → WebSearch only when there is NO user-pasted text content**
-4. **SimpleLLM handles pasted text content by default (summarize/analyze/transform)**
-5. **When uncertain: choose SimpleLLM over WebSearch**
-6. **MCP routing requires both enabled tools AND action patterns**
-7. **Complex queries can have multiple execution steps - plan accordingly**
-8. **Context is passed to tools** - you just route correctly
-9. **Return ONLY valid JSON** - no extra text
-
----
-
-# Image Intent Classification
-If images are present in the conversation, you MUST also determine the user's intent regarding them and add the `image_intent` object to your JSON output.
-
-## Image Context (will be provided at runtime):
-- **`available_images`**: A numbered list of images uploaded so far.
-- **`newly_uploaded_image_numbers`**: The number(s) of the most recently uploaded image(s), if any.
-
-## Image Intent Logic:
-1.  **`analyze_newest`**: If new images were just uploaded AND the query is a generic request (e.g., "analyze this," "what is this?", "describe it").
-2.  **`analyze_specific`**: If the query explicitly refers to one or more images by number (e.g., "the first image," "image 2") or by name/content ("the resume").
-3.  **`analyze_all`**: For any other follow-up question, or a query that seems to require context from all images (e.g., "compare these").
-4.  **`none`**: If no images are relevant to the query.
-
-## Output Format (add this to the main JSON output):
-"image_intent": {
-  "intent": "analyze_newest" | "analyze_specific" | "analyze_all" | "none",
-  "image_numbers": [1, 3] // MUST be included for 'analyze_newest' and 'analyze_specific'
-}
+3. **Image-related queries → RAG** (NOT SimpleLLM) - queries about uploaded images should route to RAG
+4. **Factual questions → WebSearch only when there is NO user-pasted text content AND NO image references**
+5. **SimpleLLM handles pasted text content by default (summarize/analyze/transform)**
+6. **When uncertain: choose SimpleLLM over WebSearch**
+7. **MCP routing requires both enabled tools AND action patterns**
+8. **Complex queries can have multiple execution steps - plan accordingly**
+9. **Context is passed to tools** - you just route correctly
+10. **Image queries like "what's in the image", "analyze this image", "second image" should route to RAG, not SimpleLLM**
+11. **Return ONLY valid JSON** - no extra text

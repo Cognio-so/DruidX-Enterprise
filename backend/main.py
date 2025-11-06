@@ -309,20 +309,31 @@ async def add_documents_by_url(session_id: str, request: dict):
     if doc_type == "user":
        
         session["uploaded_docs"] = processed_docs
-        session["new_uploaded_docs"] = processed_docs
-        uploaded_images_metadata = []
-        for img in uploaded_images:
-            clean_img = {
-                "filename": img.get("filename"),
-                "file_url": img.get("file_url"),
-                "file_type": img.get("file_type"),
-                "id": img.get("id"),
-                "size": img.get("size")
+      
+       
+        uploaded_files= []
+        # for img in uploaded_images:
+        #     clean_img = {
+        #         "filename": img.get("filename"),
+        #         "file_url": img.get("file_url"),
+        #         "file_type": img.get("file_type"),
+        #         "id": img.get("id"),
+        #         "size": img.get("size")
+        #     }
+        #     uploaded_files.append(clean_img)
+        for d in processed_docs:
+            clean_doc = {
+                "filename": d.get("filename"),
+                "file_url": d.get("file_url"),
+                "file_type": "image" if d.get("file_type") == "image" else "document",  # Check d.get("file_type") instead of is_image
+                "id": d.get("id"),
+                "size": d.get("size")
             }
-            uploaded_images_metadata.append(clean_img)
-        
-        session["uploaded_images"] = uploaded_images_metadata
-        print(f"[MAIN] {len(uploaded_images_metadata)} image(s) metadata stored (file_url), bytes not stored in session")
+            uploaded_files.append(clean_doc)
+        session.setdefault("new_uploaded_docs", []).extend(uploaded_files)
+        print(f"uploaded_files------------------------------//: {session['new_uploaded_docs']}")
+
+
 
         try:
             from Rag.Rag import preprocess_user_documents, clear_user_doc_cache, preprocess_images, clear_image_cache
@@ -497,13 +508,14 @@ async def stream_chat(session_id: str, request: ChatRequest):
                         "id": doc.get("id"),
                         "size": doc.get("size", 0)
                     })
-        
+        newly_uploaded_docs_metadata = session.get("new_uploaded_docs", [])
+
         state = GraphState(
             user_query=request.message,
             llm_model=llm_model,
             messages=session["messages"],
             doc=uploaded_docs_content,
-            new_uploaded_docs=new_uploaded_docs_content,
+            new_uploaded_docs=newly_uploaded_docs_metadata,
             uploaded_images=uploaded_images_metadata,  # Only metadata with file_url, no bytes
             gpt_config=gpt_config,
             kb=kb_docs_structured,

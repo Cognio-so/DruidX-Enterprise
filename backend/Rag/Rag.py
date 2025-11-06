@@ -287,10 +287,48 @@ async def preprocess_images(uploaded_images: List[Dict[str, Any]], state: GraphS
         
         analysis = await extract_text_from_image(file_content, filename, state)
         await redis_client.hset(session_cache_key, filename, analysis)
-        
+        # Push filename to ordered list and compute 1-based image index
         await redis_client.rpush(order_key, filename)
+        image_index = await redis_client.llen(order_key)
 
         print(f"[ImagePreprocessor] Cached analysis for '{filename}' in session {session_id}")
+
+        # Embed the analysis into separate image collection in Qdrant
+        try:
+            collection_name = f"user_images_{session_id}"
+            collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
+            collections = [c.name for c in collections_response.collections]
+            if collection_name not in collections:
+                await asyncio.to_thread(
+                    QDRANT_CLIENT.recreate_collection,
+                    collection_name=collection_name,
+                    vectors_config=models.VectorParams(size=VECTOR_SIZE, distance=models.Distance.COSINE),
+                )
+            embs = await embed_chunks_parallel([analysis], batch_size=1)
+            payload = {
+                "text": analysis,
+                "filename": filename,
+                "file_url": file_url or "",
+                "file_type": image_data.get("file_type", "image"),
+                "id": image_data.get("id"),
+                "size": image_data.get("size", 0),
+                "image_index": image_index,  # 1-based position in session order
+                "source": "image",
+            }
+            await asyncio.to_thread(
+                QDRANT_CLIENT.upsert,
+                collection_name=collection_name,
+                points=[
+                    models.PointStruct(
+                        id=str(uuid.uuid4()),
+                        vector=embs[0],
+                        payload=payload,
+                    )
+                ],
+            )
+            print(f"[ImagePreprocessor] Upserted image analysis embedding for {filename} (index {image_index})")
+        except Exception as e:
+            print(f"[ImagePreprocessor] Failed to embed/upsert image analysis for {filename}: {e}")
 
     if redis_client and uploaded_images:
         await redis_client.expire(session_cache_key, 86400) 
@@ -435,6 +473,78 @@ import asyncio
 async def _bm25_scores(bm25, tokenized_query):
     """Run BM25 scoring in a thread to avoid blocking the async loop."""
     return await asyncio.to_thread(bm25.get_scores, tokenized_query)
+
+async def _search_image_collection(
+    session_id: str, 
+    query: str, 
+    limit: int = 8,
+    filter_image_ids: Optional[List[str]] = None,
+    filter_image_indices: Optional[List[int]] = None
+) -> List[str]:
+    """
+    Semantic search over embedded image analyses for this session.
+    
+    Args:
+        session_id: Session identifier
+        query: Search query
+        limit: Maximum results to return
+        filter_image_ids: Optional list of image IDs to filter by
+        filter_image_indices: Optional list of image indices (1-based) to filter by
+    """
+    collection_name = f"user_images_{session_id}"
+    try:
+        query_embedding = await embed_query(query)
+        
+        # Build filter if image IDs or indices are provided
+        # Priority: Use IDs if available (most reliable), otherwise use indices
+        query_filter = None
+        if filter_image_ids:
+            # Use IDs for filtering (most reliable)
+            query_filter = models.Filter(
+                must=[
+                    models.FieldCondition(
+                        key="id",
+                        match=models.MatchAny(any=filter_image_ids)
+                    )
+                ]
+            )
+        elif filter_image_indices:
+            # Fallback to indices if no IDs provided
+            query_filter = models.Filter(
+                must=[
+                    models.FieldCondition(
+                        key="image_index",
+                        match=models.MatchAny(any=filter_image_indices)
+                    )
+                ]
+            )
+        
+        results = await asyncio.to_thread(
+            QDRANT_CLIENT.search,
+            collection_name=collection_name,
+            query_vector=query_embedding,
+            limit=limit,
+            query_filter=query_filter
+        )
+    except Exception as e:
+        print(f"[IMAGE-SEARCH] Error searching image collection: {e}")
+        return []
+    
+    blocks: List[str] = []
+    for r in results:
+        p = r.payload or {}
+        fname = p.get("filename", "unknown")
+        idx = p.get("image_index")
+        txt = p.get("text", "")
+        img_id = p.get("id", "")
+        
+        # Mark if this is a newly uploaded image
+        is_new = " (NEWLY UPLOADED)" if filter_image_ids and img_id in filter_image_ids else ""
+        header = f"=== Image {idx if idx else ''}: {fname}{is_new} ===".strip()
+        if txt:
+            blocks.append(f"{header}\n{txt}")
+    
+    return blocks
 
 async def _hybrid_search_rrf(collection_name: str, query: str, limit: int, k: int = 60) -> List[str]:
     """
@@ -674,6 +784,113 @@ You **MUST** respond with a single, valid JSON object and nothing else.
             "search_strategy": "both" if (has_user_docs and has_kb) else "user_only" if has_user_docs else "kb_only",
             "reasoning": "Fallback due to parsing error"
         }
+async def intelligent_image_selection(
+    user_query: str,
+    newly_uploaded_docs_metadata: List[Dict[str, Any]],
+    llm_model: str = "gpt-4o-mini"
+) -> Dict[str, Any]:
+    """
+    Use LLM to intelligently decide which images to use based on:
+    - Newly uploaded images in metadata
+    - User query (explicit image references like "first image", "this image")
+    
+    Returns:
+        {
+            "use_new_images_only": bool,  # Use only newly uploaded images
+            "selected_image_ids": List[str],  # Specific image IDs to use
+            "selected_image_indices": List[int],  # Specific image indices (1-based)
+            "reasoning": str
+        }
+    """
+    new_images = [doc for doc in newly_uploaded_docs_metadata if doc.get("file_type") == "image"]
+    new_image_ids = [img.get("id") for img in new_images if img.get("id")]
+    new_image_filenames = [img.get("filename", "") for img in new_images]
+    query_lower = user_query.lower()
+    has_explicit_ref = any([
+        "first image" in query_lower,
+        "second image" in query_lower,
+        "third image" in query_lower,
+        "image 1" in query_lower,
+        "image 2" in query_lower,
+        "image 3" in query_lower,
+        "this image" in query_lower,
+        "that image" in query_lower,
+        "compare" in query_lower and "image" in query_lower
+    ])
+    
+    if not new_images:
+        return {
+            "use_new_images_only": False,
+            "selected_image_ids": [],
+            "selected_image_indices": [],
+            "reasoning": "No newly uploaded images found"
+        }
+    if has_explicit_ref:
+        classification_prompt = f"""
+You are an image selection orchestrator. Analyze the user query and decide which images to use.
+
+**User Query:** "{user_query}"
+
+**Newly Uploaded Images:**
+{chr(10).join([f"- Image {i+1}: {img.get('filename', 'unknown')} (ID: {img.get('id', 'unknown')})" for i, img in enumerate(new_images)])}
+
+**Decision Rules:**
+1. If the query mentions "first image", "image 1", or "this image" (and only one image was uploaded), use that image.
+2. If the query mentions "second image", "image 2", use the second image if available.
+3. If the query mentions "compare" with images, use the images mentioned.
+4. If the query is generic (like "analyze", "what's in this", "describe") AND images were just uploaded, use ALL newly uploaded images.
+5. If the query doesn't mention images explicitly but images were just uploaded, use ALL newly uploaded images.
+
+**Output Format:**
+Respond with a JSON object:
+{{
+    "use_new_images_only": true/false,
+    "selected_image_ids": ["id1", "id2"] or [],
+    "selected_image_indices": [1, 2] or [],
+    "reasoning": "Brief explanation"
+}}
+
+If you want to use all new images, set selected_image_ids to all new image IDs.
+If you want specific images, set selected_image_ids to those IDs only.
+"""
+        try:
+            llm = ChatGroq(
+                model="openai/gpt-oss-120b",
+                temperature=0.2,
+                groq_api_key=os.getenv("GROQ_API_KEY")
+            )
+            response = await llm.ainvoke([HumanMessage(content=classification_prompt)])
+            
+            import json
+            import re
+            content = response.content.strip()
+            if content.startswith('```json'):
+                content = re.sub(r'^```json\s*', '', content)
+            if content.endswith('```'):
+                content = re.sub(r'\s*```$', '', content)
+            
+            result = json.loads(content)
+            valid_ids = [img.get("id") for img in new_images if img.get("id")]
+            if result.get("selected_image_ids"):
+                result["selected_image_ids"] = [id for id in result["selected_image_ids"] if id in valid_ids]
+            
+            print(f"[IMAGE-ORCHESTRATOR] Decision: {result['reasoning']}")
+            return result
+        except Exception as e:
+            print(f"[IMAGE-ORCHESTRATOR] Parse error: {e}, defaulting to all new images")
+            return {
+                "use_new_images_only": True,
+                "selected_image_ids": new_image_ids,
+                "selected_image_indices": list(range(1, len(new_images) + 1)),
+                "reasoning": "Fallback: using all newly uploaded images"
+            }
+    return {
+        "use_new_images_only": True,
+        "selected_image_ids": new_image_ids,
+        "selected_image_indices": list(range(1, len(new_images) + 1)),
+        "reasoning": "Generic query with newly uploaded images - using all new images"
+    }
+
 async def is_summarization_query(user_query: str) -> bool:
     """
     Detect if the query asks for summarization of the entire document.
@@ -1244,138 +1461,7 @@ async def Rag(state: GraphState) -> GraphState:
 
     redis_client = await ensure_redis_client()
     image_analysis_cache = await redis_client.hgetall(f"image_cache:{session_id}")
-    image_intent = state.get("image_intent", {"intent": "none"})
-    intent = image_intent.get("intent", "none")
-
-    if intent != "none":
-        print(f"[RAG] Found image intent '{intent}'. Proceeding with image-related query flow.")
-        image_analysis_cache = {}
-        image_order = []
-        if redis_client:
-            image_analysis_cache = await redis_client.hgetall(f"image_cache:{session_id}")
-            image_order = await redis_client.lrange(f"image_order:{session_id}", 0, -1)
-
-        if not image_analysis_cache:
-            print("[RAG] Warning: Image intent was present, but image analysis cache is empty.")
-            pass
-        else:
-            selected_images = {}
-            
-            if intent in ["analyze_newest", "analyze_specific"]:
-                image_numbers = image_intent.get("image_numbers", [])
-                for num in image_numbers:
-                    if 0 < num <= len(image_order):
-                        filename = image_order[num - 1] 
-                        if filename in image_analysis_cache:
-                            selected_images[filename] = image_analysis_cache[filename]
-            elif intent == "analyze_all":
-                selected_images = image_analysis_cache
-            if not selected_images and image_analysis_cache:
-                selected_images = image_analysis_cache
-
-            print(f"[RAG] Using {len(selected_images)} image(s) based on Orchestrator intent: '{intent}'")
-            combined_analysis_parts = []
-            if image_order:
-                for i, filename in enumerate(image_order):
-                    if filename in selected_images:
-                        analysis = selected_images[filename]
-                        combined_analysis_parts.append(f"**Image {i + 1}: {filename}**\n{analysis}")
-            
-            combined_analysis = "\n\n".join(combined_analysis_parts)
-            await send_status_update(state, "🧠 Deciding whether to use Knowledge Base with image...", 40)
-            augmented_query_for_decision = f"User Query: '{user_query}'\n\n--- Image Analysis Context ---\n{combined_analysis}"
-            
-            source_decision = await intelligent_source_selection(
-                user_query=augmented_query_for_decision,
-                has_user_docs=True, 
-                has_kb=has_kb,
-                custom_prompt=custom_system_prompt,
-                llm_model=llm_model
-            )
-            use_kb = source_decision.get("use_kb", False)
-
-            llm = get_llm(llm_model, temperature=0.7)
-            final_answer = ""
-            kb_result = [] 
-            
-            if not use_kb:
-               
-                await send_status_update(state, "✍️ Generating answer from image...", 50)
-                prompt = f"""The user asked: "{user_query}"
-
-Here is a detailed analysis of the relevant image(s):
-{combined_analysis}
-
-Based ONLY on the image analysis, provide a comprehensive answer."""
-
-                final_answer, _ = await stream_with_token_tracking(
-                    llm,
-                    [HumanMessage(content=prompt)],
-                    chunk_callback=chunk_callback,
-                    state=state
-                )
-            else:
-                await send_status_update(state, "🔍 Searching knowledge base with image context...", 50)
-                
-                if has_kb:
-                    collection_name = f"kb_{session_id}"
-                    cache_key = f"kb_cache:{collection_name}"
-                    redis_client = await ensure_redis_client()
-                    cache_data = {}
-                    if redis_client:
-                        cache_data = await redis_client.hgetall(cache_key)
-
-                    if cache_data:
-                        is_hybrid = cache_data.get("is_hybrid", "False").lower() == "true"
-                        search_query = f"{user_query} {combined_analysis}"
-                        
-                        if is_hybrid:
-                            kb_result = await _hybrid_search_intersection(collection_name, search_query, limit=3)
-                        else:
-                            kb_result = await _hybrid_search_rrf(collection_name, search_query, limit=5, k=60)
-                        print(f"[RAG-IMAGE] Retrieved {len(kb_result)} KB chunks")
-
-                await send_status_update(state, "✍️ Generating answer from image and KB...", 90)
-                context_parts = [
-                    f"USER QUESTION: {user_query}",
-                    f"\nIMAGE DETAILS:\n{combined_analysis}"
-                ]
-                if kb_result:
-                    context_parts.append(f"\nKNOWLEDGE BASE CONTEXT:\n{chr(10).join(kb_result)}")
-                if custom_system_prompt:
-                    context_parts.append(f"\nCUSTOM GPT INSTRUCTIONS:\n{custom_system_prompt}")
-
-                answer_prompt = f"""You are an AI assistant answering a user's question about an image with help from a knowledge base.
-
-**Your task:** Provide a comprehensive answer by combining information from the image analysis and the knowledge base.
-
----
-{chr(10).join(context_parts)}
-"""
-                final_answer, _ = await stream_with_token_tracking(
-                    llm,
-                    [HumanMessage(content=answer_prompt)],
-                    chunk_callback=chunk_callback,
-                    state=state
-                )
-
-            state["response"] = final_answer
-            state.setdefault("intermediate_results", []).append({
-                "node": "RAG",
-                "query": user_query,
-                "strategy": "image_analysis_with_kb" if use_kb else "image_analysis_only",
-                "sources_used": {
-                    "images": len(selected_images),
-                    "kb": len(kb_result)
-                },
-                "output": state["response"]
-            })
-            await send_status_update(state, "✅ Image analysis completed", 100)
-            return state
-
-    # If we are here, it means it's a standard document-based RAG query
-    print("[RAG] No image intent detected. Proceeding with standard document RAG flow.")
-
+    
     if await is_summarization_query(user_query):
         print("[RAG] Detected summarization intent — switching to Hierarchical Summarizer.")
         await send_status_update(state, "🧠 Summarizing entire document...", 20)
@@ -1431,6 +1517,9 @@ Based ONLY on the image analysis, provide a comprehensive answer."""
     print(f"[RAG] Document availability - User docs: {has_user_docs}, KB: {has_kb}")
     parallel_tasks = []
 
+    # Get newly uploaded docs metadata
+    newly_uploaded_docs_metadata = state.get("new_uploaded_docs", [])
+
     intelligence_task = asyncio.create_task(
         intelligent_source_selection(
             user_query=user_query,
@@ -1441,6 +1530,16 @@ Based ONLY on the image analysis, provide a comprehensive answer."""
         )
     )
     parallel_tasks.append(("intelligence", intelligence_task))
+
+    # Intelligent image selection orchestrator
+    image_selection_task = asyncio.create_task(
+        intelligent_image_selection(
+            user_query=user_query,
+            newly_uploaded_docs_metadata=newly_uploaded_docs_metadata,
+            llm_model=llm_model
+        )
+    )
+    parallel_tasks.append(("image_selection", image_selection_task))
 
     if has_user_docs:
         user_search_task = asyncio.create_task(
@@ -1458,8 +1557,10 @@ Based ONLY on the image analysis, provide a comprehensive answer."""
     results = await asyncio.gather(*[task for _, task in parallel_tasks], return_exceptions=True)
 
     source_decision = None
+    image_selection_result = None
     user_result = []
     kb_result = []
+    images_result = []
     
     for i, (task_name, _) in enumerate(parallel_tasks):
         result = results[i]
@@ -1469,10 +1570,52 @@ Based ONLY on the image analysis, provide a comprehensive answer."""
             
         if task_name == "intelligence":
             source_decision = result
+        elif task_name == "image_selection":
+            image_selection_result = result
         elif task_name == "user_search" and isinstance(result, tuple) and len(result) == 2:
             user_result = result[1]
         elif task_name == "kb_search" and isinstance(result, tuple) and len(result) == 2:
             kb_result = result[1]
+
+    if image_selection_result:
+        filter_ids = image_selection_result.get("selected_image_ids", [])
+        filter_indices = image_selection_result.get("selected_image_indices", [])
+        print(f"[RAG] Image orchestrator decision: {image_selection_result.get('reasoning')}")
+        print(f"[RAG] Filtering images by IDs: {filter_ids}, Indices: {filter_indices}")
+        
+        # Get actual image_index from Qdrant for the selected IDs
+        actual_indices = []
+        if filter_ids:
+            try:
+                collection_name = f"user_images_{session_id}"
+                scroll_out, _ = await asyncio.to_thread(
+                    QDRANT_CLIENT.scroll,
+                    collection_name=collection_name,
+                    limit=1000
+                )
+                for point in scroll_out:
+                    payload = point.payload or {}
+                    img_id = payload.get("id")
+                    if img_id in filter_ids:
+                        idx = payload.get("image_index")
+                        if idx:
+                            actual_indices.append(idx)
+                print(f"[RAG] Mapped IDs to actual indices from Qdrant: {actual_indices}")
+            except Exception as e:
+                print(f"[RAG] Error getting actual indices from Qdrant: {e}")
+                actual_indices = filter_indices  # Fallback to provided indices
+        
+        # Use IDs for filtering (most reliable), and actual indices as backup
+        images_result = await _search_image_collection(
+            session_id, 
+            user_query, 
+            limit=8,
+            filter_image_ids=filter_ids if filter_ids else None,
+            filter_image_indices=actual_indices if actual_indices else (filter_indices if filter_indices else None)
+        )
+    else:
+        # Fallback: search all images
+        images_result = await _search_image_collection(session_id, user_query, limit=8)
 
     if not source_decision:
         print(f"[RAG] Intelligence failed, defaulting to all sources")
@@ -1522,6 +1665,13 @@ Based ONLY on the image analysis, provide a comprehensive answer."""
     if kb_result and use_kb:
         print(f"kb gwdsjqfifsdgilghsdfiushleroge.................")
         context_parts.append(f"\nKNOWLEDGE BASE CONTEXT:\n{chr(10).join(kb_result)}")
+    # Add image embedding results
+    if images_result:
+        context_parts.append(f"\nIMAGE DOCUMENT CONTEXT:\n{chr(10).join(images_result)}")
+    # If we have cached image intent context and no embedding hits yet
+    img_intent_ctx = state.get("image_intent_context")
+    if img_intent_ctx and not images_result:
+        context_parts.append(f"\nIMAGE ANALYSIS CONTEXT (cached):\n{img_intent_ctx}")
     
     if not user_result and not kb_result:
         context_parts.append("\nNO RETRIEVAL CONTEXT: No relevant documents were found. Provide a helpful response based on general knowledge and conversation history.")
