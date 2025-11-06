@@ -34,6 +34,7 @@ class GraphState(TypedDict, total=False):
     active_docs: Optional[Dict[str, Any]]
     resolved_queries: Optional[List[Dict[str, Any]]]
     _chunk_callback: Optional[Callable] 
+    _status_callback: Optional[Callable]  # Status callback for status updates
     deep_research_state: Optional[Dict[str, Any]]  
     deep_research_query: Optional[str]
     deep_research_llm_model: Optional[str]  

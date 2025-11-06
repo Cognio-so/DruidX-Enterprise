@@ -28,18 +28,35 @@ else:
 # At top of websearch.py
 PROMPT_PATH = os.path.join(os.path.dirname(__file__), "websearch.md")
 BASIC_PROMPT_PATH = os.path.join(os.path.dirname(__file__), "websearch_basic.md")
-async def send_status_update(state: GraphState, message: str, progress: int = None):
+async def send_status_update(state: GraphState, message: str, progress: int = None, status: str = "processing"):
     """Send status update if callback is available"""
-    if hasattr(state, '_status_callback') and state._status_callback:
-        await state._status_callback({
+    print(f"[WebSearch] send_status_update called: message={message}, status={status}")
+    
+    # GraphState is a TypedDict, so access it like a dictionary
+    status_callback = state.get("_status_callback")
+    
+    if status_callback:
+        print(f"[WebSearch] ✅ Status callback found, sending update")
+        status_data = {
             "type": "status",
             "data": {
-                "status": "processing",
+                "status": status,
                 "message": message,
                 "current_node": "WebSearch",
                 "progress": progress
             }
-        })
+        }
+        print(f"[WebSearch] Status data: {status_data}")
+        try:
+            await status_callback(status_data)
+            print(f"[WebSearch] ✅ Status callback executed successfully")
+        except Exception as e:
+            print(f"[WebSearch] ❌ Error calling status callback: {e}")
+            import traceback
+            traceback.print_exc()
+    else:
+        print(f"[WebSearch] ⚠️ WARNING: No status callback available in state!")
+        print(f"[WebSearch] State keys: {list(state.keys()) if isinstance(state, dict) else 'N/A'}")
 def load_prompt(path: str, fallback: str) -> str:
     try:
         with open(path, "r", encoding="utf-8") as f:
@@ -228,7 +245,7 @@ Now synthesize them into a clear, structured answer with:
         "query": query,
         "output": state["response"]
     })
-        await send_status_update(state, "✅ Web search completed", 100)
+        await send_status_update(state, "✅ Web search completed", 100, status="completed")
 
     except Exception as e:
         state["response"] = f"Web search formatting failed: {e}"

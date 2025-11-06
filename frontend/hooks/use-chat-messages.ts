@@ -14,6 +14,12 @@ interface StatusPhase {
   [key: string]: any;
 }
 
+interface WebSearchStatus {
+  isActive: boolean;
+  message: string;
+  progress?: number;
+}
+
 interface ChatMessagesHook {
   messages: any[];
   isLoading: boolean;
@@ -37,10 +43,11 @@ interface ChatMessagesHook {
     maxIterations?: number;
     status?: "pending" | "active" | "completed";
   }>;
+  webSearchStatus: WebSearchStatus;
 }
 
 export function useChatMessages(sessionId: string | null): ChatMessagesHook {
-  const { messages, isLoading, error, sendMessage, clearMessages, addMessage, approvalRequest, clearApprovalRequest, currentPhase, researchPhases } = useStreamingChat(sessionId || '');
+  const { messages, isLoading, error, sendMessage, clearMessages, addMessage, approvalRequest, clearApprovalRequest, currentPhase, researchPhases, webSearchStatus } = useStreamingChat(sessionId || '');
 
   const handleSendMessage = useCallback(async (message: string, options: {
     web_search?: boolean;
@@ -75,5 +82,6 @@ export function useChatMessages(sessionId: string | null): ChatMessagesHook {
     clearApprovalRequest,
     currentPhase,
     researchPhases,
+    webSearchStatus,
   };
 }
