@@ -188,9 +188,7 @@ async def analyze_query(
     recent_messages_text: str,
     session_summary: str,
     last_route: str | None,
-    available_composio_tools: List[str] = None,
-    image_context: Dict[str, Any] = None,
-    is_new_upload: bool = False,
+    available_composio_tools: List[str] = None,  # Add this parameter
 ) -> Optional[Dict[str, Any]]:
     """
     Analyze the user's message in context (conversation, summary, last route)
@@ -204,25 +202,13 @@ async def analyze_query(
     """
 
     try:
+        # Add available composio tools to the prompt
         composio_tools_text = ""
         if available_composio_tools and len(available_composio_tools) > 0:
             composio_tools_text = f"\nAvailable Composio Tools: {', '.join(available_composio_tools)}"
         else:
             composio_tools_text = "\nAvailable Composio Tools: None"
-        image_context_text = ""
-        if image_context and image_context.get("available_images"):
-            image_list_str = "\n".join(image_context["available_images"])
-            newly_uploaded_numbers = image_context.get("newly_uploaded_image_numbers", [])
-            newly_uploaded_str = ", ".join(map(str, newly_uploaded_numbers))
-            
-            image_context_text = f"""
----
-# Image Context
-- **Available Images:**
-{image_list_str}
-- **Newly Uploaded Image Numbers:** [{newly_uploaded_str or "None"}]
-"""
-
+        
         prompt = (
             prompt_template
             .replace("{user_message}", user_message)
@@ -231,6 +217,8 @@ async def analyze_query(
             .replace("{last_route}", str(last_route or "None"))
         )
         system_msg = SystemMessage(content=STATIC_SYS)
+        
+        # Create dynamic text separately (NOT part of system prompt)
         dynamic_context = f"""
         User Message:
         {user_message}
@@ -238,8 +226,7 @@ async def analyze_query(
         Recent Messages:
         {recent_messages_text[:300] or '(none)'}
 
-        Last Route: {last_route or 'None'}
-        newly_uploaded_document: {is_new_upload}{composio_tools_text}{image_context_text}
+        Last Route: {last_route or 'None'}{composio_tools_text}
         """
 
         messages = [system_msg, HumanMessage(content=dynamic_context)]
@@ -316,6 +303,7 @@ Follow these permanent rules:
             last_msgs.append(f"{speaker}: {content}")
         recent_text = "\n".join(last_msgs)
 
+        # ADD THE USER QUERY TO CONTEXT
         context_text = (
             f"Current User Goal: {user_query}\n\n"
             f"Summary:\n{summary[:300]}\n\nRecent Conversation:\n{recent_text[:300]}"
@@ -394,8 +382,8 @@ def normalize_route(name: str) -> str:
         "rag": "RAG",
         "simple_llm": "SimpleLLM",
         "llm": "SimpleLLM",
-        "mcp": "MCP", 
-        "composio": "MCP",  
+        "mcp": "MCP",  # Add MCP mapping
+        "composio": "MCP",  # Add composio mapping
         "end": "END",
     }
     return mapping.get(key, name)
@@ -405,11 +393,8 @@ async def orchestrator(state: GraphState) -> GraphState:
     docs = state.get("doc", [])
     llm_model = state.get("llm_model", "gpt-4o")
     rag = state.get("rag", False)
-
-    newly_uploaded_docs = state.get("new_uploaded_docs", [])
-    is_new_upload = bool(newly_uploaded_docs)
-    
-    print(f" Uploaded doc in this turn ..------------------ {is_new_upload}")
+    uploaded_doc=state.get("uploaded_doc", False)
+    print(f" Uploaded doc in sthis ..------------------", uploaded_doc)
     deep_search = state.get("deep_search", False)
     mcp = state.get("mcp", False)
     mcp_schema = state.get("mcp_schema", {})
@@ -425,8 +410,6 @@ async def orchestrator(state: GraphState) -> GraphState:
         print("[Orchestrator] Initialized active_docs as None.")
     available_composio_tools = state.get("enabled_composio_tools", [])
     print(f"Enlabled composio tools", state.get("enabled_composio_tools", []))
-    user_images = state.get("uploaded_images", [])
-    
     if new_Doc:
         state["active_docs"]=new_Doc
     if not state.get("tasks"):
@@ -463,25 +446,6 @@ async def orchestrator(state: GraphState) -> GraphState:
         session_summary = sess.get("summary", "")
         recent_messages_text = _format_last_turns_for_prompt(messages, k=2)
         
-        image_context = {}
-        session_id = state.get("session_id")
-        if session_id:
-            from redis_client import ensure_redis_client
-            redis_client = await ensure_redis_client()
-            if redis_client:
-                image_order = await redis_client.lrange(f"image_order:{session_id}", 0, -1)
-                if image_order:
-                    image_context["available_images"] = [f"{i+1}. {name}" for i, name in enumerate(image_order)]
-                
-                newly_uploaded_filenames = [img.get("filename") for img in state.get("uploaded_images", []) if img.get("filename")]
-                if newly_uploaded_filenames and image_order:
-                    try:
-                        
-                        start_index = image_order.index(newly_uploaded_filenames[0])
-                        image_context["newly_uploaded_image_numbers"] = list(range(start_index + 1, start_index + 1 + len(newly_uploaded_filenames)))
-                    except ValueError:
-                        pass
-
         analyze_task = analyze_query(
             user_message=user_query,
             prompt_template=prompt_template,
@@ -490,8 +454,6 @@ async def orchestrator(state: GraphState) -> GraphState:
             session_summary=session_summary,
             last_route=last_route,
             available_composio_tools=available_composio_tools,
-            image_context=image_context,
-            is_new_upload=is_new_upload,
         )
         
         tentative_rewrite_task = rewrite_query(state)
@@ -503,15 +465,19 @@ async def orchestrator(state: GraphState) -> GraphState:
     
      
     if not state.get("tasks"):
+        # Deep search is now handled by separate endpoint, not through orchestrator
         plan = result.get("execution_order", []) if result else ["SimpleLLM"]
-        if result and "image_intent" in result:
-            state["image_intent"] = result["image_intent"]
-            print(f"[Orchestrator] Saved image intent to state: {result['image_intent']}")
+        if uploaded_doc:
+            print(f"hi......................")
+            if len(plan) == 1 and plan[0].lower() == "rag":
+                pass  
+            elif len(plan) == 1 and plan[0].lower() != "rag":
+                plan = ["rag"]
+            elif len(plan) == 0:
+                plan = ["rag"]
+            else:
+                pass
 
-        if is_new_upload:
-            print("[Orchestrator] New document uploaded. Analyzer will be instructed to prioritize it via the prompt.")
-
-            plan = ["rag"] 
             print(f"[Orchestrator] New doc uploaded → updated plan = {plan}")
 
         
@@ -526,6 +492,7 @@ async def orchestrator(state: GraphState) -> GraphState:
         if len(plan)==1 and plan[0]=="rag":
                 state["resolved_query"] = user_query
         else:
+               # Use the tentative rewrite from parallel execution
                state["resolved_query"] = tentative_rewrite
        
         state["route"] = route
@@ -558,7 +525,7 @@ async def orchestrator(state: GraphState) -> GraphState:
         else: 
             if len(state["tasks"]) > 1:
                 print(f"--- Multi-step plan ({len(state['tasks'])} steps) finished, combining results directly ---")
-                
+                # Combine all intermediate results into final_answer
                 if state.get("intermediate_results"):
                     combined_results = []
                     for result in state["intermediate_results"]:
@@ -592,12 +559,14 @@ async def orchestrator(state: GraphState) -> GraphState:
 def route_decision(state: GraphState) -> str:
     route = state.get("route", "SimpleLLM")
     
-    
+    # Handle MCP routes with tool names
     if route.startswith("mcp:"):
         tool_name = route.replace("mcp:", "")
-        state["mcp_tools_needed"] = tool_name  
+        state["mcp_tools_needed"] = tool_name  # Set the specific tool needed
         print(f"Extracted MCP tool: {tool_name}")
         return "MCP"
+    
+    # Add MCP routing
     if route.lower() in ["mcp", "composio"]:
         return "MCP"
     
