@@ -92,7 +92,7 @@ export function ImageModelDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh]">
+      <DialogContent className="max-w-2xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Select Image Generation Model</DialogTitle>
           <DialogDescription>
@@ -103,28 +103,44 @@ export function ImageModelDialog({
           <RadioGroup
             value={tempSelected}
             onValueChange={setTempSelected}
-            className="space-y-4"
+            className="space-y-3"
           >
-            {IMAGE_MODELS.map((model) => (
-              <div
-                key={model.id}
-                className="flex items-start space-x-3 rounded-lg border p-4 hover:bg-accent transition-colors"
-              >
-                <RadioGroupItem value={model.id} id={model.id} className="mt-1" />
-                <Label
-                  htmlFor={model.id}
-                  className="flex-1 cursor-pointer space-y-1"
+            {IMAGE_MODELS.map((model) => {
+              const isSelected = tempSelected === model.id;
+              return (
+                <div
+                  key={model.id}
+                  className={`relative flex items-start gap-3 rounded-lg border-2 p-4 transition-all cursor-pointer ${
+                    isSelected
+                      ? "border-primary bg-primary/5 shadow-sm"
+                      : "border-border hover:border-primary/50 hover:bg-accent/50"
+                  }`}
+                  onClick={() => setTempSelected(model.id)}
                 >
-                  <div className="font-semibold">{model.name}</div>
-                  <div className="text-sm text-muted-foreground font-mono">
-                    {model.id}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {model.description}
-                  </div>
-                </Label>
-              </div>
-            ))}
+                  <RadioGroupItem
+                    value={model.id}
+                    id={model.id}
+                    className="mt-0.5 flex-shrink-0"
+                  />
+                  <Label
+                    htmlFor={model.id}
+                    className="flex-1 cursor-pointer space-y-1.5 min-w-0"
+                  >
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className="font-semibold text-base leading-tight">
+                        {model.name}
+                      </span>
+                      <span className="text-xs text-muted-foreground font-mono leading-tight">
+                        ({model.id})
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {model.description}
+                    </p>
+                  </Label>
+                </div>
+              );
+            })}
           </RadioGroup>
         </ScrollArea>
         <DialogFooter>
