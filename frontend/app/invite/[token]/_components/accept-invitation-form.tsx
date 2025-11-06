@@ -61,7 +61,7 @@ export function AcceptInvitationForm({
       <CardHeader className="text-center">
         <UserPlus className="h-12 w-12 text-blue-500 mx-auto mb-4" />
         <CardTitle>You&apos;re Invited!</CardTitle>
-        <CardDescription>You&apos;ve been invited to join EMSA</CardDescription>
+        <CardDescription>You&apos;ve been invited to join DruidX</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-center space-y-2">

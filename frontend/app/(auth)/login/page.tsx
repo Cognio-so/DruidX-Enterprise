@@ -1,6 +1,6 @@
 import { LoginForm } from "./_components/login-form";
 import Image from "next/image";
-import logo from "@/public/EMSA logo.png";
+import logo from "@/public/DruidX logo.png";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -12,7 +12,7 @@ export default function LoginPage() {
           className="flex items-center gap-2 self-center font-medium"
         >
           <Image src={logo} alt="logo" className="size-8" />
-          EMSA
+          DruidX
         </Link>
         <LoginForm />
       </div>

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useSidebar } from "@/components/ui/sidebar";
 import Image from "next/image";
-import logo from "@/public/EMSA logo.png";
+import logo from "@/public/DruidX logo.png";
 import { User2Icon } from "lucide-react";
 
 interface TeamSwitcherProps {
@@ -23,12 +23,12 @@ export function TeamSwitcher({
       <>
         <Image
           src={logo}
-          alt="EMSA Logo"
+          alt="DruidX Logo"
           className="w-8 h-8 rounded-full transition-all duration-300"
         />
         {showName && (
           <span className="text-sm font-semibold text-sidebar-foreground transition-opacity duration-300">
-            EMSA
+            DruidX
           </span>
         )}
       </>
