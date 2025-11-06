@@ -714,8 +714,20 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
         
         async def chunk_callback(chunk_content: str):
             nonlocal full_response
-            full_response += chunk_content
             
+            # Check if this is a JSON status/event message
+            try:
+                if chunk_content.strip().startswith('{') and chunk_content.strip().endswith('}'):
+                    parsed = json.loads(chunk_content.strip())
+                    if parsed.get("type") in ["status", "approval_required"]:
+                        # Send as special event, don't add to full_response
+                        await queue.put(parsed)
+                        return
+            except (json.JSONDecodeError, ValueError):
+                pass
+            
+            # Regular content - add to full_response
+            full_response += chunk_content
           
             await asyncio.sleep(0.05) 
             
@@ -768,6 +780,35 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
                         async for node_result in deep_research_graph.astream(state):
                             print(f"🔥 DEEP RESEARCH NODE RESULT: {list(node_result.keys())}")
                             final_state = node_result
+                            
+                            # Update state with node results first
+                            for node_name, node_state in node_result.items():
+                                if isinstance(node_state, dict):
+                                    # Debug: Check for approval event in node_state before merging
+                                    print(f"🔥 Node {node_name} state keys: {list(node_state.keys())[:10]}...")  # Show first 10 keys
+                                    if "_approval_event" in node_state:
+                                        print(f"🔥 Found _approval_event in node_state for {node_name}: {node_state.get('_approval_event')}")
+                                    
+                                    state.update(node_state)
+                            
+                            # Check if any node set an approval event (check both state and node_state)
+                            approval_event = None
+                            if "_approval_event" in state:
+                                approval_event = state["_approval_event"]
+                                print(f"🔥 Found _approval_event in state: {approval_event}")
+                                del state["_approval_event"]
+                            else:
+                                # Also check node_state directly in case it wasn't merged
+                                for node_name, node_state in node_result.items():
+                                    if isinstance(node_state, dict) and "_approval_event" in node_state:
+                                        approval_event = node_state["_approval_event"]
+                                        print(f"🔥 Found _approval_event in node_state for {node_name}: {approval_event}")
+                                        break
+                            
+                            if approval_event:
+                                print(f"🔥 Sending approval event to frontend: {approval_event}")
+                                # Send approval event to frontend
+                                await queue.put(approval_event)
                     except Exception as e:
                         print(f"--- ERROR in deep research graph execution: {e}")
                         await queue.put({
@@ -871,6 +912,48 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
     except Exception as e:
         print(f"=== ERROR IN STREAM_DEEP_RESEARCH ===")
         print(f"Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/sessions/{session_id}/deepresearch/approval")
+async def handle_research_approval(session_id: str, request: dict):
+    """
+    Handle user approval/rejection of research plan
+    Accepts: {"approved": bool, "feedback": string}
+    """
+    try:
+        approved = request.get("approved", False)
+        feedback = request.get("feedback", "").strip()
+        
+        session = await SessionManager.get_session(session_id)
+        pending_approval = session.get("pending_approval")
+        
+        if not pending_approval or pending_approval.get("status") != "waiting":
+            raise HTTPException(
+                status_code=400, 
+                detail="No pending approval request found for this session"
+            )
+        
+        # Update approval status
+        session["pending_approval"] = {
+            **pending_approval,
+            "status": "approved" if approved else "rejected",
+            "feedback": feedback,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        await SessionManager.update_session(session_id, session)
+        
+        return {
+            "success": True,
+            "approved": approved,
+            "message": "Approval decision recorded"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error handling approval: {e}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

@@ -5,4 +5,5 @@ def route_deep_research(state: GraphState) -> str:
     """
     Route between deep research nodes based on state
     """
-    return state.get("route", "END")
+    route = state.get("route", "END")
+    return route

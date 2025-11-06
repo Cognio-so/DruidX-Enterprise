@@ -1,73 +1,120 @@
 from graph_type import GraphState
+import json
+import asyncio
 
 async def human_approval_node(state: GraphState) -> GraphState:
     """
     Human approval node for Deep Research planning phase
-    Shows the research plan to user and waits for approval/rejection
-    For testing: gets approval from terminal
+    Generates plan, sends to frontend for approval, waits for response
+    If approved → execute_research, if rejected → plan_research
     """
-    research_state_dict = state["deep_research_state"]
-    research_plan = research_state_dict.get("research_plan", [])
-
+    session_id = state.get("session_id")
     chunk_callback = state.get("_chunk_callback")
+    research_state_dict = state.get("deep_research_state", {})
+    research_plan = research_state_dict.get("research_plan", [])
+    
+    print(f"🔥 HUMAN_APPROVAL: Research plan length: {len(research_plan)}")
 
-    approval_intro = "## 👤 Human Approval Required\n\n"
-    approval_intro += "**Research Plan Generated:**\n\n"
-    
-    for i, query in enumerate(research_plan, 1):
-        approval_intro += f"{i}. {query}\n"
-    
-    approval_intro += f"\n**Total Research Questions:** {len(research_plan)}\n\n"
-    approval_intro += "⏳ **Waiting for your approval...**\n\n"
-    for i, query in enumerate(research_plan, 1):
-        print(f"{i}. {query}")
-    print("\n" + "="*60)
+    # Store approval state in session
+    if session_id:
+        from main import SessionManager
+        session = await SessionManager.get_session(session_id)
+        session["pending_approval"] = {
+            "plan": research_plan,
+            "session_id": session_id,
+            "status": "waiting"
+        }
+        await SessionManager.update_session(session_id, session)
 
-    while True:
-        user_input = input("Do you approve this research plan? (y/n): ").lower().strip()
-        if user_input in ['y', 'yes']:
-            is_approved = True
-            break
-        elif user_input in ['n', 'no']:
-            is_approved = False
-            break
-        else:
-            print("Please enter 'y' for yes or 'n' for no.")
+    # Send approval event to frontend
+    approval_event = {
+        "type": "approval_required",
+        "data": {
+            "plan": research_plan,
+            "total_questions": len(research_plan)
+        }
+    }
+    print(f"🔥 HUMAN_APPROVAL: Sending approval event to frontend")
     
-    print("="*60)
+    if chunk_callback:
+        await chunk_callback(json.dumps(approval_event))
+        await chunk_callback(json.dumps({
+            "type": "status",
+            "data": {
+                "phase": "waiting_approval",
+                "message": "Review the research plan and approve to continue"
+            }
+        }))
     
-    if is_approved:
-        print("✅ APPROVED! Proceeding to research execution...")
-        if chunk_callback:
-            await chunk_callback("✅ **Approved! Proceeding to research execution...**\n\n")
-        state["route"] = "execute_research"
-    else:
-        user_feedback = input("\nYour feedback: ").strip()
+    # Wait for approval (poll session)
+    print("⏳ Waiting for user approval...")
+    max_wait_time = 300  # 5 minutes timeout
+    wait_interval = 0.5  # Check every 0.5 seconds
+    waited_time = 0
+    
+    while waited_time < max_wait_time:
+        await asyncio.sleep(wait_interval)
+        waited_time += wait_interval
         
-        if user_feedback:
-            research_state_dict.setdefault("plan_history", []).append({
-                "attempt": research_state_dict.get("planning_attempts", 0) + 1,
-                "plan": research_plan.copy(),
-                "feedback": user_feedback,
-                "timestamp": "now"  
-            })
-            research_state_dict.setdefault("user_feedback", []).append(user_feedback)
-
-            research_state_dict["planning_attempts"] = research_state_dict.get("planning_attempts", 0) + 1
-            
-            print(f"\n📝 Feedback recorded: {user_feedback}")
-            print(f"🔄 Planning attempt: {research_state_dict['planning_attempts']}")
-            print("🔄 Regenerating research plan with your feedback...")
-            
-            if chunk_callback:
-                await chunk_callback(f"❌ **Rejected! Feedback collected.**\n\n")
-                await chunk_callback(f"📝 **Your feedback:** {user_feedback}\n\n")
-                await chunk_callback(f"🔄 **Regenerating plan (Attempt {research_state_dict['planning_attempts']})...**\n\n")
-        else:
-            print("⚠️ No feedback provided. Regenerating with previous context...")
-            if chunk_callback:
-                await chunk_callback("❌ **Rejected! No feedback provided. Regenerating plan...**\n\n")
+        # Check session for approval
+        session = await SessionManager.get_session(session_id)
+        pending_approval = session.get("pending_approval")
         
-        state["route"] = "plan_research"
+        if pending_approval and pending_approval.get("status") != "waiting":
+            approval_status = pending_approval.get("status")
+            feedback = pending_approval.get("feedback", "")
+            
+            print(f"✅ Approval received: {approval_status}")
+            
+            # Mark waiting_approval as completed
+            if chunk_callback:
+                await chunk_callback(json.dumps({
+                    "type": "status",
+                    "data": {
+                        "phase": "waiting_approval",
+                        "message": "Approval received",
+                        "status": "completed"
+                    }
+                }))
+            
+            if approval_status == "approved":
+                # Approved → proceed to execution
+                state["route"] = "execute_research"
+            else:
+                # Rejected → regenerate plan with feedback
+                if feedback:
+                    research_state_dict.setdefault("plan_history", []).append({
+                        "attempt": research_state_dict.get("planning_attempts", 0) + 1,
+                        "plan": pending_approval.get("plan", []),
+                        "feedback": feedback,
+                        "timestamp": "now"
+                    })
+                    research_state_dict.setdefault("user_feedback", []).append(feedback)
+                    research_state_dict["planning_attempts"] = research_state_dict.get("planning_attempts", 0) + 1
+                    
+                    if chunk_callback:
+                        await chunk_callback(f"❌ **Rejected! Feedback collected.**\n\n")
+                        await chunk_callback(f"📝 **Your feedback:** {feedback}\n\n")
+                        await chunk_callback(f"🔄 **Regenerating plan (Attempt {research_state_dict['planning_attempts']})...**\n\n")
+                else:
+                    if chunk_callback:
+                        await chunk_callback("❌ **Rejected! No feedback provided. Regenerating plan...**\n\n")
+                
+                state["route"] = "plan_research"
+            
+            # Update state
+            state["deep_research_state"] = research_state_dict
+            
+            # Clear pending approval
+            session["pending_approval"] = None
+            await SessionManager.update_session(session_id, session)
+            
+            print(f"✅ Route set to: {state['route']}")
+            return state
     
+    # Timeout - cancel research
+    print("⏰ Approval timeout, canceling research")
+    if chunk_callback:
+        await chunk_callback("⏰ **Approval timeout. Canceling research...**\n\n")
+    state["route"] = "END"
     return state

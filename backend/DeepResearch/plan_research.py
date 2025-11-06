@@ -32,9 +32,18 @@ async def plan_research_node(state: GraphState) -> GraphState:
             
             
     else:
-        planning_intro = "## 🔍 Research Planning Phase\n\nAnalyzing your query and generating research questions...\n\n"
+        # Send status event instead of content for planning phase
+        # This will be handled by frontend to show shimmer/loading state
         if chunk_callback:
-            await chunk_callback(planning_intro)
+            # Send status event for planning phase
+            import json
+            await chunk_callback(json.dumps({
+                "type": "status",
+                "data": {
+                    "phase": "planning",
+                    "message": "Analyzing your query and generating research questions..."
+                }
+            }))
 
     base_prompt = PROMPTS['planning_prompt_template'].format(
         system_prompt=PROMPTS['system_prompt'],
@@ -92,15 +101,23 @@ Generate a research plan that follows the user feedback exactly.
     else:
         planning_prompt = base_prompt
 
-    generating_msg = "🤔 **Generating research plan...**\n\n"
-    if chunk_callback:
-        await chunk_callback(generating_msg)
+    # Don't send generating message as content - status event already sent
+    # generating_msg = "🤔 **Generating research plan...**\n\n"
+    # if chunk_callback:
+    #     await chunk_callback(generating_msg)
     print(f"llm..................", llm_model)
     llm2 = get_reasoning_llm(llm_model)
+    
+    # Create a no-op callback for planning phase to suppress content streaming
+    # We only want status events, not the actual plan content (plan will be shown in dialog)
+    async def planning_chunk_callback(chunk_content: str):
+        # Suppress content during planning - we'll show it in the approval dialog instead
+        pass
+    
     response_text, _ = await stream_with_token_tracking(
         llm2,
         [HumanMessage(content=planning_prompt)],
-        chunk_callback=chunk_callback,
+        chunk_callback=planning_chunk_callback,  # Use no-op callback to suppress content
         state=state
     )
     sub_questions = []
@@ -117,13 +134,17 @@ Generate a research plan that follows the user feedback exactly.
     state["response"] = ""
     state["route"] = "human_approval" if sub_questions else "END"
     if sub_questions:
-        msg = (
-            f"\n\n✅ **{'Regenerated' if planning_attempts > 0 else 'Complete'}!** "
-            f"Generated {len(sub_questions)} research questions.**\n\n"
-            "**Proceeding to human approval...**"
-        )
+        # Send status event instead of content
+        import json
         if chunk_callback:
-            await chunk_callback(msg)
+            await chunk_callback(json.dumps({
+                "type": "status",
+                "data": {
+                    "phase": "planning_complete",
+                    "message": f"Generated {len(sub_questions)} research questions",
+                    "questions_count": len(sub_questions)
+                }
+            }))
     else:
         err = "\n\n❌ **No valid questions parsed. Please refine your query.**"
         if chunk_callback:
