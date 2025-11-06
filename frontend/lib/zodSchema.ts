@@ -45,6 +45,27 @@ export const gptSchema = z.object({
     .max(10, { message: "You can upload at most 10 documents" }),
 
   imageUrl: z.string().optional(),
+
+  image: z.boolean(),
+  video: z.boolean(),
+  imageModel: z.string().optional(),
+  videoModel: z.string().optional(),
+}).refine((data) => {
+  if (data.image && !data.imageModel) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Please select an image model when image generation is enabled",
+  path: ["imageModel"],
+}).refine((data) => {
+  if (data.video && !data.videoModel) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Please select a video model when video generation is enabled",
+  path: ["videoModel"],
 });
 
 export type GptFormValues = z.infer<typeof gptSchema>;

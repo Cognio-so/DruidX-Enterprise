@@ -88,6 +88,10 @@ model Gpt {
   hybridRag           Boolean              @default(false)
   image               String
   knowledgeBase       String?
+  imageEnabled        Boolean              @default(false)
+  videoEnabled        Boolean              @default(false)
+  imageModel          String?
+  videoModel          String?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   assignedToUsers     AssignGpt[]

@@ -6521,6 +6521,10 @@ export namespace Prisma {
     hybridRag: boolean | null
     image: string | null
     knowledgeBase: string | null
+    imageEnabled: boolean | null
+    videoEnabled: boolean | null
+    imageModel: string | null
+    videoModel: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -6536,6 +6540,10 @@ export namespace Prisma {
     hybridRag: boolean | null
     image: string | null
     knowledgeBase: string | null
+    imageEnabled: boolean | null
+    videoEnabled: boolean | null
+    imageModel: string | null
+    videoModel: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -6551,6 +6559,10 @@ export namespace Prisma {
     hybridRag: number
     image: number
     knowledgeBase: number
+    imageEnabled: number
+    videoEnabled: number
+    imageModel: number
+    videoModel: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -6568,6 +6580,10 @@ export namespace Prisma {
     hybridRag?: true
     image?: true
     knowledgeBase?: true
+    imageEnabled?: true
+    videoEnabled?: true
+    imageModel?: true
+    videoModel?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -6583,6 +6599,10 @@ export namespace Prisma {
     hybridRag?: true
     image?: true
     knowledgeBase?: true
+    imageEnabled?: true
+    videoEnabled?: true
+    imageModel?: true
+    videoModel?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -6598,6 +6618,10 @@ export namespace Prisma {
     hybridRag?: true
     image?: true
     knowledgeBase?: true
+    imageEnabled?: true
+    videoEnabled?: true
+    imageModel?: true
+    videoModel?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -6686,6 +6710,10 @@ export namespace Prisma {
     hybridRag: boolean
     image: string
     knowledgeBase: string | null
+    imageEnabled: boolean
+    videoEnabled: boolean
+    imageModel: string | null
+    videoModel: string | null
     createdAt: Date
     updatedAt: Date
     _count: GptCountAggregateOutputType | null
@@ -6718,6 +6746,10 @@ export namespace Prisma {
     hybridRag?: boolean
     image?: boolean
     knowledgeBase?: boolean
+    imageEnabled?: boolean
+    videoEnabled?: boolean
+    imageModel?: boolean
+    videoModel?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -6738,6 +6770,10 @@ export namespace Prisma {
     hybridRag?: boolean
     image?: boolean
     knowledgeBase?: boolean
+    imageEnabled?: boolean
+    videoEnabled?: boolean
+    imageModel?: boolean
+    videoModel?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -6754,6 +6790,10 @@ export namespace Prisma {
     hybridRag?: boolean
     image?: boolean
     knowledgeBase?: boolean
+    imageEnabled?: boolean
+    videoEnabled?: boolean
+    imageModel?: boolean
+    videoModel?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -6770,11 +6810,15 @@ export namespace Prisma {
     hybridRag?: boolean
     image?: boolean
     knowledgeBase?: boolean
+    imageEnabled?: boolean
+    videoEnabled?: boolean
+    imageModel?: boolean
+    videoModel?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type GptOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "description" | "model" | "instruction" | "webBrowser" | "hybridRag" | "image" | "knowledgeBase" | "createdAt" | "updatedAt", ExtArgs["result"]["gpt"]>
+  export type GptOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "description" | "model" | "instruction" | "webBrowser" | "hybridRag" | "image" | "knowledgeBase" | "imageEnabled" | "videoEnabled" | "imageModel" | "videoModel" | "createdAt" | "updatedAt", ExtArgs["result"]["gpt"]>
   export type GptInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     assignedToUsers?: boolean | Gpt$assignedToUsersArgs<ExtArgs>
@@ -6808,6 +6852,10 @@ export namespace Prisma {
       hybridRag: boolean
       image: string
       knowledgeBase: string | null
+      imageEnabled: boolean
+      videoEnabled: boolean
+      imageModel: string | null
+      videoModel: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["gpt"]>
@@ -7247,6 +7295,10 @@ export namespace Prisma {
     readonly hybridRag: FieldRef<"Gpt", 'Boolean'>
     readonly image: FieldRef<"Gpt", 'String'>
     readonly knowledgeBase: FieldRef<"Gpt", 'String'>
+    readonly imageEnabled: FieldRef<"Gpt", 'Boolean'>
+    readonly videoEnabled: FieldRef<"Gpt", 'Boolean'>
+    readonly imageModel: FieldRef<"Gpt", 'String'>
+    readonly videoModel: FieldRef<"Gpt", 'String'>
     readonly createdAt: FieldRef<"Gpt", 'DateTime'>
     readonly updatedAt: FieldRef<"Gpt", 'DateTime'>
   }
@@ -14247,6 +14299,10 @@ export namespace Prisma {
     hybridRag: 'hybridRag',
     image: 'image',
     knowledgeBase: 'knowledgeBase',
+    imageEnabled: 'imageEnabled',
+    videoEnabled: 'videoEnabled',
+    imageModel: 'imageModel',
+    videoModel: 'videoModel',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -14779,6 +14835,10 @@ export namespace Prisma {
     hybridRag?: BoolFilter<"Gpt"> | boolean
     image?: StringFilter<"Gpt"> | string
     knowledgeBase?: StringNullableFilter<"Gpt"> | string | null
+    imageEnabled?: BoolFilter<"Gpt"> | boolean
+    videoEnabled?: BoolFilter<"Gpt"> | boolean
+    imageModel?: StringNullableFilter<"Gpt"> | string | null
+    videoModel?: StringNullableFilter<"Gpt"> | string | null
     createdAt?: DateTimeFilter<"Gpt"> | Date | string
     updatedAt?: DateTimeFilter<"Gpt"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -14798,6 +14858,10 @@ export namespace Prisma {
     hybridRag?: SortOrder
     image?: SortOrder
     knowledgeBase?: SortOrderInput | SortOrder
+    imageEnabled?: SortOrder
+    videoEnabled?: SortOrder
+    imageModel?: SortOrderInput | SortOrder
+    videoModel?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     user?: UserOrderByWithRelationInput
@@ -14820,6 +14884,10 @@ export namespace Prisma {
     hybridRag?: BoolFilter<"Gpt"> | boolean
     image?: StringFilter<"Gpt"> | string
     knowledgeBase?: StringNullableFilter<"Gpt"> | string | null
+    imageEnabled?: BoolFilter<"Gpt"> | boolean
+    videoEnabled?: BoolFilter<"Gpt"> | boolean
+    imageModel?: StringNullableFilter<"Gpt"> | string | null
+    videoModel?: StringNullableFilter<"Gpt"> | string | null
     createdAt?: DateTimeFilter<"Gpt"> | Date | string
     updatedAt?: DateTimeFilter<"Gpt"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -14839,6 +14907,10 @@ export namespace Prisma {
     hybridRag?: SortOrder
     image?: SortOrder
     knowledgeBase?: SortOrderInput | SortOrder
+    imageEnabled?: SortOrder
+    videoEnabled?: SortOrder
+    imageModel?: SortOrderInput | SortOrder
+    videoModel?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: GptCountOrderByAggregateInput
@@ -14860,6 +14932,10 @@ export namespace Prisma {
     hybridRag?: BoolWithAggregatesFilter<"Gpt"> | boolean
     image?: StringWithAggregatesFilter<"Gpt"> | string
     knowledgeBase?: StringNullableWithAggregatesFilter<"Gpt"> | string | null
+    imageEnabled?: BoolWithAggregatesFilter<"Gpt"> | boolean
+    videoEnabled?: BoolWithAggregatesFilter<"Gpt"> | boolean
+    imageModel?: StringNullableWithAggregatesFilter<"Gpt"> | string | null
+    videoModel?: StringNullableWithAggregatesFilter<"Gpt"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Gpt"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Gpt"> | Date | string
   }
@@ -15644,6 +15720,10 @@ export namespace Prisma {
     hybridRag?: boolean
     image: string
     knowledgeBase?: string | null
+    imageEnabled?: boolean
+    videoEnabled?: boolean
+    imageModel?: string | null
+    videoModel?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutGptInput
@@ -15663,6 +15743,10 @@ export namespace Prisma {
     hybridRag?: boolean
     image: string
     knowledgeBase?: string | null
+    imageEnabled?: boolean
+    videoEnabled?: boolean
+    imageModel?: string | null
+    videoModel?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
@@ -15680,6 +15764,10 @@ export namespace Prisma {
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
+    imageEnabled?: BoolFieldUpdateOperationsInput | boolean
+    videoEnabled?: BoolFieldUpdateOperationsInput | boolean
+    imageModel?: NullableStringFieldUpdateOperationsInput | string | null
+    videoModel?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutGptNestedInput
@@ -15699,6 +15787,10 @@ export namespace Prisma {
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
+    imageEnabled?: BoolFieldUpdateOperationsInput | boolean
+    videoEnabled?: BoolFieldUpdateOperationsInput | boolean
+    imageModel?: NullableStringFieldUpdateOperationsInput | string | null
+    videoModel?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
@@ -15717,6 +15809,10 @@ export namespace Prisma {
     hybridRag?: boolean
     image: string
     knowledgeBase?: string | null
+    imageEnabled?: boolean
+    videoEnabled?: boolean
+    imageModel?: string | null
+    videoModel?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -15731,6 +15827,10 @@ export namespace Prisma {
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
+    imageEnabled?: BoolFieldUpdateOperationsInput | boolean
+    videoEnabled?: BoolFieldUpdateOperationsInput | boolean
+    imageModel?: NullableStringFieldUpdateOperationsInput | string | null
+    videoModel?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -15746,6 +15846,10 @@ export namespace Prisma {
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
+    imageEnabled?: BoolFieldUpdateOperationsInput | boolean
+    videoEnabled?: BoolFieldUpdateOperationsInput | boolean
+    imageModel?: NullableStringFieldUpdateOperationsInput | string | null
+    videoModel?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -16538,6 +16642,10 @@ export namespace Prisma {
     hybridRag?: SortOrder
     image?: SortOrder
     knowledgeBase?: SortOrder
+    imageEnabled?: SortOrder
+    videoEnabled?: SortOrder
+    imageModel?: SortOrder
+    videoModel?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -16553,6 +16661,10 @@ export namespace Prisma {
     hybridRag?: SortOrder
     image?: SortOrder
     knowledgeBase?: SortOrder
+    imageEnabled?: SortOrder
+    videoEnabled?: SortOrder
+    imageModel?: SortOrder
+    videoModel?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -16568,6 +16680,10 @@ export namespace Prisma {
     hybridRag?: SortOrder
     image?: SortOrder
     knowledgeBase?: SortOrder
+    imageEnabled?: SortOrder
+    videoEnabled?: SortOrder
+    imageModel?: SortOrder
+    videoModel?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -17604,6 +17720,10 @@ export namespace Prisma {
     hybridRag?: boolean
     image: string
     knowledgeBase?: string | null
+    imageEnabled?: boolean
+    videoEnabled?: boolean
+    imageModel?: string | null
+    videoModel?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptCreateNestedManyWithoutGptInput
@@ -17621,6 +17741,10 @@ export namespace Prisma {
     hybridRag?: boolean
     image: string
     knowledgeBase?: string | null
+    imageEnabled?: boolean
+    videoEnabled?: boolean
+    imageModel?: string | null
+    videoModel?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
@@ -17788,6 +17912,10 @@ export namespace Prisma {
     hybridRag?: BoolFilter<"Gpt"> | boolean
     image?: StringFilter<"Gpt"> | string
     knowledgeBase?: StringNullableFilter<"Gpt"> | string | null
+    imageEnabled?: BoolFilter<"Gpt"> | boolean
+    videoEnabled?: BoolFilter<"Gpt"> | boolean
+    imageModel?: StringNullableFilter<"Gpt"> | string | null
+    videoModel?: StringNullableFilter<"Gpt"> | string | null
     createdAt?: DateTimeFilter<"Gpt"> | Date | string
     updatedAt?: DateTimeFilter<"Gpt"> | Date | string
   }
@@ -18265,6 +18393,10 @@ export namespace Prisma {
     hybridRag?: boolean
     image: string
     knowledgeBase?: string | null
+    imageEnabled?: boolean
+    videoEnabled?: boolean
+    imageModel?: string | null
+    videoModel?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutGptInput
@@ -18283,6 +18415,10 @@ export namespace Prisma {
     hybridRag?: boolean
     image: string
     knowledgeBase?: string | null
+    imageEnabled?: boolean
+    videoEnabled?: boolean
+    imageModel?: string | null
+    videoModel?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
@@ -18315,6 +18451,10 @@ export namespace Prisma {
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
+    imageEnabled?: BoolFieldUpdateOperationsInput | boolean
+    videoEnabled?: BoolFieldUpdateOperationsInput | boolean
+    imageModel?: NullableStringFieldUpdateOperationsInput | string | null
+    videoModel?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutGptNestedInput
@@ -18333,6 +18473,10 @@ export namespace Prisma {
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
+    imageEnabled?: BoolFieldUpdateOperationsInput | boolean
+    videoEnabled?: BoolFieldUpdateOperationsInput | boolean
+    imageModel?: NullableStringFieldUpdateOperationsInput | string | null
+    videoModel?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
@@ -18390,6 +18534,10 @@ export namespace Prisma {
     hybridRag?: boolean
     image: string
     knowledgeBase?: string | null
+    imageEnabled?: boolean
+    videoEnabled?: boolean
+    imageModel?: string | null
+    videoModel?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutGptInput
@@ -18408,6 +18556,10 @@ export namespace Prisma {
     hybridRag?: boolean
     image: string
     knowledgeBase?: string | null
+    imageEnabled?: boolean
+    videoEnabled?: boolean
+    imageModel?: string | null
+    videoModel?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     conversations?: ConversationUncheckedCreateNestedManyWithoutGptInput
@@ -18487,6 +18639,10 @@ export namespace Prisma {
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
+    imageEnabled?: BoolFieldUpdateOperationsInput | boolean
+    videoEnabled?: BoolFieldUpdateOperationsInput | boolean
+    imageModel?: NullableStringFieldUpdateOperationsInput | string | null
+    videoModel?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutGptNestedInput
@@ -18505,6 +18661,10 @@ export namespace Prisma {
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
+    imageEnabled?: BoolFieldUpdateOperationsInput | boolean
+    videoEnabled?: BoolFieldUpdateOperationsInput | boolean
+    imageModel?: NullableStringFieldUpdateOperationsInput | string | null
+    videoModel?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     conversations?: ConversationUncheckedUpdateManyWithoutGptNestedInput
@@ -18562,6 +18722,10 @@ export namespace Prisma {
     hybridRag?: boolean
     image: string
     knowledgeBase?: string | null
+    imageEnabled?: boolean
+    videoEnabled?: boolean
+    imageModel?: string | null
+    videoModel?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutGptInput
@@ -18580,6 +18744,10 @@ export namespace Prisma {
     hybridRag?: boolean
     image: string
     knowledgeBase?: string | null
+    imageEnabled?: boolean
+    videoEnabled?: boolean
+    imageModel?: string | null
+    videoModel?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
@@ -18683,6 +18851,10 @@ export namespace Prisma {
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
+    imageEnabled?: BoolFieldUpdateOperationsInput | boolean
+    videoEnabled?: BoolFieldUpdateOperationsInput | boolean
+    imageModel?: NullableStringFieldUpdateOperationsInput | string | null
+    videoModel?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutGptNestedInput
@@ -18701,6 +18873,10 @@ export namespace Prisma {
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
+    imageEnabled?: BoolFieldUpdateOperationsInput | boolean
+    videoEnabled?: BoolFieldUpdateOperationsInput | boolean
+    imageModel?: NullableStringFieldUpdateOperationsInput | string | null
+    videoModel?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
@@ -18826,6 +19002,10 @@ export namespace Prisma {
     hybridRag?: boolean
     image: string
     knowledgeBase?: string | null
+    imageEnabled?: boolean
+    videoEnabled?: boolean
+    imageModel?: string | null
+    videoModel?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -18934,6 +19114,10 @@ export namespace Prisma {
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
+    imageEnabled?: BoolFieldUpdateOperationsInput | boolean
+    videoEnabled?: BoolFieldUpdateOperationsInput | boolean
+    imageModel?: NullableStringFieldUpdateOperationsInput | string | null
+    videoModel?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUpdateManyWithoutGptNestedInput
@@ -18951,6 +19135,10 @@ export namespace Prisma {
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
+    imageEnabled?: BoolFieldUpdateOperationsInput | boolean
+    videoEnabled?: BoolFieldUpdateOperationsInput | boolean
+    imageModel?: NullableStringFieldUpdateOperationsInput | string | null
+    videoModel?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
@@ -18968,6 +19156,10 @@ export namespace Prisma {
     hybridRag?: BoolFieldUpdateOperationsInput | boolean
     image?: StringFieldUpdateOperationsInput | string
     knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
+    imageEnabled?: BoolFieldUpdateOperationsInput | boolean
+    videoEnabled?: BoolFieldUpdateOperationsInput | boolean
+    imageModel?: NullableStringFieldUpdateOperationsInput | string | null
+    videoModel?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

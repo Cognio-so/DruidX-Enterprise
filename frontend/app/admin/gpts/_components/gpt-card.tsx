@@ -23,6 +23,8 @@ import {
   Calendar,
   FileSearch,
   Globe,
+  Image as ImageIcon,
+  Video,
   MessageCircle,
   MoreHorizontal,
   Pencil,
@@ -175,6 +177,16 @@ export function GptCard({ gpt }: GptCardProps) {
             {gpt.hybridRag && (
               <div className="flex items-center gap-0.5 sm:gap-1">
                 <FileSearch className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600 flex-shrink-0" />
+              </div>
+            )}
+            {gpt.imageEnabled && (
+              <div className="flex items-center gap-0.5 sm:gap-1">
+                <ImageIcon className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 flex-shrink-0" />
+              </div>
+            )}
+            {gpt.videoEnabled && (
+              <div className="flex items-center gap-0.5 sm:gap-1">
+                <Video className="w-3 h-3 sm:w-4 sm:h-4 text-red-600 flex-shrink-0" />
               </div>
             )}
             <span className="text-purple-500 font-medium text-xs sm:text-sm truncate max-w-[80px] sm:max-w-[120px] md:max-w-none">

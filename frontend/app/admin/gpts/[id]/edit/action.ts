@@ -70,6 +70,10 @@ export async function getGptById(id: string) {
         webBrowser: true,
         hybridRag: true,
         image: true,
+        imageEnabled: true,
+        videoEnabled: true,
+        imageModel: true,
+        videoModel: true,
         knowledgeBase: true,
         createdAt: true,
         updatedAt: true,
@@ -88,6 +92,11 @@ export async function getGptById(id: string) {
       ...gpt,
       model: reverseModelMapping[gpt.model] || gpt.model,
       docs: gpt.knowledgeBase ? JSON.parse(gpt.knowledgeBase) : [],
+      // Explicitly include image/video fields to ensure they're passed
+      imageEnabled: gpt.imageEnabled ?? false,
+      videoEnabled: gpt.videoEnabled ?? false,
+      imageModel: gpt.imageModel ?? null,
+      videoModel: gpt.videoModel ?? null,
     };
 
     return {
@@ -113,6 +122,10 @@ export async function editGpt(data: {
   hybridRag: boolean;
   docs: string[];
   imageUrl?: string;
+  image: boolean;
+  video: boolean;
+  imageModel?: string;
+  videoModel?: string;
 }) {
   const session = await requireAdmin();
 
@@ -160,6 +173,10 @@ export async function editGpt(data: {
       webBrowser: validatedData.webSearch,
       hybridRag: validatedData.hybridRag,
       image: validatedData.imageUrl || "default-avatar.png",
+      imageEnabled: validatedData.image,
+      videoEnabled: validatedData.video,
+      imageModel: validatedData.imageModel || null,
+      videoModel: validatedData.videoModel || null,
       knowledgeBase:
         validatedData.docs.length > 0
           ? JSON.stringify(validatedData.docs)
