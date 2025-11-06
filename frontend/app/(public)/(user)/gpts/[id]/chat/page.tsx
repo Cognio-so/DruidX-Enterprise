@@ -32,6 +32,7 @@ export default function ChatGptById() {
     clearApprovalRequest,
     currentPhase,
     researchPhases,
+    webSearchStatus,
   } = useChatMessages(sessionId);
   const [gptData, setGptData] = useState<GptData | null>(null);
 
@@ -134,11 +135,16 @@ export default function ChatGptById() {
           <div className="flex-1 min-h-0">
             <ScrollArea className="h-full p-2">
               <div className="space-y-2">
-                {messages.map((msg) => {
+                {messages.map((msg, index) => {
                   // Hide ChatMessage loader when deep research is active (to avoid duplicate loaders)
                   const isDeepResearchActive =
                     researchPhases.length > 0 ||
                     (currentPhase && currentPhase.phase !== "waiting_approval");
+                  // Only show webSearchStatus on the last assistant message (currently streaming or if websearch is active)
+                  const isLastAssistantMessage = 
+                    !msg.isUser && 
+                    index === messages.length - 1 && 
+                    (msg.isStreaming || isLoading || webSearchStatus?.isActive);
                   return (
                     <ChatMessage
                       key={msg.id}
@@ -152,6 +158,7 @@ export default function ChatGptById() {
                       tokenUsage={msg.tokenUsage}
                       researchPhases={researchPhases}
                       currentPhase={currentPhase}
+                      webSearchStatus={isLastAssistantMessage ? webSearchStatus : undefined}
                     />
                   );
                 })}

@@ -481,6 +481,11 @@ async def stream_chat(session_id: str, request: ChatRequest):
                     "is_complete": False
                 }
             })
+        
+        async def status_callback(status_data: dict):
+            """Callback for status updates from nodes (e.g., WebSearch)"""
+            print(f"🔥 STATUS CALLBACK RECEIVED: {status_data}")
+            await queue.put(status_data)
         uploaded_images_metadata = []
         if session.get("uploaded_docs"):
             for doc in session["uploaded_docs"]:
@@ -519,6 +524,7 @@ async def stream_chat(session_id: str, request: ChatRequest):
                 }
             },
             _chunk_callback=chunk_callback,
+            _status_callback=status_callback,
             token_usage={"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
         )
         
@@ -552,6 +558,10 @@ async def stream_chat(session_id: str, request: ChatRequest):
                             break
                         if item.get("type") == "error":
                             raise Exception(item["data"]["error"])
+                        
+                        # Log status updates for debugging
+                        if item.get("type") == "status":
+                            print(f"🔥 YIELDING STATUS UPDATE: {item}")
                         
                         # print(f"🔥 YIELDING DIRECT CHUNK: {item.get('data', {}).get('content', '')[:50]}...")
                         yield item
@@ -739,6 +749,12 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
                     "is_complete": False
                 }
             })
+        
+        async def status_callback(status_data: dict):
+            """Callback for status updates from nodes (e.g., WebSearch)"""
+            print(f"🔥 STATUS CALLBACK RECEIVED (deepresearch): {status_data}")
+            await queue.put(status_data)
+        
         state = GraphState(
             user_query=request.message,
             deep_research_query=request.message,  
@@ -765,6 +781,7 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
                 }
             },
             _chunk_callback=chunk_callback,
+            _status_callback=status_callback,
             token_usage={"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
         )
         

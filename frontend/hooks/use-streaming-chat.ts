@@ -37,6 +37,12 @@ interface StatusPhase {
   [key: string]: any;
 }
 
+interface WebSearchStatus {
+  isActive: boolean;
+  message: string;
+  progress?: number;
+}
+
 interface StreamingChatHook {
   messages: Message[];
   isLoading: boolean;
@@ -54,6 +60,7 @@ interface StreamingChatHook {
     maxIterations?: number;
     status?: "pending" | "active" | "completed";
   }>;
+  webSearchStatus: WebSearchStatus;
 }
 
 export function useStreamingChat(sessionId: string): StreamingChatHook {
@@ -69,6 +76,10 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
     maxIterations?: number;
     status?: "pending" | "active" | "completed";
   }>>([]);
+  const [webSearchStatus, setWebSearchStatus] = useState<WebSearchStatus>({
+    isActive: false,
+    message: "",
+  });
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const sendMessage = useCallback(async (request: ChatRequest) => {
@@ -79,6 +90,11 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
 
     setIsLoading(true);
     setError(null);
+    // Reset websearch status when starting a new message
+    setWebSearchStatus({
+      isActive: false,
+      message: "",
+    });
 
     // Add user message immediately
     const userMessage: Message = {
@@ -151,6 +167,9 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
             try {
               const data = JSON.parse(line.slice(6));
               console.log('📨 Received SSE data:', data.type, data);
+              if (data.type === 'status') {
+                console.log('📊 Status data details:', JSON.stringify(data.data, null, 2));
+              }
               
               if (data.type === 'approval_required' && data.data) {
                 // Handle approval request event
@@ -166,6 +185,30 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
               } else if (data.type === 'status' && data.data) {
                 // Handle status events for different phases
                 const phaseData = data.data;
+                
+                // Check if this is a WebSearch status update
+                if (phaseData.current_node === "WebSearch") {
+                  console.log('🌐 WebSearch status update received:', phaseData);
+                  if (phaseData.status === "completed" || phaseData.message?.includes("completed")) {
+                    // WebSearch completed - clear after a delay
+                    console.log('✅ WebSearch completed, clearing status');
+                    setTimeout(() => {
+                      setWebSearchStatus({
+                        isActive: false,
+                        message: "",
+                      });
+                    }, 1000);
+                  } else {
+                    // WebSearch is active
+                    console.log('🔄 WebSearch is active, setting status:', phaseData.message);
+                    setWebSearchStatus({
+                      isActive: true,
+                      message: phaseData.message || "Searching the web...",
+                      progress: phaseData.progress,
+                    });
+                  }
+                  // Don't process WebSearch status as research phase - skip to next iteration
+                } else {
                 
                 // If status is explicitly "completed", mark as completed and clear current phase
                 if (phaseData.status === "completed") {
@@ -216,12 +259,25 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
                   });
                 }
                 
-                // Don't add status messages to content - they're for UI state only
+                  // Don't add status messages to content - they're for UI state only
+                }
               } else if (data.type === 'content' && data.data) {
                 const { content, full_response, is_complete, img_urls, token_usage } = data.data;
                 
                 // Debug logging to see what we're receiving
                 console.log('Streaming data received:', { content, full_response, is_complete, img_urls, token_usage });
+                
+                // If we start receiving content, websearch is likely done - close the reasoning dropdown
+                setWebSearchStatus((prevStatus) => {
+                  if (content && prevStatus.isActive) {
+                    console.log('📝 Content received, closing websearch reasoning');
+                    return {
+                      isActive: false,
+                      message: "",
+                    };
+                  }
+                  return prevStatus;
+                });
                 
                 setMessages(prev => prev.map(msg => 
                   msg.id === assistantMessageId 
@@ -254,6 +310,11 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
                       }
                     : msg
                 ));
+                // Clear websearch status when done
+                setWebSearchStatus({
+                  isActive: false,
+                  message: "",
+                });
               }
             } catch (parseError) {
               // Handle parse error silently
@@ -310,5 +371,6 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
     clearApprovalRequest,
     currentPhase,
     researchPhases,
+    webSearchStatus,
   };
 }

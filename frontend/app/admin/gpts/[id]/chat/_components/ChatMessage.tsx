@@ -10,6 +10,7 @@ import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { ResearchTimeline } from "@/components/ResearchTimeline";
 import { ResearchPhaseShimmer } from "@/components/ResearchPhaseShimmer";
+import { Reasoning } from "@/components/ai-elements/reasoning";
 
 interface UploadedDoc {
   url: string;
@@ -44,6 +45,12 @@ interface StatusPhase {
   [key: string]: any;
 }
 
+interface WebSearchStatus {
+  isActive: boolean;
+  message: string;
+  progress?: number;
+}
+
 interface ChatMessageProps {
   message: string;
   isUser: boolean;
@@ -55,6 +62,7 @@ interface ChatMessageProps {
   tokenUsage?: TokenUsage;
   researchPhases?: ResearchPhase[];
   currentPhase?: StatusPhase | null;
+  webSearchStatus?: WebSearchStatus;
 }
 
 export function scrollToEnd(containerRef: React.RefObject<HTMLElement>) {
@@ -81,6 +89,7 @@ export default function ChatMessage({
   tokenUsage,
   researchPhases = [],
   currentPhase = null,
+  webSearchStatus,
 }: ChatMessageProps) {
   const messageRef = useRef<HTMLDivElement>(null);
 
@@ -174,6 +183,13 @@ export default function ChatMessage({
                 <Orb className="h-full w-full" />
               </div>
               <div className="flex-1 space-y-2">
+                {/* WebSearch Reasoning - show for assistant messages when websearch is active */}
+                {!isUser && webSearchStatus?.isActive && (
+                  <Reasoning 
+                    isStreaming={webSearchStatus.isActive}
+                    triggerMessage={webSearchStatus.message}
+                  />
+                )}
                 {/* Deep Research Timeline - show for assistant messages when phases exist */}
                 {!isUser && researchPhases.length > 0 && (
                   <ResearchTimeline
@@ -218,7 +234,7 @@ export default function ChatMessage({
                 {message ? (
                   <div className="bg-muted/60 border border-border rounded-lg p-4 break-words">
                     <Response sources={sources}>{message}</Response>
-                    {isStreaming && (
+                    {isStreaming && !webSearchStatus?.isActive && (
                       <div className="inline-flex items-center ml-2 mt-1">
                         <Loader size={14} className="text-muted-foreground" />
                       </div>
@@ -245,7 +261,7 @@ export default function ChatMessage({
                       )}
                     </div>
                   </div>
-                ) : isStreaming ? (
+                ) : isStreaming && !webSearchStatus?.isActive ? (
                   <div className="flex items-center gap-2">
                     <Loader size={16} className="text-muted-foreground" />
                   </div>
