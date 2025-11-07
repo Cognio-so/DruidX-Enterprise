@@ -2,6 +2,7 @@
 
 import { toast } from "sonner";
 import InviteMember from "./invite-member";
+import CreateGroupDialog from "./create-group-dialog";
 import TeamsSearch from "./teams-search";
 import TeamsFilter from "./teams-filter";
 
@@ -11,6 +12,7 @@ interface TeamsHeaderProps {
   onSearchChange: (value: string) => void;
   onRoleFilterChange: (role: string) => void;
   onClearFilters: () => void;
+  onGroupCreated?: () => void;
 }
 
 export default function TeamsHeader({
@@ -19,6 +21,7 @@ export default function TeamsHeader({
   onSearchChange,
   onRoleFilterChange,
   onClearFilters,
+  onGroupCreated,
 }: TeamsHeaderProps) {
   return (
     <div className="space-y-6">
@@ -31,7 +34,8 @@ export default function TeamsHeader({
             Manage team members and their access permissions
           </p>
         </div>
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 flex gap-2">
+          <CreateGroupDialog onGroupCreated={onGroupCreated} />
           <InviteMember onInviteSent={(email, role) => {
             toast.success(`Invitation sent to ${email} as ${role}`)
           }} />

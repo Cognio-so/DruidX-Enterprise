@@ -130,3 +130,31 @@ export const knowledgeBaseSchema = z.object({
 });
 
 export type KnowledgeBaseFormValues = z.infer<typeof knowledgeBaseSchema>;
+
+export const teamGroupSchema = z.object({
+  name: z
+    .string()
+    .min(2, { message: "Group name must be at least 2 characters long" })
+    .max(100, { message: "Group name must not exceed 100 characters" }),
+  description: z
+    .string()
+    .max(500, { message: "Description must not exceed 500 characters" })
+    .optional(),
+  image: z.string().optional(),
+});
+
+export type TeamGroupValues = z.infer<typeof teamGroupSchema>;
+
+export const assignGptToGroupSchema = z.object({
+  groupId: z.string(),
+  gptIds: z.array(z.string()).min(1, "Select at least one GPT"),
+});
+
+export type AssignGptToGroupValues = z.infer<typeof assignGptToGroupSchema>;
+
+export const addMembersToGroupSchema = z.object({
+  groupId: z.string(),
+  userIds: z.array(z.string()).min(1, "Select at least one member"),
+});
+
+export type AddMembersToGroupValues = z.infer<typeof addMembersToGroupSchema>;

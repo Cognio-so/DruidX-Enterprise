@@ -24,8 +24,8 @@ export async function getUserDashboardMetrics(): Promise<UserDashboardMetrics> {
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  // Get user's assigned GPTs (created by user + assigned to user)
-  const [createdGpts, assignedGpts] = await Promise.all([
+  // Get user's assigned GPTs (created by user + individually assigned + group-assigned)
+  const [createdGpts, individualAssignments, groupAssignments] = await Promise.all([
     prisma.gpt.findMany({
       where: { userId: user.id },
       select: { id: true }
@@ -33,12 +33,25 @@ export async function getUserDashboardMetrics(): Promise<UserDashboardMetrics> {
     prisma.assignGpt.findMany({
       where: { userId: user.id },
       select: { gptId: true }
+    }),
+    prisma.groupGptAssignment.findMany({
+      where: {
+        group: {
+          members: {
+            some: {
+              userId: user.id
+            }
+          }
+        }
+      },
+      select: { gptId: true }
     })
   ]);
 
   const createdGptIds = createdGpts.map(gpt => gpt.id);
-  const assignedGptIds = assignedGpts.map(assign => assign.gptId);
-  const allGptIds = [...new Set([...createdGptIds, ...assignedGptIds])]; // Remove duplicates
+  const individualGptIds = individualAssignments.map(assign => assign.gptId);
+  const groupGptIds = groupAssignments.map(assign => assign.gptId);
+  const allGptIds = [...new Set([...createdGptIds, ...individualGptIds, ...groupGptIds])]; // Remove duplicates
 
   // Get basic counts for this user
   const [
@@ -214,7 +227,20 @@ export async function getUserRecentActivity() {
       where: {
         OR: [
           { userId: user.id },
-          { assignedToUsers: { some: { userId: user.id } } }
+          { assignedToUsers: { some: { userId: user.id } } },
+          {
+            groupAssignments: {
+              some: {
+                group: {
+                  members: {
+                    some: {
+                      userId: user.id
+                    }
+                  }
+                }
+              }
+            }
+          }
         ]
       },
       take: 5,

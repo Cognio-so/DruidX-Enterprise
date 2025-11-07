@@ -250,6 +250,32 @@ exports.Prisma.KnowledgeBaseScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.TeamGroupScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  image: 'image',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.GroupMemberScalarFieldEnum = {
+  id: 'id',
+  groupId: 'groupId',
+  userId: 'userId',
+  addedAt: 'addedAt',
+  addedBy: 'addedBy'
+};
+
+exports.Prisma.GroupGptAssignmentScalarFieldEnum = {
+  id: 'id',
+  groupId: 'groupId',
+  gptId: 'gptId',
+  assignedAt: 'assignedAt',
+  assignedBy: 'assignedBy'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -300,7 +326,10 @@ exports.Prisma.ModelName = {
   AssignGpt: 'AssignGpt',
   Conversation: 'Conversation',
   Message: 'Message',
-  KnowledgeBase: 'KnowledgeBase'
+  KnowledgeBase: 'KnowledgeBase',
+  TeamGroup: 'TeamGroup',
+  GroupMember: 'GroupMember',
+  GroupGptAssignment: 'GroupGptAssignment'
 };
 
 /**
