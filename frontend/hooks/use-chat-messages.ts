@@ -30,6 +30,11 @@ interface ChatMessagesHook {
     deep_search?: boolean;
     uploaded_doc?: boolean;
     model?: string;
+    composio_tools?: string[];
+    image?: boolean;
+    video?: boolean;
+    imageModel?: string;
+    videoModel?: string;
   }) => Promise<void>;
   clearMessages: () => void;
   addMessage: (message: { role: 'user' | 'assistant'; content: string; timestamp: string; isStreaming?: boolean; imageUrls?: string[] }) => void;
@@ -55,6 +60,11 @@ export function useChatMessages(sessionId: string | null): ChatMessagesHook {
     deep_search?: boolean;
     uploaded_doc?: boolean;
     model?: string;
+    composio_tools?: string[];
+    image?: boolean;
+    video?: boolean;
+    imageModel?: string;
+    videoModel?: string;
   } = {}) => {
     if (!sessionId) {
       console.error('No session ID available');

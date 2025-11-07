@@ -26,6 +26,10 @@ interface ChatInputProps {
     uploaded_docs?: UploadedDoc[];
     model?: string;
     composio_tools?: string[];
+    image?: boolean;
+    video?: boolean;
+    imageModel?: string;
+    videoModel?: string;
   }) => void;
   onDocumentUploaded?: (docs: UploadedDoc[]) => Promise<void>;
   hasMessages: boolean;
@@ -36,6 +40,10 @@ interface ChatInputProps {
   sessionId?: string | null;
   onVoiceMessage?: (message: VoiceMessage) => void;
   onVoiceConnectionChange?: (connected: boolean) => void;
+  imageEnabled?: boolean;
+  videoEnabled?: boolean;
+  imageModel?: string;
+  videoModel?: string;
 }
 
 interface UploadedDoc {
@@ -58,6 +66,10 @@ export default function ChatInput({
   sessionId,
   onVoiceMessage,
   onVoiceConnectionChange,
+  imageEnabled = false,
+  videoEnabled = false,
+  imageModel,
+  videoModel,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [selectedModel, setSelectedModel] = useState("gpt_4o");
@@ -114,6 +126,10 @@ export default function ChatInput({
         uploaded_docs: uploadedDocs,
         model: backendModelName,
         composio_tools: composioTools,
+        image: imageEnabled,
+        video: videoEnabled,
+        imageModel: imageModel,
+        videoModel: videoModel,
       };
 
       onSendMessage(message.trim(), sendOptions);

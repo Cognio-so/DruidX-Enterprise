@@ -24,6 +24,10 @@ interface ChatRequest {
   uploaded_doc?: boolean;
   model?: string;
   composio_tools?: string[];
+  image?: boolean;
+  video?: boolean;
+  imageModel?: string;
+  videoModel?: string;
 }
 
 interface ApprovalRequest {
