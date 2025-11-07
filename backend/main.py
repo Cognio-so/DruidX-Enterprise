@@ -313,6 +313,7 @@ async def add_documents_by_url(session_id: str, request: dict):
       
        
         uploaded_files= []
+        uploaded_images=[]
         # for img in uploaded_images:
         #     clean_img = {
         #         "filename": img.get("filename"),
@@ -322,7 +323,9 @@ async def add_documents_by_url(session_id: str, request: dict):
         #         "size": img.get("size")
         #     }
         #     uploaded_files.append(clean_img)
-        flag=session.get("doc_embeddings",False)
+        flag=bool(session.get("doc_embeddings",False))
+        if flag:
+            session["uploaded_images"]=[]
         for d in processed_docs:
             clean_doc = {
                 "filename": d.get("filename"),
@@ -332,9 +335,11 @@ async def add_documents_by_url(session_id: str, request: dict):
                 "size": d.get("size")
             }
             uploaded_files.append(clean_doc)
-            if d.get("file_type") == "image" and flag:
+            if d.get("file_type") == "image":
+                uploaded_images.append(clean_doc)
                 print(f"Processed document is an image: {d.get('filename')}")
         session.setdefault("new_uploaded_docs", []).extend(uploaded_files)
+        session.setdefault("uploaded_images", []).extend(uploaded_images)
         print(f"uploaded_files------------------------------//: {session['new_uploaded_docs']}")
 
 
@@ -342,8 +347,7 @@ async def add_documents_by_url(session_id: str, request: dict):
         try:
             from Rag.Rag import preprocess_user_documents, clear_user_doc_cache, preprocess_images, clear_image_cache
             
-            # await clear_image_cache(session_id) 
-            print(f"[MAIN] Cleared old user document and image caches for session {session_id}")
+            
             if uploaded_images:
                 print(f"[MAIN] Pre-processing {len(uploaded_images)} image(s)...")
                 temp_state_for_images = GraphState(
@@ -370,6 +374,7 @@ async def add_documents_by_url(session_id: str, request: dict):
                     is_hybrid=hybrid_rag,
                     is_new_upload=replace
                 )
+                session["doc_embeddings"]=False
                 print(f"✅ [MAIN] Pre-processed {len(non_image_docs)} non-image documents with embeddings")
             else:
                 print(f"[MAIN] No non-image documents to preprocess")
@@ -422,10 +427,6 @@ async def stream_chat(session_id: str, request: ChatRequest):
     print(f"Deep search enabled: {request.deep_search}")
     print(f"Uploaded doc: {request.uploaded_doc}")
     print(f"Composio tools: {request.composio_tools}")
-    print(f"Image enabled: {request.image}")
-    print(f"Video enabled: {request.video}")
-    print(f"Image model: {request.imageModel}")
-    print(f"Video model: {request.videoModel}")
     
     session = await SessionManager.get_session(session_id)
     print(f"Previous last_route in session: {session.get('last_route')}")  
@@ -443,7 +444,6 @@ async def stream_chat(session_id: str, request: ChatRequest):
         }
         session["gpt_config"] = gpt_config
         await SessionManager.update_session(session_id, session)
-    
     # Use image/video from request if provided, otherwise fall back to gpt_config
     image_enabled = request.image if request.image is not None else gpt_config.get("image", False)
     video_enabled = request.video if request.video is not None else gpt_config.get("video", False)
@@ -457,7 +457,6 @@ async def stream_chat(session_id: str, request: ChatRequest):
         gpt_config["imageModel"] = image_model
     if video_model:
         gpt_config["videoModel"] = video_model
-    
     llm_model = gpt_config.get("model", "gpt-4o-mini")
     print(f"=== GPT CONFIG ===")
     print(f"Model: {llm_model}")
@@ -465,10 +464,6 @@ async def stream_chat(session_id: str, request: ChatRequest):
     print(f"Hybrid RAG: {gpt_config.get('hybridRag', False)}")
     print(f"MCP: {gpt_config.get('mcp', False)}")
     print(f"MCP Schema: {gpt_config.get('mcpSchema', 'None')}")
-    print(f"Image enabled: {image_enabled}")
-    print(f"Video enabled: {video_enabled}")
-    print(f"Image model: {image_model}")
-    print(f"Video model: {video_model}")
     print(f"Instruction: {gpt_config.get('instruction', '')[:100]}...")
     
     try:
@@ -543,7 +538,7 @@ async def stream_chat(session_id: str, request: ChatRequest):
             messages=session["messages"],
             doc=uploaded_docs_content,
             new_uploaded_docs=newly_uploaded_docs_metadata,
-            uploaded_images=uploaded_images_metadata,  # Only metadata with file_url, no bytes
+            uploaded_images=session.get("uploaded_images", []),  
             gpt_config=gpt_config,
             kb=kb_docs_structured,
             web_search=request.web_search,  
@@ -657,6 +652,7 @@ async def stream_chat(session_id: str, request: ChatRequest):
                 if state.get("route"):
                     session["last_route"] = state["route"]
                     await SessionManager.update_session(session_id, session)
+
                 session["doc_embeddings"] = True
             
                 if "new_uploaded_docs" in session:
@@ -802,6 +798,7 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
             messages=session["messages"],
             doc=uploaded_docs_content,
             new_uploaded_docs=new_uploaded_docs_content,
+            uploaded_images=session.get("uploaded_images", []),
             gpt_config=gpt_config,
             kb=kb_docs_structured,
             web_search=request.web_search,  
@@ -934,10 +931,9 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
                 if state.get("route"):
                     session["last_route"] = state["route"]
                     await SessionManager.update_session(session_id, session)
-                if session.get("new_uploaded_docs"):
-                   session["doc_embeddings"] = True
-                else: 
-                    session["doc_embeddings"] = False
+               
+                session["doc_embeddings"] = True
+                
                 if "new_uploaded_docs" in session:
                     session["new_uploaded_docs"] = []
                 from Rag.Rag import preprocess_user_documents, clear_user_doc_cache, preprocess_images, clear_image_cache

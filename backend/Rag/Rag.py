@@ -686,7 +686,6 @@ def create_combined_system_prompt(custom_prompt: str, base_prompt: str) -> str:
 """
     
     return combined_prompt
-
 async def intelligent_source_selection(
     user_query: str,
     has_user_docs: bool,
@@ -787,59 +786,186 @@ You **MUST** respond with a single, valid JSON object and nothing else.
 async def intelligent_image_selection(
     user_query: str,
     newly_uploaded_docs_metadata: List[Dict[str, Any]],
+    session_id: str,
+    uploaded_images: Optional[List[Dict[str, Any]]] = None,  
+    conversation_history: Optional[List[Dict[str, Any]]] = None,  
     llm_model: str = "gpt-4o-mini"
 ) -> Dict[str, Any]:
     """
     Use LLM to intelligently decide which images to use based on:
+    - All available images in the session (from Qdrant)
     - Newly uploaded images in metadata
-    - User query (explicit image references like "first image", "this image")
+    - Previously uploaded images from state (for follow-up queries)
+    - Conversation history (last turn)
+    - User query (semantic understanding of image references)
     
     Returns:
         {
-            "use_new_images_only": bool,  # Use only newly uploaded images
-            "selected_image_ids": List[str],  # Specific image IDs to use
-            "selected_image_indices": List[int],  # Specific image indices (1-based)
+            "use_new_images_only": bool,
+            "selected_image_ids": List[str],
+            "selected_image_indices": List[int],
             "reasoning": str
         }
     """
     new_images = [doc for doc in newly_uploaded_docs_metadata if doc.get("file_type") == "image"]
     new_image_ids = [img.get("id") for img in new_images if img.get("id")]
-    new_image_filenames = [img.get("filename", "") for img in new_images]
-    query_lower = user_query.lower()
-    has_explicit_ref = any([
-        "first image" in query_lower,
-        "second image" in query_lower,
-        "third image" in query_lower,
-        "image 1" in query_lower,
-        "image 2" in query_lower,
-        "image 3" in query_lower,
-        "this image" in query_lower,
-        "that image" in query_lower,
-        "compare" in query_lower and "image" in query_lower
-    ])
+    previously_uploaded_images = []
+    if uploaded_images:
+        previously_uploaded_images = [
+            img for img in uploaded_images 
+            if isinstance(img, dict) and img.get("file_type") == "image"
+        ]
+    all_images_info = []
+    try:
+        collection_name = f"user_images_{session_id}"
+        scroll_out, _ = await asyncio.to_thread(
+            QDRANT_CLIENT.scroll,
+            collection_name=collection_name,
+            limit=1000
+        )
+        for point in scroll_out:
+            payload = point.payload or {}
+            all_images_info.append({
+                "id": payload.get("id", ""),
+                "filename": payload.get("filename", "unknown"),
+                "image_index": payload.get("image_index", 0),
+                "is_newly_uploaded": payload.get("id") in new_image_ids if new_image_ids else False
+            })
+        all_images_info.sort(key=lambda x: x.get("image_index", 0))
+    except Exception as e:
+        print(f"[IMAGE-ORCHESTRATOR] Error getting all images from Qdrant: {e}")
+        all_images_info = []
+    if not all_images_info:
+        if new_images:
+            all_images_info = [
+                {
+                    "id": img.get("id", ""),
+                    "filename": img.get("filename", "unknown"),
+                    "image_index": i + 1,
+                    "is_newly_uploaded": True
+                }
+                for i, img in enumerate(new_images)
+            ]
+        elif previously_uploaded_images:
+            all_images_info = [
+                {
+                    "id": img.get("id", ""),
+                    "filename": img.get("filename", "unknown"),
+                    "image_index": i + 1,
+                    "is_newly_uploaded": False
+                }
+                for i, img in enumerate(previously_uploaded_images)
+            ]
     
-    if not new_images:
+    if not all_images_info and not new_images and not previously_uploaded_images:
         return {
             "use_new_images_only": False,
             "selected_image_ids": [],
             "selected_image_indices": [],
-            "reasoning": "No newly uploaded images found"
+            "reasoning": "No images found in session"
         }
-    if has_explicit_ref:
-        classification_prompt = f"""
-You are an image selection orchestrator. Analyze the user query and decide which images to use.
+    is_followup = not new_images and (bool(all_images_info) or bool(previously_uploaded_images))
+    conversation_context = ""
+    if conversation_history:
+        last_turn = []
+        for msg in conversation_history[-2:]:  
+            role = (msg.get("type") or msg.get("role") or "").lower()
+            content = msg.get("content", "")
+            if content:
+                speaker = "User" if role in ("human", "user") else "Assistant"
+                if len(content) > 500:
+                    content = content[:500] + "..."
+                last_turn.append(f"{speaker}: {content}")
+        if last_turn:
+            conversation_context = "\n".join(last_turn)
+    all_images_context = ""
+    if all_images_info:
+        all_images_context = "\n".join([
+            f"- Image {img['image_index']}: {img['filename']} (ID: {img['id']})"
+            + (" [NEWLY UPLOADED]" if img.get("is_newly_uploaded") else "")
+            for img in all_images_info
+        ])
+    
+    new_images_context = ""
+    if new_images:
+        new_images_context = "\n".join([
+            f"- Image {i+1}: {img.get('filename', 'unknown')} (ID: {img.get('id', 'unknown')})"
+            for i, img in enumerate(new_images)
+        ])
+    
+    previously_uploaded_context = ""
+    if previously_uploaded_images and not all_images_info:
+        previously_uploaded_context = "\n".join([
+            f"- Image {i+1}: {img.get('filename', 'unknown')} (ID: {img.get('id', 'unknown')})"
+            for i, img in enumerate(previously_uploaded_images)
+        ])
+    
+    classification_prompt = f"""You are an intelligent image selection orchestrator. Your task is to analyze the user's query and determine which images from the session should be used to answer it.
 
 **User Query:** "{user_query}"
 
-**Newly Uploaded Images:**
-{chr(10).join([f"- Image {i+1}: {img.get('filename', 'unknown')} (ID: {img.get('id', 'unknown')})" for i, img in enumerate(new_images)])}
+**Is Follow-up Query:** {is_followup} (No new images uploaded in this turn, but images exist in session)
 
-**Decision Rules:**
-1. If the query mentions "first image", "image 1", or "this image" (and only one image was uploaded), use that image.
-2. If the query mentions "second image", "image 2", use the second image if available.
-3. If the query mentions "compare" with images, use the images mentioned.
-4. If the query is generic (like "analyze", "what's in this", "describe") AND images were just uploaded, use ALL newly uploaded images.
-5. If the query doesn't mention images explicitly but images were just uploaded, use ALL newly uploaded images.
+**Previous Conversation (Last Turn):**
+{conversation_context if conversation_context else "No previous conversation in this context."}
+
+**All Available Images in Session (ordered by upload time):**
+{all_images_context if all_images_context else "No images in Qdrant collection."}
+
+**Newly Uploaded Images (just uploaded in this turn):**
+{new_images_context if new_images_context else "No new images uploaded in this turn."}
+
+**Previously Uploaded Images (from session metadata):**
+{previously_uploaded_context if previously_uploaded_context else "No previously uploaded images metadata available."}
+
+**Your Task:**
+Analyze the user query semantically, considering the conversation context, to understand which images they are referring to. Consider:
+
+1. **Temporal References:**
+   - "previous image", "last image", "earlier image", "before" → refers to the image uploaded before the current/newest one
+   - "first image", "initial image" → refers to the earliest uploaded image (image_index: 1)
+   - "latest image", "newest image", "current image", "this image" (when context suggests current upload) → refers to the most recently uploaded image
+
+2. **Ordinal References:**
+   - "first image", "image 1" → image_index: 1
+   - "second image", "image 2" → image_index: 2
+   - "third image", "image 3" → image_index: 3
+   - And so on...
+
+3. **Demonstrative References:**
+   - "this image" (when no context) → typically refers to newly uploaded images, or the last discussed image in follow-up
+   - "that image" → may refer to a previously mentioned or uploaded image
+   - "these images" → typically refers to multiple newly uploaded images, or all images in follow-up
+
+4. **Comparison Queries:**
+   - "compare this image with the previous image" → use the newest image AND the one before it
+   - "compare image 1 and image 2" → use images with indices 1 and 2
+   - "compare the first and last images" → use image_index: 1 and the highest image_index
+
+5. **Generic Queries:**
+   - "analyze this image", "what's in this image", "describe this image" (when images were just uploaded) → use ALL newly uploaded images
+   - "analyze the images", "what's in these images" → use ALL newly uploaded images if available, otherwise all images
+   - For follow-up queries without explicit image reference → use images from conversation context or all available images
+
+6. **Follow-up Queries:**
+   - If the query is a follow-up (like "tell me more", "elaborate", "what else") AND images were just uploaded → use the newly uploaded images
+   - If the query is a follow-up AND no new images were uploaded → use images from the previous conversation context
+   - If the query explicitly references a specific image → use only that image
+   - If the query references "previous image" in a follow-up context → look at the conversation history to understand which image was discussed
+
+7. **Context-Aware Selection:**
+   - Use the previous conversation to understand what images were discussed
+   - If the previous turn mentioned specific images, use those for follow-up queries
+   - If the query says "compare this image with the previous image" and there's conversation context, use the images from the conversation context
+   - For follow-up queries, prioritize images that were mentioned in the previous conversation
+
+**Decision Logic:**
+- If the query explicitly references specific images (by number, temporal reference, or comparison), select ONLY those images.
+- If the query is generic and images were just uploaded, use ALL newly uploaded images.
+- If the query is a follow-up and no new images were uploaded, use images from conversation context or all available images.
+- If the query doesn't mention images explicitly but images were just uploaded, use ALL newly uploaded images.
+- Always prioritize newly uploaded images for generic queries unless the query explicitly references older images.
+- For follow-up queries, consider the conversation context to determine which images were previously discussed.
 
 **Output Format:**
 Respond with a JSON object:
@@ -847,50 +973,80 @@ Respond with a JSON object:
     "use_new_images_only": true/false,
     "selected_image_ids": ["id1", "id2"] or [],
     "selected_image_indices": [1, 2] or [],
-    "reasoning": "Brief explanation"
+    "reasoning": "Clear explanation of your decision based on the query semantics and conversation context"
 }}
 
-If you want to use all new images, set selected_image_ids to all new image IDs.
-If you want specific images, set selected_image_ids to those IDs only.
+**Important:**
+- selected_image_ids should contain the actual IDs from the "All Available Images" list above, or from "Previously Uploaded Images" if Qdrant is empty
+- selected_image_indices should be 1-based indices (image_index values)
+- If you want to use all newly uploaded images, set selected_image_ids to all new image IDs
+- If you want specific images, set selected_image_ids to those specific IDs only
+- Be precise: if the query says "previous image", find the image that was uploaded just before the newest one
+- Use conversation context to understand what "this image" or "that image" refers to in follow-up queries
+- For follow-up queries, if no specific image is mentioned, use images from the conversation context
 """
-        try:
-            llm = ChatGroq(
-                model="openai/gpt-oss-120b",
-                temperature=0.2,
-                groq_api_key=os.getenv("GROQ_API_KEY")
-            )
-            response = await llm.ainvoke([HumanMessage(content=classification_prompt)])
-            
-            import json
-            import re
-            content = response.content.strip()
-            if content.startswith('```json'):
-                content = re.sub(r'^```json\s*', '', content)
-            if content.endswith('```'):
-                content = re.sub(r'\s*```$', '', content)
-            
-            result = json.loads(content)
-            valid_ids = [img.get("id") for img in new_images if img.get("id")]
-            if result.get("selected_image_ids"):
-                result["selected_image_ids"] = [id for id in result["selected_image_ids"] if id in valid_ids]
-            
-            print(f"[IMAGE-ORCHESTRATOR] Decision: {result['reasoning']}")
-            return result
-        except Exception as e:
-            print(f"[IMAGE-ORCHESTRATOR] Parse error: {e}, defaulting to all new images")
+
+    try:
+        llm = ChatGroq(
+            model="openai/gpt-oss-120b",
+            temperature=0.2,
+            groq_api_key=os.getenv("GROQ_API_KEY")
+        )
+        response = await llm.ainvoke([HumanMessage(content=classification_prompt)])
+        
+        import json
+        import re
+        content = response.content.strip()
+        if content.startswith('on'):
+            content = re.sub(r'^\s*', '', content)
+        if content.endswith('```'):
+            content = re.sub(r'\s*```$', '', content)
+        
+        result = json.loads(content)
+        available_ids = {img["id"] for img in all_images_info if img.get("id")}
+
+        if not available_ids and previously_uploaded_images:
+            available_ids = {img.get("id") for img in previously_uploaded_images if img.get("id")}
+        
+        if result.get("selected_image_ids"):
+            result["selected_image_ids"] = [
+                img_id for img_id in result["selected_image_ids"] 
+                if img_id in available_ids
+            ]
+        if not result.get("selected_image_ids") and result.get("selected_image_indices"):
+            index_to_id = {img["image_index"]: img["id"] for img in all_images_info if img.get("id") and img.get("image_index")}
+            if not index_to_id and previously_uploaded_images:
+                index_to_id = {i + 1: img.get("id") for i, img in enumerate(previously_uploaded_images) if img.get("id")}
+            result["selected_image_ids"] = [
+                index_to_id[idx] for idx in result["selected_image_indices"] 
+                if idx in index_to_id
+            ]
+        
+        print(f"[IMAGE-ORCHESTRATOR] Decision: {result.get('reasoning', 'No reasoning provided')}")
+        return result
+    except Exception as e:
+        print(f"[IMAGE-ORCHESTRATOR] Parse error: {e}, defaulting to all new images or all available images")
+        if new_image_ids:
             return {
                 "use_new_images_only": True,
                 "selected_image_ids": new_image_ids,
-                "selected_image_indices": list(range(1, len(new_images) + 1)),
-                "reasoning": "Fallback: using all newly uploaded images"
+                "selected_image_indices": list(range(1, len(new_images) + 1)) if new_images else [],
+                "reasoning": f"Fallback: using all newly uploaded images (error: {str(e)})"
             }
-    return {
-        "use_new_images_only": True,
-        "selected_image_ids": new_image_ids,
-        "selected_image_indices": list(range(1, len(new_images) + 1)),
-        "reasoning": "Generic query with newly uploaded images - using all new images"
-    }
-
+        elif all_images_info:
+            return {
+                "use_new_images_only": False,
+                "selected_image_ids": [img["id"] for img in all_images_info if img.get("id")],
+                "selected_image_indices": [img["image_index"] for img in all_images_info if img.get("image_index")],
+                "reasoning": f"Fallback: using all available images (error: {str(e)})"
+            }
+        else:
+            return {
+                "use_new_images_only": False,
+                "selected_image_ids": [],
+                "selected_image_indices": [],
+                "reasoning": f"Fallback: no images available (error: {str(e)})"
+            }
 async def is_summarization_query(user_query: str) -> bool:
     """
     Detect if the query asks for summarization of the entire document.
@@ -1519,6 +1675,10 @@ async def Rag(state: GraphState) -> GraphState:
 
     # Get newly uploaded docs metadata
     newly_uploaded_docs_metadata = state.get("new_uploaded_docs", [])
+    
+    # Get conversation history (last 1 turn = last 2 messages)
+    conversation_history = state.get("messages", [])
+    uploaded_images = state.get("uploaded_images", []) or []
 
     intelligence_task = asyncio.create_task(
         intelligent_source_selection(
@@ -1530,12 +1690,13 @@ async def Rag(state: GraphState) -> GraphState:
         )
     )
     parallel_tasks.append(("intelligence", intelligence_task))
-
-    # Intelligent image selection orchestrator
     image_selection_task = asyncio.create_task(
         intelligent_image_selection(
             user_query=user_query,
             newly_uploaded_docs_metadata=newly_uploaded_docs_metadata,
+            session_id=session_id,
+            uploaded_images=uploaded_images,  # Pass previously uploaded images
+            conversation_history=conversation_history,  # Pass conversation history
             llm_model=llm_model
         )
     )
@@ -1583,7 +1744,30 @@ async def Rag(state: GraphState) -> GraphState:
         print(f"[RAG] Image orchestrator decision: {image_selection_result.get('reasoning')}")
         print(f"[RAG] Filtering images by IDs: {filter_ids}, Indices: {filter_indices}")
         
-        # Get actual image_index from Qdrant for the selected IDs
+        if not filter_ids and filter_indices:
+            try:
+                collection_name = f"user_images_{session_id}"
+                scroll_out, _ = await asyncio.to_thread(
+                    QDRANT_CLIENT.scroll,
+                    collection_name=collection_name,
+                    limit=1000
+                )
+                index_to_id_map = {}
+                for point in scroll_out:
+                    payload = point.payload or {}
+                    img_id = payload.get("id")
+                    img_index = payload.get("image_index")
+                    if img_id and img_index:
+                        index_to_id_map[img_index] = img_id
+                
+                for idx in filter_indices:
+                    if idx in index_to_id_map:
+                        filter_ids.append(index_to_id_map[idx])
+                
+                print(f"[RAG] Mapped indices {filter_indices} to IDs from Qdrant: {filter_ids}")
+            except Exception as e:
+                print(f"[RAG] Error mapping indices to IDs from Qdrant: {e}")
+        
         actual_indices = []
         if filter_ids:
             try:
@@ -1603,9 +1787,8 @@ async def Rag(state: GraphState) -> GraphState:
                 print(f"[RAG] Mapped IDs to actual indices from Qdrant: {actual_indices}")
             except Exception as e:
                 print(f"[RAG] Error getting actual indices from Qdrant: {e}")
-                actual_indices = filter_indices  # Fallback to provided indices
+                actual_indices = filter_indices if filter_indices else []
         
-        # Use IDs for filtering (most reliable), and actual indices as backup
         images_result = await _search_image_collection(
             session_id, 
             user_query, 
