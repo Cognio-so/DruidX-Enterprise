@@ -27,7 +27,7 @@ export function TeamSwitcher({
           className="w-6 h-6 rounded-full transition-all duration-300"
         />
         {showName && (
-          <span className="text-xl font-semibold text-primary transition-opacity duration-300">
+          <span className="text-xl font-semibold text-foreground transition-opacity duration-300">
             DruidX
           </span>
         )}
