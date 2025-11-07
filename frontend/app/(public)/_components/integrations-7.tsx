@@ -1,5 +1,4 @@
 import { Gemini, Replit, MagicUI, VSCodium, MediaWiki, GooglePaLM } from '@/app/(public)/_components/logos'
-import { LogoIcon } from '@/app/(public)/_components/logo'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -90,13 +89,6 @@ export default function IntegrationsSection() {
                                     <GooglePaLM />
                                 </IntegrationCard>
                             </InfiniteSlider>
-                        </div>
-                        <div className="absolute inset-0 m-auto flex size-fit justify-center gap-2">
-                            <IntegrationCard
-                                className="shadow-black-950/10 size-16 bg-white/25 shadow-xl backdrop-blur-md backdrop-grayscale dark:border-white/10 dark:shadow-white/15"
-                                isCenter={true}>
-                                <LogoIcon />
-                            </IntegrationCard>
                         </div>
                     </div>
                     <div className="mx-auto mt-12 max-w-lg space-y-6 text-center">
