@@ -6,10 +6,15 @@ import {
   teamMemberUpdateSchema,
   teamMemberInviteSchema,
   assignGptSchema,
+  teamGroupSchema,
+  assignGptToGroupSchema,
+  addMembersToGroupSchema,
 } from "@/lib/zodSchema";
 import { requireAdmin } from "@/data/requireAdmin";
 import { getAdminGpts } from "@/data/get-admin-gpts";
 import { getUserAssignedGpts } from "@/data/get-user-assigned-gpts";
+import { getTeamMembers } from "@/data/get-team-members";
+import { getGroupDetails } from "@/data/get-group-details";
 
 export async function createInvitation(data: {
   email: string;
@@ -262,4 +267,362 @@ export async function getUserAssignedGptsForAssignment(userId: string) {
   return await getUserAssignedGpts(userId);
 }
 
+export async function createTeamGroup(data: {
+  name: string;
+  description?: string;
+  image?: string;
+}) {
+  const session = await requireAdmin();
+  
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const validatedFields = teamGroupSchema.safeParse(data);
+
+  if (!validatedFields.success) {
+    throw new Error("Validation failed: " + validatedFields.error.message);
+  }
+
+  const { name, description, image } = validatedFields.data;
+
+  const group = await prisma.teamGroup.create({
+    data: {
+      name,
+      description: description || undefined,
+      image: image || undefined,
+      createdBy: session.user.id,
+    },
+  });
+
+  revalidatePath("/admin/teams");
+  return { success: true, group };
+}
+
+export async function updateTeamGroup(
+  groupId: string,
+  data: {
+    name: string;
+    description?: string;
+    image?: string;
+  }
+) {
+  await requireAdmin();
+
+  const validatedFields = teamGroupSchema.safeParse(data);
+
+  if (!validatedFields.success) {
+    throw new Error("Validation failed: " + validatedFields.error.message);
+  }
+
+  const { name, description, image } = validatedFields.data;
+
+  const group = await prisma.teamGroup.update({
+    where: { id: groupId },
+    data: {
+      name,
+      description: description || undefined,
+      image: image || undefined,
+      updatedAt: new Date(),
+    },
+  });
+
+  revalidatePath("/admin/teams");
+  return { success: true, group };
+}
+
+export async function deleteTeamGroup(groupId: string) {
+  await requireAdmin();
+
+  const group = await prisma.teamGroup.findUnique({
+    where: { id: groupId },
+  });
+
+  if (!group) {
+    throw new Error("Group not found");
+  }
+
+  await prisma.teamGroup.delete({
+    where: { id: groupId },
+  });
+
+  revalidatePath("/admin/teams");
+  return { success: true };
+}
+
+export async function addMembersToGroup(data: {
+  groupId: string;
+  userIds: string[];
+}) {
+  const session = await requireAdmin();
+  
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const validatedFields = addMembersToGroupSchema.safeParse(data);
+
+  if (!validatedFields.success) {
+    throw new Error("Validation failed: " + validatedFields.error.message);
+  }
+
+  const { groupId, userIds } = validatedFields.data;
+
+  const group = await prisma.teamGroup.findUnique({
+    where: { id: groupId },
+    include: {
+      gptAssignments: {
+        select: {
+          gptId: true,
+        },
+      },
+    },
+  });
+
+  if (!group) {
+    throw new Error("Group not found");
+  }
+
+  const existingMembers = await prisma.groupMember.findMany({
+    where: {
+      groupId,
+      userId: { in: userIds },
+    },
+    select: {
+      userId: true,
+    },
+  });
+
+  const existingUserIds = existingMembers.map((m) => m.userId);
+  const newUserIds = userIds.filter((id) => !existingUserIds.includes(id));
+
+  if (newUserIds.length > 0) {
+    await prisma.groupMember.createMany({
+      data: newUserIds.map((userId) => ({
+        groupId,
+        userId,
+        addedBy: session.user.id,
+      })),
+    });
+
+    if (group.gptAssignments.length > 0) {
+      const gptIds = group.gptAssignments.map((ga) => ga.gptId);
+      
+      for (const userId of newUserIds) {
+        const assignmentsToCreate = gptIds.map((gptId) => ({
+          userId,
+          gptId,
+          assignedBy: session.user.id,
+        }));
+
+        await prisma.assignGpt.createMany({
+          data: assignmentsToCreate,
+          skipDuplicates: true,
+        });
+      }
+    }
+  }
+
+  revalidatePath("/admin/teams");
+  return { success: true };
+}
+
+export async function removeMemberFromGroup(groupId: string, userId: string) {
+  const session = await requireAdmin();
+  
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const group = await prisma.teamGroup.findUnique({
+    where: { id: groupId },
+    include: {
+      gptAssignments: {
+        select: {
+          gptId: true,
+        },
+      },
+    },
+  });
+
+  if (!group) {
+    throw new Error("Group not found");
+  }
+
+  await prisma.groupMember.deleteMany({
+    where: {
+      groupId,
+      userId,
+    },
+  });
+
+  if (group.gptAssignments.length > 0) {
+    const gptIds = group.gptAssignments.map((ga) => ga.gptId);
+    
+    await prisma.assignGpt.deleteMany({
+      where: {
+        userId,
+        gptId: { in: gptIds },
+        assignedBy: session.user.id,
+      },
+    });
+  }
+
+  revalidatePath("/admin/teams");
+  return { success: true };
+}
+
+export async function assignGptsToGroup(data: {
+  groupId: string;
+  gptIds: string[];
+}) {
+  const session = await requireAdmin();
+  
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const currentAdminId = session.user.id;
+
+  const validatedFields = assignGptToGroupSchema.safeParse(data);
+
+  if (!validatedFields.success) {
+    throw new Error("Validation failed: " + validatedFields.error.message);
+  }
+
+  const { groupId, gptIds } = validatedFields.data;
+
+  const group = await prisma.teamGroup.findUnique({
+    where: { id: groupId },
+    include: {
+      members: {
+        select: {
+          userId: true,
+        },
+      },
+    },
+  });
+
+  if (!group) {
+    throw new Error("Group not found");
+  }
+
+  if (gptIds.length > 0) {
+    const adminGpts = await prisma.gpt.findMany({
+      where: {
+        id: { in: gptIds },
+        userId: currentAdminId,
+      },
+      select: { id: true },
+    });
+
+    const adminGptIds = adminGpts.map((gpt) => gpt.id);
+    const invalidGptIds = gptIds.filter((id) => !adminGptIds.includes(id));
+
+    if (invalidGptIds.length > 0) {
+      return {
+        success: false,
+        error: `You can only assign GPTs you created. Invalid GPT IDs: ${invalidGptIds.join(", ")}`,
+      };
+    }
+  }
+
+  const existingAssignments = await prisma.groupGptAssignment.findMany({
+    where: {
+      groupId,
+      gptId: { in: gptIds },
+    },
+    select: {
+      gptId: true,
+    },
+  });
+
+  const existingGptIds = existingAssignments.map((a) => a.gptId);
+  const newGptIds = gptIds.filter((id) => !existingGptIds.includes(id));
+
+  if (newGptIds.length > 0) {
+    await prisma.groupGptAssignment.createMany({
+      data: newGptIds.map((gptId) => ({
+        groupId,
+        gptId,
+        assignedBy: currentAdminId,
+      })),
+    });
+
+    if (group.members.length > 0) {
+      const userIds = group.members.map((m) => m.userId);
+
+      for (const gptId of newGptIds) {
+        const assignmentsToCreate = userIds.map((userId) => ({
+          userId,
+          gptId,
+          assignedBy: currentAdminId,
+        }));
+
+        await prisma.assignGpt.createMany({
+          data: assignmentsToCreate,
+          skipDuplicates: true,
+        });
+      }
+    }
+  }
+
+  revalidatePath("/admin/teams");
+  return { success: true };
+}
+
+export async function removeGptFromGroup(groupId: string, gptId: string) {
+  const session = await requireAdmin();
+  
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const group = await prisma.teamGroup.findUnique({
+    where: { id: groupId },
+    include: {
+      members: {
+        select: {
+          userId: true,
+        },
+      },
+    },
+  });
+
+  if (!group) {
+    throw new Error("Group not found");
+  }
+
+  await prisma.groupGptAssignment.deleteMany({
+    where: {
+      groupId,
+      gptId,
+    },
+  });
+
+  if (group.members.length > 0) {
+    const userIds = group.members.map((m) => m.userId);
+
+    await prisma.assignGpt.deleteMany({
+      where: {
+        userId: { in: userIds },
+        gptId,
+        assignedBy: session.user.id,
+      },
+    });
+  }
+
+  revalidatePath("/admin/teams");
+  return { success: true };
+}
+
+export async function getTeamMembersForClient() {
+  await requireAdmin();
+  return await getTeamMembers();
+}
+
+export async function getGroupDetailsForClient(groupId: string) {
+  await requireAdmin();
+  return await getGroupDetails(groupId);
+}
 

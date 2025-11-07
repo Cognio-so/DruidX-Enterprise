@@ -68,6 +68,21 @@ export type Message = $Result.DefaultSelection<Prisma.$MessagePayload>
  * 
  */
 export type KnowledgeBase = $Result.DefaultSelection<Prisma.$KnowledgeBasePayload>
+/**
+ * Model TeamGroup
+ * 
+ */
+export type TeamGroup = $Result.DefaultSelection<Prisma.$TeamGroupPayload>
+/**
+ * Model GroupMember
+ * 
+ */
+export type GroupMember = $Result.DefaultSelection<Prisma.$GroupMemberPayload>
+/**
+ * Model GroupGptAssignment
+ * 
+ */
+export type GroupGptAssignment = $Result.DefaultSelection<Prisma.$GroupGptAssignmentPayload>
 
 /**
  * Enums
@@ -340,6 +355,36 @@ export class PrismaClient<
     * ```
     */
   get knowledgeBase(): Prisma.KnowledgeBaseDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.teamGroup`: Exposes CRUD operations for the **TeamGroup** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more TeamGroups
+    * const teamGroups = await prisma.teamGroup.findMany()
+    * ```
+    */
+  get teamGroup(): Prisma.TeamGroupDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.groupMember`: Exposes CRUD operations for the **GroupMember** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more GroupMembers
+    * const groupMembers = await prisma.groupMember.findMany()
+    * ```
+    */
+  get groupMember(): Prisma.GroupMemberDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.groupGptAssignment`: Exposes CRUD operations for the **GroupGptAssignment** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more GroupGptAssignments
+    * const groupGptAssignments = await prisma.groupGptAssignment.findMany()
+    * ```
+    */
+  get groupGptAssignment(): Prisma.GroupGptAssignmentDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -790,7 +835,10 @@ export namespace Prisma {
     AssignGpt: 'AssignGpt',
     Conversation: 'Conversation',
     Message: 'Message',
-    KnowledgeBase: 'KnowledgeBase'
+    KnowledgeBase: 'KnowledgeBase',
+    TeamGroup: 'TeamGroup',
+    GroupMember: 'GroupMember',
+    GroupGptAssignment: 'GroupGptAssignment'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -809,7 +857,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "session" | "account" | "verification" | "gpt" | "composioConnection" | "invitation" | "assignGpt" | "conversation" | "message" | "knowledgeBase"
+      modelProps: "user" | "session" | "account" | "verification" | "gpt" | "composioConnection" | "invitation" | "assignGpt" | "conversation" | "message" | "knowledgeBase" | "teamGroup" | "groupMember" | "groupGptAssignment"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1627,6 +1675,228 @@ export namespace Prisma {
           }
         }
       }
+      TeamGroup: {
+        payload: Prisma.$TeamGroupPayload<ExtArgs>
+        fields: Prisma.TeamGroupFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.TeamGroupFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamGroupPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.TeamGroupFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamGroupPayload>
+          }
+          findFirst: {
+            args: Prisma.TeamGroupFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamGroupPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.TeamGroupFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamGroupPayload>
+          }
+          findMany: {
+            args: Prisma.TeamGroupFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamGroupPayload>[]
+          }
+          create: {
+            args: Prisma.TeamGroupCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamGroupPayload>
+          }
+          createMany: {
+            args: Prisma.TeamGroupCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.TeamGroupCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamGroupPayload>[]
+          }
+          delete: {
+            args: Prisma.TeamGroupDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamGroupPayload>
+          }
+          update: {
+            args: Prisma.TeamGroupUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamGroupPayload>
+          }
+          deleteMany: {
+            args: Prisma.TeamGroupDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.TeamGroupUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.TeamGroupUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamGroupPayload>[]
+          }
+          upsert: {
+            args: Prisma.TeamGroupUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamGroupPayload>
+          }
+          aggregate: {
+            args: Prisma.TeamGroupAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateTeamGroup>
+          }
+          groupBy: {
+            args: Prisma.TeamGroupGroupByArgs<ExtArgs>
+            result: $Utils.Optional<TeamGroupGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.TeamGroupCountArgs<ExtArgs>
+            result: $Utils.Optional<TeamGroupCountAggregateOutputType> | number
+          }
+        }
+      }
+      GroupMember: {
+        payload: Prisma.$GroupMemberPayload<ExtArgs>
+        fields: Prisma.GroupMemberFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GroupMemberFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupMemberPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GroupMemberFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupMemberPayload>
+          }
+          findFirst: {
+            args: Prisma.GroupMemberFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupMemberPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GroupMemberFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupMemberPayload>
+          }
+          findMany: {
+            args: Prisma.GroupMemberFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupMemberPayload>[]
+          }
+          create: {
+            args: Prisma.GroupMemberCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupMemberPayload>
+          }
+          createMany: {
+            args: Prisma.GroupMemberCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GroupMemberCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupMemberPayload>[]
+          }
+          delete: {
+            args: Prisma.GroupMemberDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupMemberPayload>
+          }
+          update: {
+            args: Prisma.GroupMemberUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupMemberPayload>
+          }
+          deleteMany: {
+            args: Prisma.GroupMemberDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GroupMemberUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.GroupMemberUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupMemberPayload>[]
+          }
+          upsert: {
+            args: Prisma.GroupMemberUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupMemberPayload>
+          }
+          aggregate: {
+            args: Prisma.GroupMemberAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGroupMember>
+          }
+          groupBy: {
+            args: Prisma.GroupMemberGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GroupMemberGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GroupMemberCountArgs<ExtArgs>
+            result: $Utils.Optional<GroupMemberCountAggregateOutputType> | number
+          }
+        }
+      }
+      GroupGptAssignment: {
+        payload: Prisma.$GroupGptAssignmentPayload<ExtArgs>
+        fields: Prisma.GroupGptAssignmentFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GroupGptAssignmentFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupGptAssignmentPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GroupGptAssignmentFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupGptAssignmentPayload>
+          }
+          findFirst: {
+            args: Prisma.GroupGptAssignmentFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupGptAssignmentPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GroupGptAssignmentFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupGptAssignmentPayload>
+          }
+          findMany: {
+            args: Prisma.GroupGptAssignmentFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupGptAssignmentPayload>[]
+          }
+          create: {
+            args: Prisma.GroupGptAssignmentCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupGptAssignmentPayload>
+          }
+          createMany: {
+            args: Prisma.GroupGptAssignmentCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GroupGptAssignmentCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupGptAssignmentPayload>[]
+          }
+          delete: {
+            args: Prisma.GroupGptAssignmentDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupGptAssignmentPayload>
+          }
+          update: {
+            args: Prisma.GroupGptAssignmentUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupGptAssignmentPayload>
+          }
+          deleteMany: {
+            args: Prisma.GroupGptAssignmentDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GroupGptAssignmentUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.GroupGptAssignmentUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupGptAssignmentPayload>[]
+          }
+          upsert: {
+            args: Prisma.GroupGptAssignmentUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupGptAssignmentPayload>
+          }
+          aggregate: {
+            args: Prisma.GroupGptAssignmentAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGroupGptAssignment>
+          }
+          groupBy: {
+            args: Prisma.GroupGptAssignmentGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GroupGptAssignmentGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GroupGptAssignmentCountArgs<ExtArgs>
+            result: $Utils.Optional<GroupGptAssignmentCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1734,6 +2004,9 @@ export namespace Prisma {
     conversation?: ConversationOmit
     message?: MessageOmit
     knowledgeBase?: KnowledgeBaseOmit
+    teamGroup?: TeamGroupOmit
+    groupMember?: GroupMemberOmit
+    groupGptAssignment?: GroupGptAssignmentOmit
   }
 
   /* Types for Logging */
@@ -1819,6 +2092,8 @@ export namespace Prisma {
     Gpt: number
     assignedGpts: number
     conversations: number
+    groupMembers: number
+    createdGroups: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1827,6 +2102,8 @@ export namespace Prisma {
     Gpt?: boolean | UserCountOutputTypeCountGptArgs
     assignedGpts?: boolean | UserCountOutputTypeCountAssignedGptsArgs
     conversations?: boolean | UserCountOutputTypeCountConversationsArgs
+    groupMembers?: boolean | UserCountOutputTypeCountGroupMembersArgs
+    createdGroups?: boolean | UserCountOutputTypeCountCreatedGroupsArgs
   }
 
   // Custom InputTypes
@@ -1875,6 +2152,20 @@ export namespace Prisma {
     where?: ConversationWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountGroupMembersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GroupMemberWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountCreatedGroupsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TeamGroupWhereInput
+  }
+
 
   /**
    * Count Type GptCountOutputType
@@ -1884,12 +2175,14 @@ export namespace Prisma {
     assignedToUsers: number
     conversations: number
     composioConnections: number
+    groupAssignments: number
   }
 
   export type GptCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     assignedToUsers?: boolean | GptCountOutputTypeCountAssignedToUsersArgs
     conversations?: boolean | GptCountOutputTypeCountConversationsArgs
     composioConnections?: boolean | GptCountOutputTypeCountComposioConnectionsArgs
+    groupAssignments?: boolean | GptCountOutputTypeCountGroupAssignmentsArgs
   }
 
   // Custom InputTypes
@@ -1924,6 +2217,13 @@ export namespace Prisma {
     where?: ComposioConnectionWhereInput
   }
 
+  /**
+   * GptCountOutputType without action
+   */
+  export type GptCountOutputTypeCountGroupAssignmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GroupGptAssignmentWhereInput
+  }
+
 
   /**
    * Count Type ConversationCountOutputType
@@ -1953,6 +2253,46 @@ export namespace Prisma {
    */
   export type ConversationCountOutputTypeCountMessagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MessageWhereInput
+  }
+
+
+  /**
+   * Count Type TeamGroupCountOutputType
+   */
+
+  export type TeamGroupCountOutputType = {
+    members: number
+    gptAssignments: number
+  }
+
+  export type TeamGroupCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    members?: boolean | TeamGroupCountOutputTypeCountMembersArgs
+    gptAssignments?: boolean | TeamGroupCountOutputTypeCountGptAssignmentsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * TeamGroupCountOutputType without action
+   */
+  export type TeamGroupCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamGroupCountOutputType
+     */
+    select?: TeamGroupCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * TeamGroupCountOutputType without action
+   */
+  export type TeamGroupCountOutputTypeCountMembersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GroupMemberWhereInput
+  }
+
+  /**
+   * TeamGroupCountOutputType without action
+   */
+  export type TeamGroupCountOutputTypeCountGptAssignmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GroupGptAssignmentWhereInput
   }
 
 
@@ -2177,6 +2517,8 @@ export namespace Prisma {
     Gpt?: boolean | User$GptArgs<ExtArgs>
     assignedGpts?: boolean | User$assignedGptsArgs<ExtArgs>
     conversations?: boolean | User$conversationsArgs<ExtArgs>
+    groupMembers?: boolean | User$groupMembersArgs<ExtArgs>
+    createdGroups?: boolean | User$createdGroupsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -2229,6 +2571,8 @@ export namespace Prisma {
     Gpt?: boolean | User$GptArgs<ExtArgs>
     assignedGpts?: boolean | User$assignedGptsArgs<ExtArgs>
     conversations?: boolean | User$conversationsArgs<ExtArgs>
+    groupMembers?: boolean | User$groupMembersArgs<ExtArgs>
+    createdGroups?: boolean | User$createdGroupsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2242,6 +2586,8 @@ export namespace Prisma {
       Gpt: Prisma.$GptPayload<ExtArgs>[]
       assignedGpts: Prisma.$AssignGptPayload<ExtArgs>[]
       conversations: Prisma.$ConversationPayload<ExtArgs>[]
+      groupMembers: Prisma.$GroupMemberPayload<ExtArgs>[]
+      createdGroups: Prisma.$TeamGroupPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2654,6 +3000,8 @@ export namespace Prisma {
     Gpt<T extends User$GptArgs<ExtArgs> = {}>(args?: Subset<T, User$GptArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     assignedGpts<T extends User$assignedGptsArgs<ExtArgs> = {}>(args?: Subset<T, User$assignedGptsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssignGptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     conversations<T extends User$conversationsArgs<ExtArgs> = {}>(args?: Subset<T, User$conversationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    groupMembers<T extends User$groupMembersArgs<ExtArgs> = {}>(args?: Subset<T, User$groupMembersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    createdGroups<T extends User$createdGroupsArgs<ExtArgs> = {}>(args?: Subset<T, User$createdGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TeamGroupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3199,6 +3547,54 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ConversationScalarFieldEnum | ConversationScalarFieldEnum[]
+  }
+
+  /**
+   * User.groupMembers
+   */
+  export type User$groupMembersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupMember
+     */
+    select?: GroupMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupMember
+     */
+    omit?: GroupMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupMemberInclude<ExtArgs> | null
+    where?: GroupMemberWhereInput
+    orderBy?: GroupMemberOrderByWithRelationInput | GroupMemberOrderByWithRelationInput[]
+    cursor?: GroupMemberWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GroupMemberScalarFieldEnum | GroupMemberScalarFieldEnum[]
+  }
+
+  /**
+   * User.createdGroups
+   */
+  export type User$createdGroupsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamGroup
+     */
+    select?: TeamGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamGroup
+     */
+    omit?: TeamGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamGroupInclude<ExtArgs> | null
+    where?: TeamGroupWhereInput
+    orderBy?: TeamGroupOrderByWithRelationInput | TeamGroupOrderByWithRelationInput[]
+    cursor?: TeamGroupWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TeamGroupScalarFieldEnum | TeamGroupScalarFieldEnum[]
   }
 
   /**
@@ -6756,6 +7152,7 @@ export namespace Prisma {
     assignedToUsers?: boolean | Gpt$assignedToUsersArgs<ExtArgs>
     conversations?: boolean | Gpt$conversationsArgs<ExtArgs>
     composioConnections?: boolean | Gpt$composioConnectionsArgs<ExtArgs>
+    groupAssignments?: boolean | Gpt$groupAssignmentsArgs<ExtArgs>
     _count?: boolean | GptCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["gpt"]>
 
@@ -6824,6 +7221,7 @@ export namespace Prisma {
     assignedToUsers?: boolean | Gpt$assignedToUsersArgs<ExtArgs>
     conversations?: boolean | Gpt$conversationsArgs<ExtArgs>
     composioConnections?: boolean | Gpt$composioConnectionsArgs<ExtArgs>
+    groupAssignments?: boolean | Gpt$groupAssignmentsArgs<ExtArgs>
     _count?: boolean | GptCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type GptIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -6840,6 +7238,7 @@ export namespace Prisma {
       assignedToUsers: Prisma.$AssignGptPayload<ExtArgs>[]
       conversations: Prisma.$ConversationPayload<ExtArgs>[]
       composioConnections: Prisma.$ComposioConnectionPayload<ExtArgs>[]
+      groupAssignments: Prisma.$GroupGptAssignmentPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -7256,6 +7655,7 @@ export namespace Prisma {
     assignedToUsers<T extends Gpt$assignedToUsersArgs<ExtArgs> = {}>(args?: Subset<T, Gpt$assignedToUsersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssignGptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     conversations<T extends Gpt$conversationsArgs<ExtArgs> = {}>(args?: Subset<T, Gpt$conversationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     composioConnections<T extends Gpt$composioConnectionsArgs<ExtArgs> = {}>(args?: Subset<T, Gpt$composioConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ComposioConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    groupAssignments<T extends Gpt$groupAssignmentsArgs<ExtArgs> = {}>(args?: Subset<T, Gpt$groupAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupGptAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7766,6 +8166,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ComposioConnectionScalarFieldEnum | ComposioConnectionScalarFieldEnum[]
+  }
+
+  /**
+   * Gpt.groupAssignments
+   */
+  export type Gpt$groupAssignmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupGptAssignment
+     */
+    select?: GroupGptAssignmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupGptAssignment
+     */
+    omit?: GroupGptAssignmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupGptAssignmentInclude<ExtArgs> | null
+    where?: GroupGptAssignmentWhereInput
+    orderBy?: GroupGptAssignmentOrderByWithRelationInput | GroupGptAssignmentOrderByWithRelationInput[]
+    cursor?: GroupGptAssignmentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GroupGptAssignmentScalarFieldEnum | GroupGptAssignmentScalarFieldEnum[]
   }
 
   /**
@@ -14212,6 +14636,3280 @@ export namespace Prisma {
 
 
   /**
+   * Model TeamGroup
+   */
+
+  export type AggregateTeamGroup = {
+    _count: TeamGroupCountAggregateOutputType | null
+    _min: TeamGroupMinAggregateOutputType | null
+    _max: TeamGroupMaxAggregateOutputType | null
+  }
+
+  export type TeamGroupMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    image: string | null
+    createdBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type TeamGroupMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    image: string | null
+    createdBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type TeamGroupCountAggregateOutputType = {
+    id: number
+    name: number
+    description: number
+    image: number
+    createdBy: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type TeamGroupMinAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    image?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type TeamGroupMaxAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    image?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type TeamGroupCountAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    image?: true
+    createdBy?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type TeamGroupAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which TeamGroup to aggregate.
+     */
+    where?: TeamGroupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TeamGroups to fetch.
+     */
+    orderBy?: TeamGroupOrderByWithRelationInput | TeamGroupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: TeamGroupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TeamGroups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TeamGroups.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned TeamGroups
+    **/
+    _count?: true | TeamGroupCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: TeamGroupMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: TeamGroupMaxAggregateInputType
+  }
+
+  export type GetTeamGroupAggregateType<T extends TeamGroupAggregateArgs> = {
+        [P in keyof T & keyof AggregateTeamGroup]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateTeamGroup[P]>
+      : GetScalarType<T[P], AggregateTeamGroup[P]>
+  }
+
+
+
+
+  export type TeamGroupGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TeamGroupWhereInput
+    orderBy?: TeamGroupOrderByWithAggregationInput | TeamGroupOrderByWithAggregationInput[]
+    by: TeamGroupScalarFieldEnum[] | TeamGroupScalarFieldEnum
+    having?: TeamGroupScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: TeamGroupCountAggregateInputType | true
+    _min?: TeamGroupMinAggregateInputType
+    _max?: TeamGroupMaxAggregateInputType
+  }
+
+  export type TeamGroupGroupByOutputType = {
+    id: string
+    name: string
+    description: string | null
+    image: string | null
+    createdBy: string
+    createdAt: Date
+    updatedAt: Date
+    _count: TeamGroupCountAggregateOutputType | null
+    _min: TeamGroupMinAggregateOutputType | null
+    _max: TeamGroupMaxAggregateOutputType | null
+  }
+
+  type GetTeamGroupGroupByPayload<T extends TeamGroupGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<TeamGroupGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof TeamGroupGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], TeamGroupGroupByOutputType[P]>
+            : GetScalarType<T[P], TeamGroupGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type TeamGroupSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    image?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    creator?: boolean | UserDefaultArgs<ExtArgs>
+    members?: boolean | TeamGroup$membersArgs<ExtArgs>
+    gptAssignments?: boolean | TeamGroup$gptAssignmentsArgs<ExtArgs>
+    _count?: boolean | TeamGroupCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["teamGroup"]>
+
+  export type TeamGroupSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    image?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    creator?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["teamGroup"]>
+
+  export type TeamGroupSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    image?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    creator?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["teamGroup"]>
+
+  export type TeamGroupSelectScalar = {
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    image?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type TeamGroupOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "image" | "createdBy" | "createdAt" | "updatedAt", ExtArgs["result"]["teamGroup"]>
+  export type TeamGroupInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    creator?: boolean | UserDefaultArgs<ExtArgs>
+    members?: boolean | TeamGroup$membersArgs<ExtArgs>
+    gptAssignments?: boolean | TeamGroup$gptAssignmentsArgs<ExtArgs>
+    _count?: boolean | TeamGroupCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type TeamGroupIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    creator?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type TeamGroupIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    creator?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $TeamGroupPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "TeamGroup"
+    objects: {
+      creator: Prisma.$UserPayload<ExtArgs>
+      members: Prisma.$GroupMemberPayload<ExtArgs>[]
+      gptAssignments: Prisma.$GroupGptAssignmentPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      description: string | null
+      image: string | null
+      createdBy: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["teamGroup"]>
+    composites: {}
+  }
+
+  type TeamGroupGetPayload<S extends boolean | null | undefined | TeamGroupDefaultArgs> = $Result.GetResult<Prisma.$TeamGroupPayload, S>
+
+  type TeamGroupCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<TeamGroupFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: TeamGroupCountAggregateInputType | true
+    }
+
+  export interface TeamGroupDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['TeamGroup'], meta: { name: 'TeamGroup' } }
+    /**
+     * Find zero or one TeamGroup that matches the filter.
+     * @param {TeamGroupFindUniqueArgs} args - Arguments to find a TeamGroup
+     * @example
+     * // Get one TeamGroup
+     * const teamGroup = await prisma.teamGroup.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends TeamGroupFindUniqueArgs>(args: SelectSubset<T, TeamGroupFindUniqueArgs<ExtArgs>>): Prisma__TeamGroupClient<$Result.GetResult<Prisma.$TeamGroupPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one TeamGroup that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {TeamGroupFindUniqueOrThrowArgs} args - Arguments to find a TeamGroup
+     * @example
+     * // Get one TeamGroup
+     * const teamGroup = await prisma.teamGroup.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends TeamGroupFindUniqueOrThrowArgs>(args: SelectSubset<T, TeamGroupFindUniqueOrThrowArgs<ExtArgs>>): Prisma__TeamGroupClient<$Result.GetResult<Prisma.$TeamGroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first TeamGroup that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TeamGroupFindFirstArgs} args - Arguments to find a TeamGroup
+     * @example
+     * // Get one TeamGroup
+     * const teamGroup = await prisma.teamGroup.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends TeamGroupFindFirstArgs>(args?: SelectSubset<T, TeamGroupFindFirstArgs<ExtArgs>>): Prisma__TeamGroupClient<$Result.GetResult<Prisma.$TeamGroupPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first TeamGroup that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TeamGroupFindFirstOrThrowArgs} args - Arguments to find a TeamGroup
+     * @example
+     * // Get one TeamGroup
+     * const teamGroup = await prisma.teamGroup.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends TeamGroupFindFirstOrThrowArgs>(args?: SelectSubset<T, TeamGroupFindFirstOrThrowArgs<ExtArgs>>): Prisma__TeamGroupClient<$Result.GetResult<Prisma.$TeamGroupPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more TeamGroups that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TeamGroupFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all TeamGroups
+     * const teamGroups = await prisma.teamGroup.findMany()
+     * 
+     * // Get first 10 TeamGroups
+     * const teamGroups = await prisma.teamGroup.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const teamGroupWithIdOnly = await prisma.teamGroup.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends TeamGroupFindManyArgs>(args?: SelectSubset<T, TeamGroupFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TeamGroupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a TeamGroup.
+     * @param {TeamGroupCreateArgs} args - Arguments to create a TeamGroup.
+     * @example
+     * // Create one TeamGroup
+     * const TeamGroup = await prisma.teamGroup.create({
+     *   data: {
+     *     // ... data to create a TeamGroup
+     *   }
+     * })
+     * 
+     */
+    create<T extends TeamGroupCreateArgs>(args: SelectSubset<T, TeamGroupCreateArgs<ExtArgs>>): Prisma__TeamGroupClient<$Result.GetResult<Prisma.$TeamGroupPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many TeamGroups.
+     * @param {TeamGroupCreateManyArgs} args - Arguments to create many TeamGroups.
+     * @example
+     * // Create many TeamGroups
+     * const teamGroup = await prisma.teamGroup.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends TeamGroupCreateManyArgs>(args?: SelectSubset<T, TeamGroupCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many TeamGroups and returns the data saved in the database.
+     * @param {TeamGroupCreateManyAndReturnArgs} args - Arguments to create many TeamGroups.
+     * @example
+     * // Create many TeamGroups
+     * const teamGroup = await prisma.teamGroup.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many TeamGroups and only return the `id`
+     * const teamGroupWithIdOnly = await prisma.teamGroup.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends TeamGroupCreateManyAndReturnArgs>(args?: SelectSubset<T, TeamGroupCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TeamGroupPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a TeamGroup.
+     * @param {TeamGroupDeleteArgs} args - Arguments to delete one TeamGroup.
+     * @example
+     * // Delete one TeamGroup
+     * const TeamGroup = await prisma.teamGroup.delete({
+     *   where: {
+     *     // ... filter to delete one TeamGroup
+     *   }
+     * })
+     * 
+     */
+    delete<T extends TeamGroupDeleteArgs>(args: SelectSubset<T, TeamGroupDeleteArgs<ExtArgs>>): Prisma__TeamGroupClient<$Result.GetResult<Prisma.$TeamGroupPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one TeamGroup.
+     * @param {TeamGroupUpdateArgs} args - Arguments to update one TeamGroup.
+     * @example
+     * // Update one TeamGroup
+     * const teamGroup = await prisma.teamGroup.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends TeamGroupUpdateArgs>(args: SelectSubset<T, TeamGroupUpdateArgs<ExtArgs>>): Prisma__TeamGroupClient<$Result.GetResult<Prisma.$TeamGroupPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more TeamGroups.
+     * @param {TeamGroupDeleteManyArgs} args - Arguments to filter TeamGroups to delete.
+     * @example
+     * // Delete a few TeamGroups
+     * const { count } = await prisma.teamGroup.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends TeamGroupDeleteManyArgs>(args?: SelectSubset<T, TeamGroupDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more TeamGroups.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TeamGroupUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many TeamGroups
+     * const teamGroup = await prisma.teamGroup.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends TeamGroupUpdateManyArgs>(args: SelectSubset<T, TeamGroupUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more TeamGroups and returns the data updated in the database.
+     * @param {TeamGroupUpdateManyAndReturnArgs} args - Arguments to update many TeamGroups.
+     * @example
+     * // Update many TeamGroups
+     * const teamGroup = await prisma.teamGroup.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more TeamGroups and only return the `id`
+     * const teamGroupWithIdOnly = await prisma.teamGroup.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends TeamGroupUpdateManyAndReturnArgs>(args: SelectSubset<T, TeamGroupUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TeamGroupPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one TeamGroup.
+     * @param {TeamGroupUpsertArgs} args - Arguments to update or create a TeamGroup.
+     * @example
+     * // Update or create a TeamGroup
+     * const teamGroup = await prisma.teamGroup.upsert({
+     *   create: {
+     *     // ... data to create a TeamGroup
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the TeamGroup we want to update
+     *   }
+     * })
+     */
+    upsert<T extends TeamGroupUpsertArgs>(args: SelectSubset<T, TeamGroupUpsertArgs<ExtArgs>>): Prisma__TeamGroupClient<$Result.GetResult<Prisma.$TeamGroupPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of TeamGroups.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TeamGroupCountArgs} args - Arguments to filter TeamGroups to count.
+     * @example
+     * // Count the number of TeamGroups
+     * const count = await prisma.teamGroup.count({
+     *   where: {
+     *     // ... the filter for the TeamGroups we want to count
+     *   }
+     * })
+    **/
+    count<T extends TeamGroupCountArgs>(
+      args?: Subset<T, TeamGroupCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], TeamGroupCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a TeamGroup.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TeamGroupAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends TeamGroupAggregateArgs>(args: Subset<T, TeamGroupAggregateArgs>): Prisma.PrismaPromise<GetTeamGroupAggregateType<T>>
+
+    /**
+     * Group by TeamGroup.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TeamGroupGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends TeamGroupGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: TeamGroupGroupByArgs['orderBy'] }
+        : { orderBy?: TeamGroupGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, TeamGroupGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetTeamGroupGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the TeamGroup model
+   */
+  readonly fields: TeamGroupFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for TeamGroup.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__TeamGroupClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    creator<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    members<T extends TeamGroup$membersArgs<ExtArgs> = {}>(args?: Subset<T, TeamGroup$membersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    gptAssignments<T extends TeamGroup$gptAssignmentsArgs<ExtArgs> = {}>(args?: Subset<T, TeamGroup$gptAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupGptAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the TeamGroup model
+   */
+  interface TeamGroupFieldRefs {
+    readonly id: FieldRef<"TeamGroup", 'String'>
+    readonly name: FieldRef<"TeamGroup", 'String'>
+    readonly description: FieldRef<"TeamGroup", 'String'>
+    readonly image: FieldRef<"TeamGroup", 'String'>
+    readonly createdBy: FieldRef<"TeamGroup", 'String'>
+    readonly createdAt: FieldRef<"TeamGroup", 'DateTime'>
+    readonly updatedAt: FieldRef<"TeamGroup", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * TeamGroup findUnique
+   */
+  export type TeamGroupFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamGroup
+     */
+    select?: TeamGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamGroup
+     */
+    omit?: TeamGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which TeamGroup to fetch.
+     */
+    where: TeamGroupWhereUniqueInput
+  }
+
+  /**
+   * TeamGroup findUniqueOrThrow
+   */
+  export type TeamGroupFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamGroup
+     */
+    select?: TeamGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamGroup
+     */
+    omit?: TeamGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which TeamGroup to fetch.
+     */
+    where: TeamGroupWhereUniqueInput
+  }
+
+  /**
+   * TeamGroup findFirst
+   */
+  export type TeamGroupFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamGroup
+     */
+    select?: TeamGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamGroup
+     */
+    omit?: TeamGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which TeamGroup to fetch.
+     */
+    where?: TeamGroupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TeamGroups to fetch.
+     */
+    orderBy?: TeamGroupOrderByWithRelationInput | TeamGroupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for TeamGroups.
+     */
+    cursor?: TeamGroupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TeamGroups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TeamGroups.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TeamGroups.
+     */
+    distinct?: TeamGroupScalarFieldEnum | TeamGroupScalarFieldEnum[]
+  }
+
+  /**
+   * TeamGroup findFirstOrThrow
+   */
+  export type TeamGroupFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamGroup
+     */
+    select?: TeamGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamGroup
+     */
+    omit?: TeamGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which TeamGroup to fetch.
+     */
+    where?: TeamGroupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TeamGroups to fetch.
+     */
+    orderBy?: TeamGroupOrderByWithRelationInput | TeamGroupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for TeamGroups.
+     */
+    cursor?: TeamGroupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TeamGroups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TeamGroups.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TeamGroups.
+     */
+    distinct?: TeamGroupScalarFieldEnum | TeamGroupScalarFieldEnum[]
+  }
+
+  /**
+   * TeamGroup findMany
+   */
+  export type TeamGroupFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamGroup
+     */
+    select?: TeamGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamGroup
+     */
+    omit?: TeamGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which TeamGroups to fetch.
+     */
+    where?: TeamGroupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TeamGroups to fetch.
+     */
+    orderBy?: TeamGroupOrderByWithRelationInput | TeamGroupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing TeamGroups.
+     */
+    cursor?: TeamGroupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TeamGroups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TeamGroups.
+     */
+    skip?: number
+    distinct?: TeamGroupScalarFieldEnum | TeamGroupScalarFieldEnum[]
+  }
+
+  /**
+   * TeamGroup create
+   */
+  export type TeamGroupCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamGroup
+     */
+    select?: TeamGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamGroup
+     */
+    omit?: TeamGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamGroupInclude<ExtArgs> | null
+    /**
+     * The data needed to create a TeamGroup.
+     */
+    data: XOR<TeamGroupCreateInput, TeamGroupUncheckedCreateInput>
+  }
+
+  /**
+   * TeamGroup createMany
+   */
+  export type TeamGroupCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many TeamGroups.
+     */
+    data: TeamGroupCreateManyInput | TeamGroupCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * TeamGroup createManyAndReturn
+   */
+  export type TeamGroupCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamGroup
+     */
+    select?: TeamGroupSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamGroup
+     */
+    omit?: TeamGroupOmit<ExtArgs> | null
+    /**
+     * The data used to create many TeamGroups.
+     */
+    data: TeamGroupCreateManyInput | TeamGroupCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamGroupIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * TeamGroup update
+   */
+  export type TeamGroupUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamGroup
+     */
+    select?: TeamGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamGroup
+     */
+    omit?: TeamGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamGroupInclude<ExtArgs> | null
+    /**
+     * The data needed to update a TeamGroup.
+     */
+    data: XOR<TeamGroupUpdateInput, TeamGroupUncheckedUpdateInput>
+    /**
+     * Choose, which TeamGroup to update.
+     */
+    where: TeamGroupWhereUniqueInput
+  }
+
+  /**
+   * TeamGroup updateMany
+   */
+  export type TeamGroupUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update TeamGroups.
+     */
+    data: XOR<TeamGroupUpdateManyMutationInput, TeamGroupUncheckedUpdateManyInput>
+    /**
+     * Filter which TeamGroups to update
+     */
+    where?: TeamGroupWhereInput
+    /**
+     * Limit how many TeamGroups to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * TeamGroup updateManyAndReturn
+   */
+  export type TeamGroupUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamGroup
+     */
+    select?: TeamGroupSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamGroup
+     */
+    omit?: TeamGroupOmit<ExtArgs> | null
+    /**
+     * The data used to update TeamGroups.
+     */
+    data: XOR<TeamGroupUpdateManyMutationInput, TeamGroupUncheckedUpdateManyInput>
+    /**
+     * Filter which TeamGroups to update
+     */
+    where?: TeamGroupWhereInput
+    /**
+     * Limit how many TeamGroups to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamGroupIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * TeamGroup upsert
+   */
+  export type TeamGroupUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamGroup
+     */
+    select?: TeamGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamGroup
+     */
+    omit?: TeamGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamGroupInclude<ExtArgs> | null
+    /**
+     * The filter to search for the TeamGroup to update in case it exists.
+     */
+    where: TeamGroupWhereUniqueInput
+    /**
+     * In case the TeamGroup found by the `where` argument doesn't exist, create a new TeamGroup with this data.
+     */
+    create: XOR<TeamGroupCreateInput, TeamGroupUncheckedCreateInput>
+    /**
+     * In case the TeamGroup was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<TeamGroupUpdateInput, TeamGroupUncheckedUpdateInput>
+  }
+
+  /**
+   * TeamGroup delete
+   */
+  export type TeamGroupDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamGroup
+     */
+    select?: TeamGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamGroup
+     */
+    omit?: TeamGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamGroupInclude<ExtArgs> | null
+    /**
+     * Filter which TeamGroup to delete.
+     */
+    where: TeamGroupWhereUniqueInput
+  }
+
+  /**
+   * TeamGroup deleteMany
+   */
+  export type TeamGroupDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which TeamGroups to delete
+     */
+    where?: TeamGroupWhereInput
+    /**
+     * Limit how many TeamGroups to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * TeamGroup.members
+   */
+  export type TeamGroup$membersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupMember
+     */
+    select?: GroupMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupMember
+     */
+    omit?: GroupMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupMemberInclude<ExtArgs> | null
+    where?: GroupMemberWhereInput
+    orderBy?: GroupMemberOrderByWithRelationInput | GroupMemberOrderByWithRelationInput[]
+    cursor?: GroupMemberWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GroupMemberScalarFieldEnum | GroupMemberScalarFieldEnum[]
+  }
+
+  /**
+   * TeamGroup.gptAssignments
+   */
+  export type TeamGroup$gptAssignmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupGptAssignment
+     */
+    select?: GroupGptAssignmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupGptAssignment
+     */
+    omit?: GroupGptAssignmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupGptAssignmentInclude<ExtArgs> | null
+    where?: GroupGptAssignmentWhereInput
+    orderBy?: GroupGptAssignmentOrderByWithRelationInput | GroupGptAssignmentOrderByWithRelationInput[]
+    cursor?: GroupGptAssignmentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GroupGptAssignmentScalarFieldEnum | GroupGptAssignmentScalarFieldEnum[]
+  }
+
+  /**
+   * TeamGroup without action
+   */
+  export type TeamGroupDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamGroup
+     */
+    select?: TeamGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamGroup
+     */
+    omit?: TeamGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamGroupInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model GroupMember
+   */
+
+  export type AggregateGroupMember = {
+    _count: GroupMemberCountAggregateOutputType | null
+    _min: GroupMemberMinAggregateOutputType | null
+    _max: GroupMemberMaxAggregateOutputType | null
+  }
+
+  export type GroupMemberMinAggregateOutputType = {
+    id: string | null
+    groupId: string | null
+    userId: string | null
+    addedAt: Date | null
+    addedBy: string | null
+  }
+
+  export type GroupMemberMaxAggregateOutputType = {
+    id: string | null
+    groupId: string | null
+    userId: string | null
+    addedAt: Date | null
+    addedBy: string | null
+  }
+
+  export type GroupMemberCountAggregateOutputType = {
+    id: number
+    groupId: number
+    userId: number
+    addedAt: number
+    addedBy: number
+    _all: number
+  }
+
+
+  export type GroupMemberMinAggregateInputType = {
+    id?: true
+    groupId?: true
+    userId?: true
+    addedAt?: true
+    addedBy?: true
+  }
+
+  export type GroupMemberMaxAggregateInputType = {
+    id?: true
+    groupId?: true
+    userId?: true
+    addedAt?: true
+    addedBy?: true
+  }
+
+  export type GroupMemberCountAggregateInputType = {
+    id?: true
+    groupId?: true
+    userId?: true
+    addedAt?: true
+    addedBy?: true
+    _all?: true
+  }
+
+  export type GroupMemberAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GroupMember to aggregate.
+     */
+    where?: GroupMemberWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupMembers to fetch.
+     */
+    orderBy?: GroupMemberOrderByWithRelationInput | GroupMemberOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GroupMemberWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupMembers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupMembers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned GroupMembers
+    **/
+    _count?: true | GroupMemberCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GroupMemberMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GroupMemberMaxAggregateInputType
+  }
+
+  export type GetGroupMemberAggregateType<T extends GroupMemberAggregateArgs> = {
+        [P in keyof T & keyof AggregateGroupMember]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGroupMember[P]>
+      : GetScalarType<T[P], AggregateGroupMember[P]>
+  }
+
+
+
+
+  export type GroupMemberGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GroupMemberWhereInput
+    orderBy?: GroupMemberOrderByWithAggregationInput | GroupMemberOrderByWithAggregationInput[]
+    by: GroupMemberScalarFieldEnum[] | GroupMemberScalarFieldEnum
+    having?: GroupMemberScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GroupMemberCountAggregateInputType | true
+    _min?: GroupMemberMinAggregateInputType
+    _max?: GroupMemberMaxAggregateInputType
+  }
+
+  export type GroupMemberGroupByOutputType = {
+    id: string
+    groupId: string
+    userId: string
+    addedAt: Date
+    addedBy: string
+    _count: GroupMemberCountAggregateOutputType | null
+    _min: GroupMemberMinAggregateOutputType | null
+    _max: GroupMemberMaxAggregateOutputType | null
+  }
+
+  type GetGroupMemberGroupByPayload<T extends GroupMemberGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GroupMemberGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GroupMemberGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GroupMemberGroupByOutputType[P]>
+            : GetScalarType<T[P], GroupMemberGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GroupMemberSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    groupId?: boolean
+    userId?: boolean
+    addedAt?: boolean
+    addedBy?: boolean
+    group?: boolean | TeamGroupDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["groupMember"]>
+
+  export type GroupMemberSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    groupId?: boolean
+    userId?: boolean
+    addedAt?: boolean
+    addedBy?: boolean
+    group?: boolean | TeamGroupDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["groupMember"]>
+
+  export type GroupMemberSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    groupId?: boolean
+    userId?: boolean
+    addedAt?: boolean
+    addedBy?: boolean
+    group?: boolean | TeamGroupDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["groupMember"]>
+
+  export type GroupMemberSelectScalar = {
+    id?: boolean
+    groupId?: boolean
+    userId?: boolean
+    addedAt?: boolean
+    addedBy?: boolean
+  }
+
+  export type GroupMemberOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "groupId" | "userId" | "addedAt" | "addedBy", ExtArgs["result"]["groupMember"]>
+  export type GroupMemberInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    group?: boolean | TeamGroupDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type GroupMemberIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    group?: boolean | TeamGroupDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type GroupMemberIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    group?: boolean | TeamGroupDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $GroupMemberPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "GroupMember"
+    objects: {
+      group: Prisma.$TeamGroupPayload<ExtArgs>
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      groupId: string
+      userId: string
+      addedAt: Date
+      addedBy: string
+    }, ExtArgs["result"]["groupMember"]>
+    composites: {}
+  }
+
+  type GroupMemberGetPayload<S extends boolean | null | undefined | GroupMemberDefaultArgs> = $Result.GetResult<Prisma.$GroupMemberPayload, S>
+
+  type GroupMemberCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<GroupMemberFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: GroupMemberCountAggregateInputType | true
+    }
+
+  export interface GroupMemberDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GroupMember'], meta: { name: 'GroupMember' } }
+    /**
+     * Find zero or one GroupMember that matches the filter.
+     * @param {GroupMemberFindUniqueArgs} args - Arguments to find a GroupMember
+     * @example
+     * // Get one GroupMember
+     * const groupMember = await prisma.groupMember.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GroupMemberFindUniqueArgs>(args: SelectSubset<T, GroupMemberFindUniqueArgs<ExtArgs>>): Prisma__GroupMemberClient<$Result.GetResult<Prisma.$GroupMemberPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one GroupMember that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {GroupMemberFindUniqueOrThrowArgs} args - Arguments to find a GroupMember
+     * @example
+     * // Get one GroupMember
+     * const groupMember = await prisma.groupMember.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GroupMemberFindUniqueOrThrowArgs>(args: SelectSubset<T, GroupMemberFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GroupMemberClient<$Result.GetResult<Prisma.$GroupMemberPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GroupMember that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupMemberFindFirstArgs} args - Arguments to find a GroupMember
+     * @example
+     * // Get one GroupMember
+     * const groupMember = await prisma.groupMember.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GroupMemberFindFirstArgs>(args?: SelectSubset<T, GroupMemberFindFirstArgs<ExtArgs>>): Prisma__GroupMemberClient<$Result.GetResult<Prisma.$GroupMemberPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GroupMember that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupMemberFindFirstOrThrowArgs} args - Arguments to find a GroupMember
+     * @example
+     * // Get one GroupMember
+     * const groupMember = await prisma.groupMember.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GroupMemberFindFirstOrThrowArgs>(args?: SelectSubset<T, GroupMemberFindFirstOrThrowArgs<ExtArgs>>): Prisma__GroupMemberClient<$Result.GetResult<Prisma.$GroupMemberPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more GroupMembers that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupMemberFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all GroupMembers
+     * const groupMembers = await prisma.groupMember.findMany()
+     * 
+     * // Get first 10 GroupMembers
+     * const groupMembers = await prisma.groupMember.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const groupMemberWithIdOnly = await prisma.groupMember.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GroupMemberFindManyArgs>(args?: SelectSubset<T, GroupMemberFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a GroupMember.
+     * @param {GroupMemberCreateArgs} args - Arguments to create a GroupMember.
+     * @example
+     * // Create one GroupMember
+     * const GroupMember = await prisma.groupMember.create({
+     *   data: {
+     *     // ... data to create a GroupMember
+     *   }
+     * })
+     * 
+     */
+    create<T extends GroupMemberCreateArgs>(args: SelectSubset<T, GroupMemberCreateArgs<ExtArgs>>): Prisma__GroupMemberClient<$Result.GetResult<Prisma.$GroupMemberPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many GroupMembers.
+     * @param {GroupMemberCreateManyArgs} args - Arguments to create many GroupMembers.
+     * @example
+     * // Create many GroupMembers
+     * const groupMember = await prisma.groupMember.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GroupMemberCreateManyArgs>(args?: SelectSubset<T, GroupMemberCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many GroupMembers and returns the data saved in the database.
+     * @param {GroupMemberCreateManyAndReturnArgs} args - Arguments to create many GroupMembers.
+     * @example
+     * // Create many GroupMembers
+     * const groupMember = await prisma.groupMember.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many GroupMembers and only return the `id`
+     * const groupMemberWithIdOnly = await prisma.groupMember.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GroupMemberCreateManyAndReturnArgs>(args?: SelectSubset<T, GroupMemberCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupMemberPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a GroupMember.
+     * @param {GroupMemberDeleteArgs} args - Arguments to delete one GroupMember.
+     * @example
+     * // Delete one GroupMember
+     * const GroupMember = await prisma.groupMember.delete({
+     *   where: {
+     *     // ... filter to delete one GroupMember
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GroupMemberDeleteArgs>(args: SelectSubset<T, GroupMemberDeleteArgs<ExtArgs>>): Prisma__GroupMemberClient<$Result.GetResult<Prisma.$GroupMemberPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one GroupMember.
+     * @param {GroupMemberUpdateArgs} args - Arguments to update one GroupMember.
+     * @example
+     * // Update one GroupMember
+     * const groupMember = await prisma.groupMember.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GroupMemberUpdateArgs>(args: SelectSubset<T, GroupMemberUpdateArgs<ExtArgs>>): Prisma__GroupMemberClient<$Result.GetResult<Prisma.$GroupMemberPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more GroupMembers.
+     * @param {GroupMemberDeleteManyArgs} args - Arguments to filter GroupMembers to delete.
+     * @example
+     * // Delete a few GroupMembers
+     * const { count } = await prisma.groupMember.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GroupMemberDeleteManyArgs>(args?: SelectSubset<T, GroupMemberDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GroupMembers.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupMemberUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many GroupMembers
+     * const groupMember = await prisma.groupMember.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GroupMemberUpdateManyArgs>(args: SelectSubset<T, GroupMemberUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GroupMembers and returns the data updated in the database.
+     * @param {GroupMemberUpdateManyAndReturnArgs} args - Arguments to update many GroupMembers.
+     * @example
+     * // Update many GroupMembers
+     * const groupMember = await prisma.groupMember.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more GroupMembers and only return the `id`
+     * const groupMemberWithIdOnly = await prisma.groupMember.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends GroupMemberUpdateManyAndReturnArgs>(args: SelectSubset<T, GroupMemberUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupMemberPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one GroupMember.
+     * @param {GroupMemberUpsertArgs} args - Arguments to update or create a GroupMember.
+     * @example
+     * // Update or create a GroupMember
+     * const groupMember = await prisma.groupMember.upsert({
+     *   create: {
+     *     // ... data to create a GroupMember
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the GroupMember we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GroupMemberUpsertArgs>(args: SelectSubset<T, GroupMemberUpsertArgs<ExtArgs>>): Prisma__GroupMemberClient<$Result.GetResult<Prisma.$GroupMemberPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of GroupMembers.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupMemberCountArgs} args - Arguments to filter GroupMembers to count.
+     * @example
+     * // Count the number of GroupMembers
+     * const count = await prisma.groupMember.count({
+     *   where: {
+     *     // ... the filter for the GroupMembers we want to count
+     *   }
+     * })
+    **/
+    count<T extends GroupMemberCountArgs>(
+      args?: Subset<T, GroupMemberCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GroupMemberCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a GroupMember.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupMemberAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GroupMemberAggregateArgs>(args: Subset<T, GroupMemberAggregateArgs>): Prisma.PrismaPromise<GetGroupMemberAggregateType<T>>
+
+    /**
+     * Group by GroupMember.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupMemberGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupMemberGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupMemberGroupByArgs['orderBy'] }
+        : { orderBy?: GroupMemberGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupMemberGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGroupMemberGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the GroupMember model
+   */
+  readonly fields: GroupMemberFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for GroupMember.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GroupMemberClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    group<T extends TeamGroupDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TeamGroupDefaultArgs<ExtArgs>>): Prisma__TeamGroupClient<$Result.GetResult<Prisma.$TeamGroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the GroupMember model
+   */
+  interface GroupMemberFieldRefs {
+    readonly id: FieldRef<"GroupMember", 'String'>
+    readonly groupId: FieldRef<"GroupMember", 'String'>
+    readonly userId: FieldRef<"GroupMember", 'String'>
+    readonly addedAt: FieldRef<"GroupMember", 'DateTime'>
+    readonly addedBy: FieldRef<"GroupMember", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * GroupMember findUnique
+   */
+  export type GroupMemberFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupMember
+     */
+    select?: GroupMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupMember
+     */
+    omit?: GroupMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupMemberInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupMember to fetch.
+     */
+    where: GroupMemberWhereUniqueInput
+  }
+
+  /**
+   * GroupMember findUniqueOrThrow
+   */
+  export type GroupMemberFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupMember
+     */
+    select?: GroupMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupMember
+     */
+    omit?: GroupMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupMemberInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupMember to fetch.
+     */
+    where: GroupMemberWhereUniqueInput
+  }
+
+  /**
+   * GroupMember findFirst
+   */
+  export type GroupMemberFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupMember
+     */
+    select?: GroupMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupMember
+     */
+    omit?: GroupMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupMemberInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupMember to fetch.
+     */
+    where?: GroupMemberWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupMembers to fetch.
+     */
+    orderBy?: GroupMemberOrderByWithRelationInput | GroupMemberOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GroupMembers.
+     */
+    cursor?: GroupMemberWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupMembers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupMembers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GroupMembers.
+     */
+    distinct?: GroupMemberScalarFieldEnum | GroupMemberScalarFieldEnum[]
+  }
+
+  /**
+   * GroupMember findFirstOrThrow
+   */
+  export type GroupMemberFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupMember
+     */
+    select?: GroupMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupMember
+     */
+    omit?: GroupMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupMemberInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupMember to fetch.
+     */
+    where?: GroupMemberWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupMembers to fetch.
+     */
+    orderBy?: GroupMemberOrderByWithRelationInput | GroupMemberOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GroupMembers.
+     */
+    cursor?: GroupMemberWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupMembers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupMembers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GroupMembers.
+     */
+    distinct?: GroupMemberScalarFieldEnum | GroupMemberScalarFieldEnum[]
+  }
+
+  /**
+   * GroupMember findMany
+   */
+  export type GroupMemberFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupMember
+     */
+    select?: GroupMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupMember
+     */
+    omit?: GroupMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupMemberInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupMembers to fetch.
+     */
+    where?: GroupMemberWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupMembers to fetch.
+     */
+    orderBy?: GroupMemberOrderByWithRelationInput | GroupMemberOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing GroupMembers.
+     */
+    cursor?: GroupMemberWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupMembers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupMembers.
+     */
+    skip?: number
+    distinct?: GroupMemberScalarFieldEnum | GroupMemberScalarFieldEnum[]
+  }
+
+  /**
+   * GroupMember create
+   */
+  export type GroupMemberCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupMember
+     */
+    select?: GroupMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupMember
+     */
+    omit?: GroupMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupMemberInclude<ExtArgs> | null
+    /**
+     * The data needed to create a GroupMember.
+     */
+    data: XOR<GroupMemberCreateInput, GroupMemberUncheckedCreateInput>
+  }
+
+  /**
+   * GroupMember createMany
+   */
+  export type GroupMemberCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many GroupMembers.
+     */
+    data: GroupMemberCreateManyInput | GroupMemberCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GroupMember createManyAndReturn
+   */
+  export type GroupMemberCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupMember
+     */
+    select?: GroupMemberSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupMember
+     */
+    omit?: GroupMemberOmit<ExtArgs> | null
+    /**
+     * The data used to create many GroupMembers.
+     */
+    data: GroupMemberCreateManyInput | GroupMemberCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupMemberIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GroupMember update
+   */
+  export type GroupMemberUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupMember
+     */
+    select?: GroupMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupMember
+     */
+    omit?: GroupMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupMemberInclude<ExtArgs> | null
+    /**
+     * The data needed to update a GroupMember.
+     */
+    data: XOR<GroupMemberUpdateInput, GroupMemberUncheckedUpdateInput>
+    /**
+     * Choose, which GroupMember to update.
+     */
+    where: GroupMemberWhereUniqueInput
+  }
+
+  /**
+   * GroupMember updateMany
+   */
+  export type GroupMemberUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update GroupMembers.
+     */
+    data: XOR<GroupMemberUpdateManyMutationInput, GroupMemberUncheckedUpdateManyInput>
+    /**
+     * Filter which GroupMembers to update
+     */
+    where?: GroupMemberWhereInput
+    /**
+     * Limit how many GroupMembers to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * GroupMember updateManyAndReturn
+   */
+  export type GroupMemberUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupMember
+     */
+    select?: GroupMemberSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupMember
+     */
+    omit?: GroupMemberOmit<ExtArgs> | null
+    /**
+     * The data used to update GroupMembers.
+     */
+    data: XOR<GroupMemberUpdateManyMutationInput, GroupMemberUncheckedUpdateManyInput>
+    /**
+     * Filter which GroupMembers to update
+     */
+    where?: GroupMemberWhereInput
+    /**
+     * Limit how many GroupMembers to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupMemberIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GroupMember upsert
+   */
+  export type GroupMemberUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupMember
+     */
+    select?: GroupMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupMember
+     */
+    omit?: GroupMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupMemberInclude<ExtArgs> | null
+    /**
+     * The filter to search for the GroupMember to update in case it exists.
+     */
+    where: GroupMemberWhereUniqueInput
+    /**
+     * In case the GroupMember found by the `where` argument doesn't exist, create a new GroupMember with this data.
+     */
+    create: XOR<GroupMemberCreateInput, GroupMemberUncheckedCreateInput>
+    /**
+     * In case the GroupMember was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GroupMemberUpdateInput, GroupMemberUncheckedUpdateInput>
+  }
+
+  /**
+   * GroupMember delete
+   */
+  export type GroupMemberDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupMember
+     */
+    select?: GroupMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupMember
+     */
+    omit?: GroupMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupMemberInclude<ExtArgs> | null
+    /**
+     * Filter which GroupMember to delete.
+     */
+    where: GroupMemberWhereUniqueInput
+  }
+
+  /**
+   * GroupMember deleteMany
+   */
+  export type GroupMemberDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GroupMembers to delete
+     */
+    where?: GroupMemberWhereInput
+    /**
+     * Limit how many GroupMembers to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * GroupMember without action
+   */
+  export type GroupMemberDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupMember
+     */
+    select?: GroupMemberSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupMember
+     */
+    omit?: GroupMemberOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupMemberInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model GroupGptAssignment
+   */
+
+  export type AggregateGroupGptAssignment = {
+    _count: GroupGptAssignmentCountAggregateOutputType | null
+    _min: GroupGptAssignmentMinAggregateOutputType | null
+    _max: GroupGptAssignmentMaxAggregateOutputType | null
+  }
+
+  export type GroupGptAssignmentMinAggregateOutputType = {
+    id: string | null
+    groupId: string | null
+    gptId: string | null
+    assignedAt: Date | null
+    assignedBy: string | null
+  }
+
+  export type GroupGptAssignmentMaxAggregateOutputType = {
+    id: string | null
+    groupId: string | null
+    gptId: string | null
+    assignedAt: Date | null
+    assignedBy: string | null
+  }
+
+  export type GroupGptAssignmentCountAggregateOutputType = {
+    id: number
+    groupId: number
+    gptId: number
+    assignedAt: number
+    assignedBy: number
+    _all: number
+  }
+
+
+  export type GroupGptAssignmentMinAggregateInputType = {
+    id?: true
+    groupId?: true
+    gptId?: true
+    assignedAt?: true
+    assignedBy?: true
+  }
+
+  export type GroupGptAssignmentMaxAggregateInputType = {
+    id?: true
+    groupId?: true
+    gptId?: true
+    assignedAt?: true
+    assignedBy?: true
+  }
+
+  export type GroupGptAssignmentCountAggregateInputType = {
+    id?: true
+    groupId?: true
+    gptId?: true
+    assignedAt?: true
+    assignedBy?: true
+    _all?: true
+  }
+
+  export type GroupGptAssignmentAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GroupGptAssignment to aggregate.
+     */
+    where?: GroupGptAssignmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupGptAssignments to fetch.
+     */
+    orderBy?: GroupGptAssignmentOrderByWithRelationInput | GroupGptAssignmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GroupGptAssignmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupGptAssignments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupGptAssignments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned GroupGptAssignments
+    **/
+    _count?: true | GroupGptAssignmentCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GroupGptAssignmentMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GroupGptAssignmentMaxAggregateInputType
+  }
+
+  export type GetGroupGptAssignmentAggregateType<T extends GroupGptAssignmentAggregateArgs> = {
+        [P in keyof T & keyof AggregateGroupGptAssignment]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGroupGptAssignment[P]>
+      : GetScalarType<T[P], AggregateGroupGptAssignment[P]>
+  }
+
+
+
+
+  export type GroupGptAssignmentGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GroupGptAssignmentWhereInput
+    orderBy?: GroupGptAssignmentOrderByWithAggregationInput | GroupGptAssignmentOrderByWithAggregationInput[]
+    by: GroupGptAssignmentScalarFieldEnum[] | GroupGptAssignmentScalarFieldEnum
+    having?: GroupGptAssignmentScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GroupGptAssignmentCountAggregateInputType | true
+    _min?: GroupGptAssignmentMinAggregateInputType
+    _max?: GroupGptAssignmentMaxAggregateInputType
+  }
+
+  export type GroupGptAssignmentGroupByOutputType = {
+    id: string
+    groupId: string
+    gptId: string
+    assignedAt: Date
+    assignedBy: string
+    _count: GroupGptAssignmentCountAggregateOutputType | null
+    _min: GroupGptAssignmentMinAggregateOutputType | null
+    _max: GroupGptAssignmentMaxAggregateOutputType | null
+  }
+
+  type GetGroupGptAssignmentGroupByPayload<T extends GroupGptAssignmentGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GroupGptAssignmentGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GroupGptAssignmentGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GroupGptAssignmentGroupByOutputType[P]>
+            : GetScalarType<T[P], GroupGptAssignmentGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GroupGptAssignmentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    groupId?: boolean
+    gptId?: boolean
+    assignedAt?: boolean
+    assignedBy?: boolean
+    group?: boolean | TeamGroupDefaultArgs<ExtArgs>
+    gpt?: boolean | GptDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["groupGptAssignment"]>
+
+  export type GroupGptAssignmentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    groupId?: boolean
+    gptId?: boolean
+    assignedAt?: boolean
+    assignedBy?: boolean
+    group?: boolean | TeamGroupDefaultArgs<ExtArgs>
+    gpt?: boolean | GptDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["groupGptAssignment"]>
+
+  export type GroupGptAssignmentSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    groupId?: boolean
+    gptId?: boolean
+    assignedAt?: boolean
+    assignedBy?: boolean
+    group?: boolean | TeamGroupDefaultArgs<ExtArgs>
+    gpt?: boolean | GptDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["groupGptAssignment"]>
+
+  export type GroupGptAssignmentSelectScalar = {
+    id?: boolean
+    groupId?: boolean
+    gptId?: boolean
+    assignedAt?: boolean
+    assignedBy?: boolean
+  }
+
+  export type GroupGptAssignmentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "groupId" | "gptId" | "assignedAt" | "assignedBy", ExtArgs["result"]["groupGptAssignment"]>
+  export type GroupGptAssignmentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    group?: boolean | TeamGroupDefaultArgs<ExtArgs>
+    gpt?: boolean | GptDefaultArgs<ExtArgs>
+  }
+  export type GroupGptAssignmentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    group?: boolean | TeamGroupDefaultArgs<ExtArgs>
+    gpt?: boolean | GptDefaultArgs<ExtArgs>
+  }
+  export type GroupGptAssignmentIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    group?: boolean | TeamGroupDefaultArgs<ExtArgs>
+    gpt?: boolean | GptDefaultArgs<ExtArgs>
+  }
+
+  export type $GroupGptAssignmentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "GroupGptAssignment"
+    objects: {
+      group: Prisma.$TeamGroupPayload<ExtArgs>
+      gpt: Prisma.$GptPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      groupId: string
+      gptId: string
+      assignedAt: Date
+      assignedBy: string
+    }, ExtArgs["result"]["groupGptAssignment"]>
+    composites: {}
+  }
+
+  type GroupGptAssignmentGetPayload<S extends boolean | null | undefined | GroupGptAssignmentDefaultArgs> = $Result.GetResult<Prisma.$GroupGptAssignmentPayload, S>
+
+  type GroupGptAssignmentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<GroupGptAssignmentFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: GroupGptAssignmentCountAggregateInputType | true
+    }
+
+  export interface GroupGptAssignmentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GroupGptAssignment'], meta: { name: 'GroupGptAssignment' } }
+    /**
+     * Find zero or one GroupGptAssignment that matches the filter.
+     * @param {GroupGptAssignmentFindUniqueArgs} args - Arguments to find a GroupGptAssignment
+     * @example
+     * // Get one GroupGptAssignment
+     * const groupGptAssignment = await prisma.groupGptAssignment.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GroupGptAssignmentFindUniqueArgs>(args: SelectSubset<T, GroupGptAssignmentFindUniqueArgs<ExtArgs>>): Prisma__GroupGptAssignmentClient<$Result.GetResult<Prisma.$GroupGptAssignmentPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one GroupGptAssignment that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {GroupGptAssignmentFindUniqueOrThrowArgs} args - Arguments to find a GroupGptAssignment
+     * @example
+     * // Get one GroupGptAssignment
+     * const groupGptAssignment = await prisma.groupGptAssignment.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GroupGptAssignmentFindUniqueOrThrowArgs>(args: SelectSubset<T, GroupGptAssignmentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GroupGptAssignmentClient<$Result.GetResult<Prisma.$GroupGptAssignmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GroupGptAssignment that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupGptAssignmentFindFirstArgs} args - Arguments to find a GroupGptAssignment
+     * @example
+     * // Get one GroupGptAssignment
+     * const groupGptAssignment = await prisma.groupGptAssignment.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GroupGptAssignmentFindFirstArgs>(args?: SelectSubset<T, GroupGptAssignmentFindFirstArgs<ExtArgs>>): Prisma__GroupGptAssignmentClient<$Result.GetResult<Prisma.$GroupGptAssignmentPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GroupGptAssignment that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupGptAssignmentFindFirstOrThrowArgs} args - Arguments to find a GroupGptAssignment
+     * @example
+     * // Get one GroupGptAssignment
+     * const groupGptAssignment = await prisma.groupGptAssignment.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GroupGptAssignmentFindFirstOrThrowArgs>(args?: SelectSubset<T, GroupGptAssignmentFindFirstOrThrowArgs<ExtArgs>>): Prisma__GroupGptAssignmentClient<$Result.GetResult<Prisma.$GroupGptAssignmentPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more GroupGptAssignments that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupGptAssignmentFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all GroupGptAssignments
+     * const groupGptAssignments = await prisma.groupGptAssignment.findMany()
+     * 
+     * // Get first 10 GroupGptAssignments
+     * const groupGptAssignments = await prisma.groupGptAssignment.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const groupGptAssignmentWithIdOnly = await prisma.groupGptAssignment.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GroupGptAssignmentFindManyArgs>(args?: SelectSubset<T, GroupGptAssignmentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupGptAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a GroupGptAssignment.
+     * @param {GroupGptAssignmentCreateArgs} args - Arguments to create a GroupGptAssignment.
+     * @example
+     * // Create one GroupGptAssignment
+     * const GroupGptAssignment = await prisma.groupGptAssignment.create({
+     *   data: {
+     *     // ... data to create a GroupGptAssignment
+     *   }
+     * })
+     * 
+     */
+    create<T extends GroupGptAssignmentCreateArgs>(args: SelectSubset<T, GroupGptAssignmentCreateArgs<ExtArgs>>): Prisma__GroupGptAssignmentClient<$Result.GetResult<Prisma.$GroupGptAssignmentPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many GroupGptAssignments.
+     * @param {GroupGptAssignmentCreateManyArgs} args - Arguments to create many GroupGptAssignments.
+     * @example
+     * // Create many GroupGptAssignments
+     * const groupGptAssignment = await prisma.groupGptAssignment.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GroupGptAssignmentCreateManyArgs>(args?: SelectSubset<T, GroupGptAssignmentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many GroupGptAssignments and returns the data saved in the database.
+     * @param {GroupGptAssignmentCreateManyAndReturnArgs} args - Arguments to create many GroupGptAssignments.
+     * @example
+     * // Create many GroupGptAssignments
+     * const groupGptAssignment = await prisma.groupGptAssignment.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many GroupGptAssignments and only return the `id`
+     * const groupGptAssignmentWithIdOnly = await prisma.groupGptAssignment.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GroupGptAssignmentCreateManyAndReturnArgs>(args?: SelectSubset<T, GroupGptAssignmentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupGptAssignmentPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a GroupGptAssignment.
+     * @param {GroupGptAssignmentDeleteArgs} args - Arguments to delete one GroupGptAssignment.
+     * @example
+     * // Delete one GroupGptAssignment
+     * const GroupGptAssignment = await prisma.groupGptAssignment.delete({
+     *   where: {
+     *     // ... filter to delete one GroupGptAssignment
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GroupGptAssignmentDeleteArgs>(args: SelectSubset<T, GroupGptAssignmentDeleteArgs<ExtArgs>>): Prisma__GroupGptAssignmentClient<$Result.GetResult<Prisma.$GroupGptAssignmentPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one GroupGptAssignment.
+     * @param {GroupGptAssignmentUpdateArgs} args - Arguments to update one GroupGptAssignment.
+     * @example
+     * // Update one GroupGptAssignment
+     * const groupGptAssignment = await prisma.groupGptAssignment.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GroupGptAssignmentUpdateArgs>(args: SelectSubset<T, GroupGptAssignmentUpdateArgs<ExtArgs>>): Prisma__GroupGptAssignmentClient<$Result.GetResult<Prisma.$GroupGptAssignmentPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more GroupGptAssignments.
+     * @param {GroupGptAssignmentDeleteManyArgs} args - Arguments to filter GroupGptAssignments to delete.
+     * @example
+     * // Delete a few GroupGptAssignments
+     * const { count } = await prisma.groupGptAssignment.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GroupGptAssignmentDeleteManyArgs>(args?: SelectSubset<T, GroupGptAssignmentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GroupGptAssignments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupGptAssignmentUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many GroupGptAssignments
+     * const groupGptAssignment = await prisma.groupGptAssignment.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GroupGptAssignmentUpdateManyArgs>(args: SelectSubset<T, GroupGptAssignmentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GroupGptAssignments and returns the data updated in the database.
+     * @param {GroupGptAssignmentUpdateManyAndReturnArgs} args - Arguments to update many GroupGptAssignments.
+     * @example
+     * // Update many GroupGptAssignments
+     * const groupGptAssignment = await prisma.groupGptAssignment.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more GroupGptAssignments and only return the `id`
+     * const groupGptAssignmentWithIdOnly = await prisma.groupGptAssignment.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends GroupGptAssignmentUpdateManyAndReturnArgs>(args: SelectSubset<T, GroupGptAssignmentUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupGptAssignmentPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one GroupGptAssignment.
+     * @param {GroupGptAssignmentUpsertArgs} args - Arguments to update or create a GroupGptAssignment.
+     * @example
+     * // Update or create a GroupGptAssignment
+     * const groupGptAssignment = await prisma.groupGptAssignment.upsert({
+     *   create: {
+     *     // ... data to create a GroupGptAssignment
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the GroupGptAssignment we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GroupGptAssignmentUpsertArgs>(args: SelectSubset<T, GroupGptAssignmentUpsertArgs<ExtArgs>>): Prisma__GroupGptAssignmentClient<$Result.GetResult<Prisma.$GroupGptAssignmentPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of GroupGptAssignments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupGptAssignmentCountArgs} args - Arguments to filter GroupGptAssignments to count.
+     * @example
+     * // Count the number of GroupGptAssignments
+     * const count = await prisma.groupGptAssignment.count({
+     *   where: {
+     *     // ... the filter for the GroupGptAssignments we want to count
+     *   }
+     * })
+    **/
+    count<T extends GroupGptAssignmentCountArgs>(
+      args?: Subset<T, GroupGptAssignmentCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GroupGptAssignmentCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a GroupGptAssignment.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupGptAssignmentAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GroupGptAssignmentAggregateArgs>(args: Subset<T, GroupGptAssignmentAggregateArgs>): Prisma.PrismaPromise<GetGroupGptAssignmentAggregateType<T>>
+
+    /**
+     * Group by GroupGptAssignment.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupGptAssignmentGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupGptAssignmentGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupGptAssignmentGroupByArgs['orderBy'] }
+        : { orderBy?: GroupGptAssignmentGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupGptAssignmentGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGroupGptAssignmentGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the GroupGptAssignment model
+   */
+  readonly fields: GroupGptAssignmentFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for GroupGptAssignment.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GroupGptAssignmentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    group<T extends TeamGroupDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TeamGroupDefaultArgs<ExtArgs>>): Prisma__TeamGroupClient<$Result.GetResult<Prisma.$TeamGroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    gpt<T extends GptDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GptDefaultArgs<ExtArgs>>): Prisma__GptClient<$Result.GetResult<Prisma.$GptPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the GroupGptAssignment model
+   */
+  interface GroupGptAssignmentFieldRefs {
+    readonly id: FieldRef<"GroupGptAssignment", 'String'>
+    readonly groupId: FieldRef<"GroupGptAssignment", 'String'>
+    readonly gptId: FieldRef<"GroupGptAssignment", 'String'>
+    readonly assignedAt: FieldRef<"GroupGptAssignment", 'DateTime'>
+    readonly assignedBy: FieldRef<"GroupGptAssignment", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * GroupGptAssignment findUnique
+   */
+  export type GroupGptAssignmentFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupGptAssignment
+     */
+    select?: GroupGptAssignmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupGptAssignment
+     */
+    omit?: GroupGptAssignmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupGptAssignmentInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupGptAssignment to fetch.
+     */
+    where: GroupGptAssignmentWhereUniqueInput
+  }
+
+  /**
+   * GroupGptAssignment findUniqueOrThrow
+   */
+  export type GroupGptAssignmentFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupGptAssignment
+     */
+    select?: GroupGptAssignmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupGptAssignment
+     */
+    omit?: GroupGptAssignmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupGptAssignmentInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupGptAssignment to fetch.
+     */
+    where: GroupGptAssignmentWhereUniqueInput
+  }
+
+  /**
+   * GroupGptAssignment findFirst
+   */
+  export type GroupGptAssignmentFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupGptAssignment
+     */
+    select?: GroupGptAssignmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupGptAssignment
+     */
+    omit?: GroupGptAssignmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupGptAssignmentInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupGptAssignment to fetch.
+     */
+    where?: GroupGptAssignmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupGptAssignments to fetch.
+     */
+    orderBy?: GroupGptAssignmentOrderByWithRelationInput | GroupGptAssignmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GroupGptAssignments.
+     */
+    cursor?: GroupGptAssignmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupGptAssignments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupGptAssignments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GroupGptAssignments.
+     */
+    distinct?: GroupGptAssignmentScalarFieldEnum | GroupGptAssignmentScalarFieldEnum[]
+  }
+
+  /**
+   * GroupGptAssignment findFirstOrThrow
+   */
+  export type GroupGptAssignmentFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupGptAssignment
+     */
+    select?: GroupGptAssignmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupGptAssignment
+     */
+    omit?: GroupGptAssignmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupGptAssignmentInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupGptAssignment to fetch.
+     */
+    where?: GroupGptAssignmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupGptAssignments to fetch.
+     */
+    orderBy?: GroupGptAssignmentOrderByWithRelationInput | GroupGptAssignmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GroupGptAssignments.
+     */
+    cursor?: GroupGptAssignmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupGptAssignments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupGptAssignments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GroupGptAssignments.
+     */
+    distinct?: GroupGptAssignmentScalarFieldEnum | GroupGptAssignmentScalarFieldEnum[]
+  }
+
+  /**
+   * GroupGptAssignment findMany
+   */
+  export type GroupGptAssignmentFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupGptAssignment
+     */
+    select?: GroupGptAssignmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupGptAssignment
+     */
+    omit?: GroupGptAssignmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupGptAssignmentInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupGptAssignments to fetch.
+     */
+    where?: GroupGptAssignmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupGptAssignments to fetch.
+     */
+    orderBy?: GroupGptAssignmentOrderByWithRelationInput | GroupGptAssignmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing GroupGptAssignments.
+     */
+    cursor?: GroupGptAssignmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupGptAssignments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupGptAssignments.
+     */
+    skip?: number
+    distinct?: GroupGptAssignmentScalarFieldEnum | GroupGptAssignmentScalarFieldEnum[]
+  }
+
+  /**
+   * GroupGptAssignment create
+   */
+  export type GroupGptAssignmentCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupGptAssignment
+     */
+    select?: GroupGptAssignmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupGptAssignment
+     */
+    omit?: GroupGptAssignmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupGptAssignmentInclude<ExtArgs> | null
+    /**
+     * The data needed to create a GroupGptAssignment.
+     */
+    data: XOR<GroupGptAssignmentCreateInput, GroupGptAssignmentUncheckedCreateInput>
+  }
+
+  /**
+   * GroupGptAssignment createMany
+   */
+  export type GroupGptAssignmentCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many GroupGptAssignments.
+     */
+    data: GroupGptAssignmentCreateManyInput | GroupGptAssignmentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GroupGptAssignment createManyAndReturn
+   */
+  export type GroupGptAssignmentCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupGptAssignment
+     */
+    select?: GroupGptAssignmentSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupGptAssignment
+     */
+    omit?: GroupGptAssignmentOmit<ExtArgs> | null
+    /**
+     * The data used to create many GroupGptAssignments.
+     */
+    data: GroupGptAssignmentCreateManyInput | GroupGptAssignmentCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupGptAssignmentIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GroupGptAssignment update
+   */
+  export type GroupGptAssignmentUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupGptAssignment
+     */
+    select?: GroupGptAssignmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupGptAssignment
+     */
+    omit?: GroupGptAssignmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupGptAssignmentInclude<ExtArgs> | null
+    /**
+     * The data needed to update a GroupGptAssignment.
+     */
+    data: XOR<GroupGptAssignmentUpdateInput, GroupGptAssignmentUncheckedUpdateInput>
+    /**
+     * Choose, which GroupGptAssignment to update.
+     */
+    where: GroupGptAssignmentWhereUniqueInput
+  }
+
+  /**
+   * GroupGptAssignment updateMany
+   */
+  export type GroupGptAssignmentUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update GroupGptAssignments.
+     */
+    data: XOR<GroupGptAssignmentUpdateManyMutationInput, GroupGptAssignmentUncheckedUpdateManyInput>
+    /**
+     * Filter which GroupGptAssignments to update
+     */
+    where?: GroupGptAssignmentWhereInput
+    /**
+     * Limit how many GroupGptAssignments to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * GroupGptAssignment updateManyAndReturn
+   */
+  export type GroupGptAssignmentUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupGptAssignment
+     */
+    select?: GroupGptAssignmentSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupGptAssignment
+     */
+    omit?: GroupGptAssignmentOmit<ExtArgs> | null
+    /**
+     * The data used to update GroupGptAssignments.
+     */
+    data: XOR<GroupGptAssignmentUpdateManyMutationInput, GroupGptAssignmentUncheckedUpdateManyInput>
+    /**
+     * Filter which GroupGptAssignments to update
+     */
+    where?: GroupGptAssignmentWhereInput
+    /**
+     * Limit how many GroupGptAssignments to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupGptAssignmentIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GroupGptAssignment upsert
+   */
+  export type GroupGptAssignmentUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupGptAssignment
+     */
+    select?: GroupGptAssignmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupGptAssignment
+     */
+    omit?: GroupGptAssignmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupGptAssignmentInclude<ExtArgs> | null
+    /**
+     * The filter to search for the GroupGptAssignment to update in case it exists.
+     */
+    where: GroupGptAssignmentWhereUniqueInput
+    /**
+     * In case the GroupGptAssignment found by the `where` argument doesn't exist, create a new GroupGptAssignment with this data.
+     */
+    create: XOR<GroupGptAssignmentCreateInput, GroupGptAssignmentUncheckedCreateInput>
+    /**
+     * In case the GroupGptAssignment was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GroupGptAssignmentUpdateInput, GroupGptAssignmentUncheckedUpdateInput>
+  }
+
+  /**
+   * GroupGptAssignment delete
+   */
+  export type GroupGptAssignmentDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupGptAssignment
+     */
+    select?: GroupGptAssignmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupGptAssignment
+     */
+    omit?: GroupGptAssignmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupGptAssignmentInclude<ExtArgs> | null
+    /**
+     * Filter which GroupGptAssignment to delete.
+     */
+    where: GroupGptAssignmentWhereUniqueInput
+  }
+
+  /**
+   * GroupGptAssignment deleteMany
+   */
+  export type GroupGptAssignmentDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GroupGptAssignments to delete
+     */
+    where?: GroupGptAssignmentWhereInput
+    /**
+     * Limit how many GroupGptAssignments to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * GroupGptAssignment without action
+   */
+  export type GroupGptAssignmentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupGptAssignment
+     */
+    select?: GroupGptAssignmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupGptAssignment
+     */
+    omit?: GroupGptAssignmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupGptAssignmentInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -14388,6 +18086,41 @@ export namespace Prisma {
   export type KnowledgeBaseScalarFieldEnum = (typeof KnowledgeBaseScalarFieldEnum)[keyof typeof KnowledgeBaseScalarFieldEnum]
 
 
+  export const TeamGroupScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    description: 'description',
+    image: 'image',
+    createdBy: 'createdBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type TeamGroupScalarFieldEnum = (typeof TeamGroupScalarFieldEnum)[keyof typeof TeamGroupScalarFieldEnum]
+
+
+  export const GroupMemberScalarFieldEnum: {
+    id: 'id',
+    groupId: 'groupId',
+    userId: 'userId',
+    addedAt: 'addedAt',
+    addedBy: 'addedBy'
+  };
+
+  export type GroupMemberScalarFieldEnum = (typeof GroupMemberScalarFieldEnum)[keyof typeof GroupMemberScalarFieldEnum]
+
+
+  export const GroupGptAssignmentScalarFieldEnum: {
+    id: 'id',
+    groupId: 'groupId',
+    gptId: 'gptId',
+    assignedAt: 'assignedAt',
+    assignedBy: 'assignedBy'
+  };
+
+  export type GroupGptAssignmentScalarFieldEnum = (typeof GroupGptAssignmentScalarFieldEnum)[keyof typeof GroupGptAssignmentScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -14517,6 +18250,8 @@ export namespace Prisma {
     Gpt?: GptListRelationFilter
     assignedGpts?: AssignGptListRelationFilter
     conversations?: ConversationListRelationFilter
+    groupMembers?: GroupMemberListRelationFilter
+    createdGroups?: TeamGroupListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -14536,6 +18271,8 @@ export namespace Prisma {
     Gpt?: GptOrderByRelationAggregateInput
     assignedGpts?: AssignGptOrderByRelationAggregateInput
     conversations?: ConversationOrderByRelationAggregateInput
+    groupMembers?: GroupMemberOrderByRelationAggregateInput
+    createdGroups?: TeamGroupOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -14558,6 +18295,8 @@ export namespace Prisma {
     Gpt?: GptListRelationFilter
     assignedGpts?: AssignGptListRelationFilter
     conversations?: ConversationListRelationFilter
+    groupMembers?: GroupMemberListRelationFilter
+    createdGroups?: TeamGroupListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -14845,6 +18584,7 @@ export namespace Prisma {
     assignedToUsers?: AssignGptListRelationFilter
     conversations?: ConversationListRelationFilter
     composioConnections?: ComposioConnectionListRelationFilter
+    groupAssignments?: GroupGptAssignmentListRelationFilter
   }
 
   export type GptOrderByWithRelationInput = {
@@ -14868,6 +18608,7 @@ export namespace Prisma {
     assignedToUsers?: AssignGptOrderByRelationAggregateInput
     conversations?: ConversationOrderByRelationAggregateInput
     composioConnections?: ComposioConnectionOrderByRelationAggregateInput
+    groupAssignments?: GroupGptAssignmentOrderByRelationAggregateInput
   }
 
   export type GptWhereUniqueInput = Prisma.AtLeast<{
@@ -14894,6 +18635,7 @@ export namespace Prisma {
     assignedToUsers?: AssignGptListRelationFilter
     conversations?: ConversationListRelationFilter
     composioConnections?: ComposioConnectionListRelationFilter
+    groupAssignments?: GroupGptAssignmentListRelationFilter
   }, "id">
 
   export type GptOrderByWithAggregationInput = {
@@ -15335,6 +19077,195 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"KnowledgeBase"> | Date | string
   }
 
+  export type TeamGroupWhereInput = {
+    AND?: TeamGroupWhereInput | TeamGroupWhereInput[]
+    OR?: TeamGroupWhereInput[]
+    NOT?: TeamGroupWhereInput | TeamGroupWhereInput[]
+    id?: StringFilter<"TeamGroup"> | string
+    name?: StringFilter<"TeamGroup"> | string
+    description?: StringNullableFilter<"TeamGroup"> | string | null
+    image?: StringNullableFilter<"TeamGroup"> | string | null
+    createdBy?: StringFilter<"TeamGroup"> | string
+    createdAt?: DateTimeFilter<"TeamGroup"> | Date | string
+    updatedAt?: DateTimeFilter<"TeamGroup"> | Date | string
+    creator?: XOR<UserScalarRelationFilter, UserWhereInput>
+    members?: GroupMemberListRelationFilter
+    gptAssignments?: GroupGptAssignmentListRelationFilter
+  }
+
+  export type TeamGroupOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    image?: SortOrderInput | SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    creator?: UserOrderByWithRelationInput
+    members?: GroupMemberOrderByRelationAggregateInput
+    gptAssignments?: GroupGptAssignmentOrderByRelationAggregateInput
+  }
+
+  export type TeamGroupWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: TeamGroupWhereInput | TeamGroupWhereInput[]
+    OR?: TeamGroupWhereInput[]
+    NOT?: TeamGroupWhereInput | TeamGroupWhereInput[]
+    name?: StringFilter<"TeamGroup"> | string
+    description?: StringNullableFilter<"TeamGroup"> | string | null
+    image?: StringNullableFilter<"TeamGroup"> | string | null
+    createdBy?: StringFilter<"TeamGroup"> | string
+    createdAt?: DateTimeFilter<"TeamGroup"> | Date | string
+    updatedAt?: DateTimeFilter<"TeamGroup"> | Date | string
+    creator?: XOR<UserScalarRelationFilter, UserWhereInput>
+    members?: GroupMemberListRelationFilter
+    gptAssignments?: GroupGptAssignmentListRelationFilter
+  }, "id">
+
+  export type TeamGroupOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    image?: SortOrderInput | SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: TeamGroupCountOrderByAggregateInput
+    _max?: TeamGroupMaxOrderByAggregateInput
+    _min?: TeamGroupMinOrderByAggregateInput
+  }
+
+  export type TeamGroupScalarWhereWithAggregatesInput = {
+    AND?: TeamGroupScalarWhereWithAggregatesInput | TeamGroupScalarWhereWithAggregatesInput[]
+    OR?: TeamGroupScalarWhereWithAggregatesInput[]
+    NOT?: TeamGroupScalarWhereWithAggregatesInput | TeamGroupScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"TeamGroup"> | string
+    name?: StringWithAggregatesFilter<"TeamGroup"> | string
+    description?: StringNullableWithAggregatesFilter<"TeamGroup"> | string | null
+    image?: StringNullableWithAggregatesFilter<"TeamGroup"> | string | null
+    createdBy?: StringWithAggregatesFilter<"TeamGroup"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"TeamGroup"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"TeamGroup"> | Date | string
+  }
+
+  export type GroupMemberWhereInput = {
+    AND?: GroupMemberWhereInput | GroupMemberWhereInput[]
+    OR?: GroupMemberWhereInput[]
+    NOT?: GroupMemberWhereInput | GroupMemberWhereInput[]
+    id?: StringFilter<"GroupMember"> | string
+    groupId?: StringFilter<"GroupMember"> | string
+    userId?: StringFilter<"GroupMember"> | string
+    addedAt?: DateTimeFilter<"GroupMember"> | Date | string
+    addedBy?: StringFilter<"GroupMember"> | string
+    group?: XOR<TeamGroupScalarRelationFilter, TeamGroupWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type GroupMemberOrderByWithRelationInput = {
+    id?: SortOrder
+    groupId?: SortOrder
+    userId?: SortOrder
+    addedAt?: SortOrder
+    addedBy?: SortOrder
+    group?: TeamGroupOrderByWithRelationInput
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type GroupMemberWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    groupId_userId?: GroupMemberGroupIdUserIdCompoundUniqueInput
+    AND?: GroupMemberWhereInput | GroupMemberWhereInput[]
+    OR?: GroupMemberWhereInput[]
+    NOT?: GroupMemberWhereInput | GroupMemberWhereInput[]
+    groupId?: StringFilter<"GroupMember"> | string
+    userId?: StringFilter<"GroupMember"> | string
+    addedAt?: DateTimeFilter<"GroupMember"> | Date | string
+    addedBy?: StringFilter<"GroupMember"> | string
+    group?: XOR<TeamGroupScalarRelationFilter, TeamGroupWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "groupId_userId">
+
+  export type GroupMemberOrderByWithAggregationInput = {
+    id?: SortOrder
+    groupId?: SortOrder
+    userId?: SortOrder
+    addedAt?: SortOrder
+    addedBy?: SortOrder
+    _count?: GroupMemberCountOrderByAggregateInput
+    _max?: GroupMemberMaxOrderByAggregateInput
+    _min?: GroupMemberMinOrderByAggregateInput
+  }
+
+  export type GroupMemberScalarWhereWithAggregatesInput = {
+    AND?: GroupMemberScalarWhereWithAggregatesInput | GroupMemberScalarWhereWithAggregatesInput[]
+    OR?: GroupMemberScalarWhereWithAggregatesInput[]
+    NOT?: GroupMemberScalarWhereWithAggregatesInput | GroupMemberScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"GroupMember"> | string
+    groupId?: StringWithAggregatesFilter<"GroupMember"> | string
+    userId?: StringWithAggregatesFilter<"GroupMember"> | string
+    addedAt?: DateTimeWithAggregatesFilter<"GroupMember"> | Date | string
+    addedBy?: StringWithAggregatesFilter<"GroupMember"> | string
+  }
+
+  export type GroupGptAssignmentWhereInput = {
+    AND?: GroupGptAssignmentWhereInput | GroupGptAssignmentWhereInput[]
+    OR?: GroupGptAssignmentWhereInput[]
+    NOT?: GroupGptAssignmentWhereInput | GroupGptAssignmentWhereInput[]
+    id?: StringFilter<"GroupGptAssignment"> | string
+    groupId?: StringFilter<"GroupGptAssignment"> | string
+    gptId?: StringFilter<"GroupGptAssignment"> | string
+    assignedAt?: DateTimeFilter<"GroupGptAssignment"> | Date | string
+    assignedBy?: StringFilter<"GroupGptAssignment"> | string
+    group?: XOR<TeamGroupScalarRelationFilter, TeamGroupWhereInput>
+    gpt?: XOR<GptScalarRelationFilter, GptWhereInput>
+  }
+
+  export type GroupGptAssignmentOrderByWithRelationInput = {
+    id?: SortOrder
+    groupId?: SortOrder
+    gptId?: SortOrder
+    assignedAt?: SortOrder
+    assignedBy?: SortOrder
+    group?: TeamGroupOrderByWithRelationInput
+    gpt?: GptOrderByWithRelationInput
+  }
+
+  export type GroupGptAssignmentWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    groupId_gptId?: GroupGptAssignmentGroupIdGptIdCompoundUniqueInput
+    AND?: GroupGptAssignmentWhereInput | GroupGptAssignmentWhereInput[]
+    OR?: GroupGptAssignmentWhereInput[]
+    NOT?: GroupGptAssignmentWhereInput | GroupGptAssignmentWhereInput[]
+    groupId?: StringFilter<"GroupGptAssignment"> | string
+    gptId?: StringFilter<"GroupGptAssignment"> | string
+    assignedAt?: DateTimeFilter<"GroupGptAssignment"> | Date | string
+    assignedBy?: StringFilter<"GroupGptAssignment"> | string
+    group?: XOR<TeamGroupScalarRelationFilter, TeamGroupWhereInput>
+    gpt?: XOR<GptScalarRelationFilter, GptWhereInput>
+  }, "id" | "groupId_gptId">
+
+  export type GroupGptAssignmentOrderByWithAggregationInput = {
+    id?: SortOrder
+    groupId?: SortOrder
+    gptId?: SortOrder
+    assignedAt?: SortOrder
+    assignedBy?: SortOrder
+    _count?: GroupGptAssignmentCountOrderByAggregateInput
+    _max?: GroupGptAssignmentMaxOrderByAggregateInput
+    _min?: GroupGptAssignmentMinOrderByAggregateInput
+  }
+
+  export type GroupGptAssignmentScalarWhereWithAggregatesInput = {
+    AND?: GroupGptAssignmentScalarWhereWithAggregatesInput | GroupGptAssignmentScalarWhereWithAggregatesInput[]
+    OR?: GroupGptAssignmentScalarWhereWithAggregatesInput[]
+    NOT?: GroupGptAssignmentScalarWhereWithAggregatesInput | GroupGptAssignmentScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"GroupGptAssignment"> | string
+    groupId?: StringWithAggregatesFilter<"GroupGptAssignment"> | string
+    gptId?: StringWithAggregatesFilter<"GroupGptAssignment"> | string
+    assignedAt?: DateTimeWithAggregatesFilter<"GroupGptAssignment"> | Date | string
+    assignedBy?: StringWithAggregatesFilter<"GroupGptAssignment"> | string
+  }
+
   export type UserCreateInput = {
     id?: string
     name: string
@@ -15352,6 +19283,8 @@ export namespace Prisma {
     Gpt?: GptCreateNestedManyWithoutUserInput
     assignedGpts?: AssignGptCreateNestedManyWithoutUserInput
     conversations?: ConversationCreateNestedManyWithoutUserInput
+    groupMembers?: GroupMemberCreateNestedManyWithoutUserInput
+    createdGroups?: TeamGroupCreateNestedManyWithoutCreatorInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -15371,6 +19304,8 @@ export namespace Prisma {
     Gpt?: GptUncheckedCreateNestedManyWithoutUserInput
     assignedGpts?: AssignGptUncheckedCreateNestedManyWithoutUserInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
+    groupMembers?: GroupMemberUncheckedCreateNestedManyWithoutUserInput
+    createdGroups?: TeamGroupUncheckedCreateNestedManyWithoutCreatorInput
   }
 
   export type UserUpdateInput = {
@@ -15390,6 +19325,8 @@ export namespace Prisma {
     Gpt?: GptUpdateManyWithoutUserNestedInput
     assignedGpts?: AssignGptUpdateManyWithoutUserNestedInput
     conversations?: ConversationUpdateManyWithoutUserNestedInput
+    groupMembers?: GroupMemberUpdateManyWithoutUserNestedInput
+    createdGroups?: TeamGroupUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -15409,6 +19346,8 @@ export namespace Prisma {
     Gpt?: GptUncheckedUpdateManyWithoutUserNestedInput
     assignedGpts?: AssignGptUncheckedUpdateManyWithoutUserNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
+    groupMembers?: GroupMemberUncheckedUpdateManyWithoutUserNestedInput
+    createdGroups?: TeamGroupUncheckedUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -15730,6 +19669,7 @@ export namespace Prisma {
     assignedToUsers?: AssignGptCreateNestedManyWithoutGptInput
     conversations?: ConversationCreateNestedManyWithoutGptInput
     composioConnections?: ComposioConnectionCreateNestedManyWithoutGptInput
+    groupAssignments?: GroupGptAssignmentCreateNestedManyWithoutGptInput
   }
 
   export type GptUncheckedCreateInput = {
@@ -15752,6 +19692,7 @@ export namespace Prisma {
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutGptInput
     composioConnections?: ComposioConnectionUncheckedCreateNestedManyWithoutGptInput
+    groupAssignments?: GroupGptAssignmentUncheckedCreateNestedManyWithoutGptInput
   }
 
   export type GptUpdateInput = {
@@ -15774,6 +19715,7 @@ export namespace Prisma {
     assignedToUsers?: AssignGptUpdateManyWithoutGptNestedInput
     conversations?: ConversationUpdateManyWithoutGptNestedInput
     composioConnections?: ComposioConnectionUpdateManyWithoutGptNestedInput
+    groupAssignments?: GroupGptAssignmentUpdateManyWithoutGptNestedInput
   }
 
   export type GptUncheckedUpdateInput = {
@@ -15796,6 +19738,7 @@ export namespace Prisma {
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutGptNestedInput
     composioConnections?: ComposioConnectionUncheckedUpdateManyWithoutGptNestedInput
+    groupAssignments?: GroupGptAssignmentUncheckedUpdateManyWithoutGptNestedInput
   }
 
   export type GptCreateManyInput = {
@@ -16272,6 +20215,191 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type TeamGroupCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    creator: UserCreateNestedOneWithoutCreatedGroupsInput
+    members?: GroupMemberCreateNestedManyWithoutGroupInput
+    gptAssignments?: GroupGptAssignmentCreateNestedManyWithoutGroupInput
+  }
+
+  export type TeamGroupUncheckedCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    image?: string | null
+    createdBy: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: GroupMemberUncheckedCreateNestedManyWithoutGroupInput
+    gptAssignments?: GroupGptAssignmentUncheckedCreateNestedManyWithoutGroupInput
+  }
+
+  export type TeamGroupUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creator?: UserUpdateOneRequiredWithoutCreatedGroupsNestedInput
+    members?: GroupMemberUpdateManyWithoutGroupNestedInput
+    gptAssignments?: GroupGptAssignmentUpdateManyWithoutGroupNestedInput
+  }
+
+  export type TeamGroupUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: GroupMemberUncheckedUpdateManyWithoutGroupNestedInput
+    gptAssignments?: GroupGptAssignmentUncheckedUpdateManyWithoutGroupNestedInput
+  }
+
+  export type TeamGroupCreateManyInput = {
+    id?: string
+    name: string
+    description?: string | null
+    image?: string | null
+    createdBy: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TeamGroupUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TeamGroupUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GroupMemberCreateInput = {
+    id?: string
+    addedAt?: Date | string
+    addedBy: string
+    group: TeamGroupCreateNestedOneWithoutMembersInput
+    user: UserCreateNestedOneWithoutGroupMembersInput
+  }
+
+  export type GroupMemberUncheckedCreateInput = {
+    id?: string
+    groupId: string
+    userId: string
+    addedAt?: Date | string
+    addedBy: string
+  }
+
+  export type GroupMemberUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    addedBy?: StringFieldUpdateOperationsInput | string
+    group?: TeamGroupUpdateOneRequiredWithoutMembersNestedInput
+    user?: UserUpdateOneRequiredWithoutGroupMembersNestedInput
+  }
+
+  export type GroupMemberUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    groupId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    addedBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type GroupMemberCreateManyInput = {
+    id?: string
+    groupId: string
+    userId: string
+    addedAt?: Date | string
+    addedBy: string
+  }
+
+  export type GroupMemberUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    addedBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type GroupMemberUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    groupId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    addedBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type GroupGptAssignmentCreateInput = {
+    id?: string
+    assignedAt?: Date | string
+    assignedBy: string
+    group: TeamGroupCreateNestedOneWithoutGptAssignmentsInput
+    gpt: GptCreateNestedOneWithoutGroupAssignmentsInput
+  }
+
+  export type GroupGptAssignmentUncheckedCreateInput = {
+    id?: string
+    groupId: string
+    gptId: string
+    assignedAt?: Date | string
+    assignedBy: string
+  }
+
+  export type GroupGptAssignmentUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedBy?: StringFieldUpdateOperationsInput | string
+    group?: TeamGroupUpdateOneRequiredWithoutGptAssignmentsNestedInput
+    gpt?: GptUpdateOneRequiredWithoutGroupAssignmentsNestedInput
+  }
+
+  export type GroupGptAssignmentUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    groupId?: StringFieldUpdateOperationsInput | string
+    gptId?: StringFieldUpdateOperationsInput | string
+    assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type GroupGptAssignmentCreateManyInput = {
+    id?: string
+    groupId: string
+    gptId: string
+    assignedAt?: Date | string
+    assignedBy: string
+  }
+
+  export type GroupGptAssignmentUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type GroupGptAssignmentUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    groupId?: StringFieldUpdateOperationsInput | string
+    gptId?: StringFieldUpdateOperationsInput | string
+    assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedBy?: StringFieldUpdateOperationsInput | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -16359,6 +20487,18 @@ export namespace Prisma {
     none?: ConversationWhereInput
   }
 
+  export type GroupMemberListRelationFilter = {
+    every?: GroupMemberWhereInput
+    some?: GroupMemberWhereInput
+    none?: GroupMemberWhereInput
+  }
+
+  export type TeamGroupListRelationFilter = {
+    every?: TeamGroupWhereInput
+    some?: TeamGroupWhereInput
+    none?: TeamGroupWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -16381,6 +20521,14 @@ export namespace Prisma {
   }
 
   export type ConversationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type GroupMemberOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type TeamGroupOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -16627,7 +20775,17 @@ export namespace Prisma {
     none?: ComposioConnectionWhereInput
   }
 
+  export type GroupGptAssignmentListRelationFilter = {
+    every?: GroupGptAssignmentWhereInput
+    some?: GroupGptAssignmentWhereInput
+    none?: GroupGptAssignmentWhereInput
+  }
+
   export type ComposioConnectionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type GroupGptAssignmentOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -16925,6 +21083,99 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type TeamGroupCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    image?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type TeamGroupMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    image?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type TeamGroupMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    image?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type TeamGroupScalarRelationFilter = {
+    is?: TeamGroupWhereInput
+    isNot?: TeamGroupWhereInput
+  }
+
+  export type GroupMemberGroupIdUserIdCompoundUniqueInput = {
+    groupId: string
+    userId: string
+  }
+
+  export type GroupMemberCountOrderByAggregateInput = {
+    id?: SortOrder
+    groupId?: SortOrder
+    userId?: SortOrder
+    addedAt?: SortOrder
+    addedBy?: SortOrder
+  }
+
+  export type GroupMemberMaxOrderByAggregateInput = {
+    id?: SortOrder
+    groupId?: SortOrder
+    userId?: SortOrder
+    addedAt?: SortOrder
+    addedBy?: SortOrder
+  }
+
+  export type GroupMemberMinOrderByAggregateInput = {
+    id?: SortOrder
+    groupId?: SortOrder
+    userId?: SortOrder
+    addedAt?: SortOrder
+    addedBy?: SortOrder
+  }
+
+  export type GroupGptAssignmentGroupIdGptIdCompoundUniqueInput = {
+    groupId: string
+    gptId: string
+  }
+
+  export type GroupGptAssignmentCountOrderByAggregateInput = {
+    id?: SortOrder
+    groupId?: SortOrder
+    gptId?: SortOrder
+    assignedAt?: SortOrder
+    assignedBy?: SortOrder
+  }
+
+  export type GroupGptAssignmentMaxOrderByAggregateInput = {
+    id?: SortOrder
+    groupId?: SortOrder
+    gptId?: SortOrder
+    assignedAt?: SortOrder
+    assignedBy?: SortOrder
+  }
+
+  export type GroupGptAssignmentMinOrderByAggregateInput = {
+    id?: SortOrder
+    groupId?: SortOrder
+    gptId?: SortOrder
+    assignedAt?: SortOrder
+    assignedBy?: SortOrder
+  }
+
   export type SessionCreateNestedManyWithoutUserInput = {
     create?: XOR<SessionCreateWithoutUserInput, SessionUncheckedCreateWithoutUserInput> | SessionCreateWithoutUserInput[] | SessionUncheckedCreateWithoutUserInput[]
     connectOrCreate?: SessionCreateOrConnectWithoutUserInput | SessionCreateOrConnectWithoutUserInput[]
@@ -16960,6 +21211,20 @@ export namespace Prisma {
     connect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
   }
 
+  export type GroupMemberCreateNestedManyWithoutUserInput = {
+    create?: XOR<GroupMemberCreateWithoutUserInput, GroupMemberUncheckedCreateWithoutUserInput> | GroupMemberCreateWithoutUserInput[] | GroupMemberUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: GroupMemberCreateOrConnectWithoutUserInput | GroupMemberCreateOrConnectWithoutUserInput[]
+    createMany?: GroupMemberCreateManyUserInputEnvelope
+    connect?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+  }
+
+  export type TeamGroupCreateNestedManyWithoutCreatorInput = {
+    create?: XOR<TeamGroupCreateWithoutCreatorInput, TeamGroupUncheckedCreateWithoutCreatorInput> | TeamGroupCreateWithoutCreatorInput[] | TeamGroupUncheckedCreateWithoutCreatorInput[]
+    connectOrCreate?: TeamGroupCreateOrConnectWithoutCreatorInput | TeamGroupCreateOrConnectWithoutCreatorInput[]
+    createMany?: TeamGroupCreateManyCreatorInputEnvelope
+    connect?: TeamGroupWhereUniqueInput | TeamGroupWhereUniqueInput[]
+  }
+
   export type SessionUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<SessionCreateWithoutUserInput, SessionUncheckedCreateWithoutUserInput> | SessionCreateWithoutUserInput[] | SessionUncheckedCreateWithoutUserInput[]
     connectOrCreate?: SessionCreateOrConnectWithoutUserInput | SessionCreateOrConnectWithoutUserInput[]
@@ -16993,6 +21258,20 @@ export namespace Prisma {
     connectOrCreate?: ConversationCreateOrConnectWithoutUserInput | ConversationCreateOrConnectWithoutUserInput[]
     createMany?: ConversationCreateManyUserInputEnvelope
     connect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+  }
+
+  export type GroupMemberUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<GroupMemberCreateWithoutUserInput, GroupMemberUncheckedCreateWithoutUserInput> | GroupMemberCreateWithoutUserInput[] | GroupMemberUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: GroupMemberCreateOrConnectWithoutUserInput | GroupMemberCreateOrConnectWithoutUserInput[]
+    createMany?: GroupMemberCreateManyUserInputEnvelope
+    connect?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+  }
+
+  export type TeamGroupUncheckedCreateNestedManyWithoutCreatorInput = {
+    create?: XOR<TeamGroupCreateWithoutCreatorInput, TeamGroupUncheckedCreateWithoutCreatorInput> | TeamGroupCreateWithoutCreatorInput[] | TeamGroupUncheckedCreateWithoutCreatorInput[]
+    connectOrCreate?: TeamGroupCreateOrConnectWithoutCreatorInput | TeamGroupCreateOrConnectWithoutCreatorInput[]
+    createMany?: TeamGroupCreateManyCreatorInputEnvelope
+    connect?: TeamGroupWhereUniqueInput | TeamGroupWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -17085,6 +21364,34 @@ export namespace Prisma {
     deleteMany?: ConversationScalarWhereInput | ConversationScalarWhereInput[]
   }
 
+  export type GroupMemberUpdateManyWithoutUserNestedInput = {
+    create?: XOR<GroupMemberCreateWithoutUserInput, GroupMemberUncheckedCreateWithoutUserInput> | GroupMemberCreateWithoutUserInput[] | GroupMemberUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: GroupMemberCreateOrConnectWithoutUserInput | GroupMemberCreateOrConnectWithoutUserInput[]
+    upsert?: GroupMemberUpsertWithWhereUniqueWithoutUserInput | GroupMemberUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: GroupMemberCreateManyUserInputEnvelope
+    set?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+    disconnect?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+    delete?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+    connect?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+    update?: GroupMemberUpdateWithWhereUniqueWithoutUserInput | GroupMemberUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: GroupMemberUpdateManyWithWhereWithoutUserInput | GroupMemberUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: GroupMemberScalarWhereInput | GroupMemberScalarWhereInput[]
+  }
+
+  export type TeamGroupUpdateManyWithoutCreatorNestedInput = {
+    create?: XOR<TeamGroupCreateWithoutCreatorInput, TeamGroupUncheckedCreateWithoutCreatorInput> | TeamGroupCreateWithoutCreatorInput[] | TeamGroupUncheckedCreateWithoutCreatorInput[]
+    connectOrCreate?: TeamGroupCreateOrConnectWithoutCreatorInput | TeamGroupCreateOrConnectWithoutCreatorInput[]
+    upsert?: TeamGroupUpsertWithWhereUniqueWithoutCreatorInput | TeamGroupUpsertWithWhereUniqueWithoutCreatorInput[]
+    createMany?: TeamGroupCreateManyCreatorInputEnvelope
+    set?: TeamGroupWhereUniqueInput | TeamGroupWhereUniqueInput[]
+    disconnect?: TeamGroupWhereUniqueInput | TeamGroupWhereUniqueInput[]
+    delete?: TeamGroupWhereUniqueInput | TeamGroupWhereUniqueInput[]
+    connect?: TeamGroupWhereUniqueInput | TeamGroupWhereUniqueInput[]
+    update?: TeamGroupUpdateWithWhereUniqueWithoutCreatorInput | TeamGroupUpdateWithWhereUniqueWithoutCreatorInput[]
+    updateMany?: TeamGroupUpdateManyWithWhereWithoutCreatorInput | TeamGroupUpdateManyWithWhereWithoutCreatorInput[]
+    deleteMany?: TeamGroupScalarWhereInput | TeamGroupScalarWhereInput[]
+  }
+
   export type SessionUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<SessionCreateWithoutUserInput, SessionUncheckedCreateWithoutUserInput> | SessionCreateWithoutUserInput[] | SessionUncheckedCreateWithoutUserInput[]
     connectOrCreate?: SessionCreateOrConnectWithoutUserInput | SessionCreateOrConnectWithoutUserInput[]
@@ -17155,6 +21462,34 @@ export namespace Prisma {
     deleteMany?: ConversationScalarWhereInput | ConversationScalarWhereInput[]
   }
 
+  export type GroupMemberUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<GroupMemberCreateWithoutUserInput, GroupMemberUncheckedCreateWithoutUserInput> | GroupMemberCreateWithoutUserInput[] | GroupMemberUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: GroupMemberCreateOrConnectWithoutUserInput | GroupMemberCreateOrConnectWithoutUserInput[]
+    upsert?: GroupMemberUpsertWithWhereUniqueWithoutUserInput | GroupMemberUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: GroupMemberCreateManyUserInputEnvelope
+    set?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+    disconnect?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+    delete?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+    connect?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+    update?: GroupMemberUpdateWithWhereUniqueWithoutUserInput | GroupMemberUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: GroupMemberUpdateManyWithWhereWithoutUserInput | GroupMemberUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: GroupMemberScalarWhereInput | GroupMemberScalarWhereInput[]
+  }
+
+  export type TeamGroupUncheckedUpdateManyWithoutCreatorNestedInput = {
+    create?: XOR<TeamGroupCreateWithoutCreatorInput, TeamGroupUncheckedCreateWithoutCreatorInput> | TeamGroupCreateWithoutCreatorInput[] | TeamGroupUncheckedCreateWithoutCreatorInput[]
+    connectOrCreate?: TeamGroupCreateOrConnectWithoutCreatorInput | TeamGroupCreateOrConnectWithoutCreatorInput[]
+    upsert?: TeamGroupUpsertWithWhereUniqueWithoutCreatorInput | TeamGroupUpsertWithWhereUniqueWithoutCreatorInput[]
+    createMany?: TeamGroupCreateManyCreatorInputEnvelope
+    set?: TeamGroupWhereUniqueInput | TeamGroupWhereUniqueInput[]
+    disconnect?: TeamGroupWhereUniqueInput | TeamGroupWhereUniqueInput[]
+    delete?: TeamGroupWhereUniqueInput | TeamGroupWhereUniqueInput[]
+    connect?: TeamGroupWhereUniqueInput | TeamGroupWhereUniqueInput[]
+    update?: TeamGroupUpdateWithWhereUniqueWithoutCreatorInput | TeamGroupUpdateWithWhereUniqueWithoutCreatorInput[]
+    updateMany?: TeamGroupUpdateManyWithWhereWithoutCreatorInput | TeamGroupUpdateManyWithWhereWithoutCreatorInput[]
+    deleteMany?: TeamGroupScalarWhereInput | TeamGroupScalarWhereInput[]
+  }
+
   export type UserCreateNestedOneWithoutSessionsInput = {
     create?: XOR<UserCreateWithoutSessionsInput, UserUncheckedCreateWithoutSessionsInput>
     connectOrCreate?: UserCreateOrConnectWithoutSessionsInput
@@ -17210,6 +21545,13 @@ export namespace Prisma {
     connect?: ComposioConnectionWhereUniqueInput | ComposioConnectionWhereUniqueInput[]
   }
 
+  export type GroupGptAssignmentCreateNestedManyWithoutGptInput = {
+    create?: XOR<GroupGptAssignmentCreateWithoutGptInput, GroupGptAssignmentUncheckedCreateWithoutGptInput> | GroupGptAssignmentCreateWithoutGptInput[] | GroupGptAssignmentUncheckedCreateWithoutGptInput[]
+    connectOrCreate?: GroupGptAssignmentCreateOrConnectWithoutGptInput | GroupGptAssignmentCreateOrConnectWithoutGptInput[]
+    createMany?: GroupGptAssignmentCreateManyGptInputEnvelope
+    connect?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+  }
+
   export type AssignGptUncheckedCreateNestedManyWithoutGptInput = {
     create?: XOR<AssignGptCreateWithoutGptInput, AssignGptUncheckedCreateWithoutGptInput> | AssignGptCreateWithoutGptInput[] | AssignGptUncheckedCreateWithoutGptInput[]
     connectOrCreate?: AssignGptCreateOrConnectWithoutGptInput | AssignGptCreateOrConnectWithoutGptInput[]
@@ -17229,6 +21571,13 @@ export namespace Prisma {
     connectOrCreate?: ComposioConnectionCreateOrConnectWithoutGptInput | ComposioConnectionCreateOrConnectWithoutGptInput[]
     createMany?: ComposioConnectionCreateManyGptInputEnvelope
     connect?: ComposioConnectionWhereUniqueInput | ComposioConnectionWhereUniqueInput[]
+  }
+
+  export type GroupGptAssignmentUncheckedCreateNestedManyWithoutGptInput = {
+    create?: XOR<GroupGptAssignmentCreateWithoutGptInput, GroupGptAssignmentUncheckedCreateWithoutGptInput> | GroupGptAssignmentCreateWithoutGptInput[] | GroupGptAssignmentUncheckedCreateWithoutGptInput[]
+    connectOrCreate?: GroupGptAssignmentCreateOrConnectWithoutGptInput | GroupGptAssignmentCreateOrConnectWithoutGptInput[]
+    createMany?: GroupGptAssignmentCreateManyGptInputEnvelope
+    connect?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
   }
 
   export type EnumModelEnumFieldUpdateOperationsInput = {
@@ -17285,6 +21634,20 @@ export namespace Prisma {
     deleteMany?: ComposioConnectionScalarWhereInput | ComposioConnectionScalarWhereInput[]
   }
 
+  export type GroupGptAssignmentUpdateManyWithoutGptNestedInput = {
+    create?: XOR<GroupGptAssignmentCreateWithoutGptInput, GroupGptAssignmentUncheckedCreateWithoutGptInput> | GroupGptAssignmentCreateWithoutGptInput[] | GroupGptAssignmentUncheckedCreateWithoutGptInput[]
+    connectOrCreate?: GroupGptAssignmentCreateOrConnectWithoutGptInput | GroupGptAssignmentCreateOrConnectWithoutGptInput[]
+    upsert?: GroupGptAssignmentUpsertWithWhereUniqueWithoutGptInput | GroupGptAssignmentUpsertWithWhereUniqueWithoutGptInput[]
+    createMany?: GroupGptAssignmentCreateManyGptInputEnvelope
+    set?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+    disconnect?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+    delete?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+    connect?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+    update?: GroupGptAssignmentUpdateWithWhereUniqueWithoutGptInput | GroupGptAssignmentUpdateWithWhereUniqueWithoutGptInput[]
+    updateMany?: GroupGptAssignmentUpdateManyWithWhereWithoutGptInput | GroupGptAssignmentUpdateManyWithWhereWithoutGptInput[]
+    deleteMany?: GroupGptAssignmentScalarWhereInput | GroupGptAssignmentScalarWhereInput[]
+  }
+
   export type AssignGptUncheckedUpdateManyWithoutGptNestedInput = {
     create?: XOR<AssignGptCreateWithoutGptInput, AssignGptUncheckedCreateWithoutGptInput> | AssignGptCreateWithoutGptInput[] | AssignGptUncheckedCreateWithoutGptInput[]
     connectOrCreate?: AssignGptCreateOrConnectWithoutGptInput | AssignGptCreateOrConnectWithoutGptInput[]
@@ -17325,6 +21688,20 @@ export namespace Prisma {
     update?: ComposioConnectionUpdateWithWhereUniqueWithoutGptInput | ComposioConnectionUpdateWithWhereUniqueWithoutGptInput[]
     updateMany?: ComposioConnectionUpdateManyWithWhereWithoutGptInput | ComposioConnectionUpdateManyWithWhereWithoutGptInput[]
     deleteMany?: ComposioConnectionScalarWhereInput | ComposioConnectionScalarWhereInput[]
+  }
+
+  export type GroupGptAssignmentUncheckedUpdateManyWithoutGptNestedInput = {
+    create?: XOR<GroupGptAssignmentCreateWithoutGptInput, GroupGptAssignmentUncheckedCreateWithoutGptInput> | GroupGptAssignmentCreateWithoutGptInput[] | GroupGptAssignmentUncheckedCreateWithoutGptInput[]
+    connectOrCreate?: GroupGptAssignmentCreateOrConnectWithoutGptInput | GroupGptAssignmentCreateOrConnectWithoutGptInput[]
+    upsert?: GroupGptAssignmentUpsertWithWhereUniqueWithoutGptInput | GroupGptAssignmentUpsertWithWhereUniqueWithoutGptInput[]
+    createMany?: GroupGptAssignmentCreateManyGptInputEnvelope
+    set?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+    disconnect?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+    delete?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+    connect?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+    update?: GroupGptAssignmentUpdateWithWhereUniqueWithoutGptInput | GroupGptAssignmentUpdateWithWhereUniqueWithoutGptInput[]
+    updateMany?: GroupGptAssignmentUpdateManyWithWhereWithoutGptInput | GroupGptAssignmentUpdateManyWithWhereWithoutGptInput[]
+    deleteMany?: GroupGptAssignmentScalarWhereInput | GroupGptAssignmentScalarWhereInput[]
   }
 
   export type GptCreateNestedOneWithoutComposioConnectionsInput = {
@@ -17455,6 +21832,160 @@ export namespace Prisma {
     upsert?: ConversationUpsertWithoutMessagesInput
     connect?: ConversationWhereUniqueInput
     update?: XOR<XOR<ConversationUpdateToOneWithWhereWithoutMessagesInput, ConversationUpdateWithoutMessagesInput>, ConversationUncheckedUpdateWithoutMessagesInput>
+  }
+
+  export type UserCreateNestedOneWithoutCreatedGroupsInput = {
+    create?: XOR<UserCreateWithoutCreatedGroupsInput, UserUncheckedCreateWithoutCreatedGroupsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCreatedGroupsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type GroupMemberCreateNestedManyWithoutGroupInput = {
+    create?: XOR<GroupMemberCreateWithoutGroupInput, GroupMemberUncheckedCreateWithoutGroupInput> | GroupMemberCreateWithoutGroupInput[] | GroupMemberUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: GroupMemberCreateOrConnectWithoutGroupInput | GroupMemberCreateOrConnectWithoutGroupInput[]
+    createMany?: GroupMemberCreateManyGroupInputEnvelope
+    connect?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+  }
+
+  export type GroupGptAssignmentCreateNestedManyWithoutGroupInput = {
+    create?: XOR<GroupGptAssignmentCreateWithoutGroupInput, GroupGptAssignmentUncheckedCreateWithoutGroupInput> | GroupGptAssignmentCreateWithoutGroupInput[] | GroupGptAssignmentUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: GroupGptAssignmentCreateOrConnectWithoutGroupInput | GroupGptAssignmentCreateOrConnectWithoutGroupInput[]
+    createMany?: GroupGptAssignmentCreateManyGroupInputEnvelope
+    connect?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+  }
+
+  export type GroupMemberUncheckedCreateNestedManyWithoutGroupInput = {
+    create?: XOR<GroupMemberCreateWithoutGroupInput, GroupMemberUncheckedCreateWithoutGroupInput> | GroupMemberCreateWithoutGroupInput[] | GroupMemberUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: GroupMemberCreateOrConnectWithoutGroupInput | GroupMemberCreateOrConnectWithoutGroupInput[]
+    createMany?: GroupMemberCreateManyGroupInputEnvelope
+    connect?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+  }
+
+  export type GroupGptAssignmentUncheckedCreateNestedManyWithoutGroupInput = {
+    create?: XOR<GroupGptAssignmentCreateWithoutGroupInput, GroupGptAssignmentUncheckedCreateWithoutGroupInput> | GroupGptAssignmentCreateWithoutGroupInput[] | GroupGptAssignmentUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: GroupGptAssignmentCreateOrConnectWithoutGroupInput | GroupGptAssignmentCreateOrConnectWithoutGroupInput[]
+    createMany?: GroupGptAssignmentCreateManyGroupInputEnvelope
+    connect?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+  }
+
+  export type UserUpdateOneRequiredWithoutCreatedGroupsNestedInput = {
+    create?: XOR<UserCreateWithoutCreatedGroupsInput, UserUncheckedCreateWithoutCreatedGroupsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCreatedGroupsInput
+    upsert?: UserUpsertWithoutCreatedGroupsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCreatedGroupsInput, UserUpdateWithoutCreatedGroupsInput>, UserUncheckedUpdateWithoutCreatedGroupsInput>
+  }
+
+  export type GroupMemberUpdateManyWithoutGroupNestedInput = {
+    create?: XOR<GroupMemberCreateWithoutGroupInput, GroupMemberUncheckedCreateWithoutGroupInput> | GroupMemberCreateWithoutGroupInput[] | GroupMemberUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: GroupMemberCreateOrConnectWithoutGroupInput | GroupMemberCreateOrConnectWithoutGroupInput[]
+    upsert?: GroupMemberUpsertWithWhereUniqueWithoutGroupInput | GroupMemberUpsertWithWhereUniqueWithoutGroupInput[]
+    createMany?: GroupMemberCreateManyGroupInputEnvelope
+    set?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+    disconnect?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+    delete?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+    connect?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+    update?: GroupMemberUpdateWithWhereUniqueWithoutGroupInput | GroupMemberUpdateWithWhereUniqueWithoutGroupInput[]
+    updateMany?: GroupMemberUpdateManyWithWhereWithoutGroupInput | GroupMemberUpdateManyWithWhereWithoutGroupInput[]
+    deleteMany?: GroupMemberScalarWhereInput | GroupMemberScalarWhereInput[]
+  }
+
+  export type GroupGptAssignmentUpdateManyWithoutGroupNestedInput = {
+    create?: XOR<GroupGptAssignmentCreateWithoutGroupInput, GroupGptAssignmentUncheckedCreateWithoutGroupInput> | GroupGptAssignmentCreateWithoutGroupInput[] | GroupGptAssignmentUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: GroupGptAssignmentCreateOrConnectWithoutGroupInput | GroupGptAssignmentCreateOrConnectWithoutGroupInput[]
+    upsert?: GroupGptAssignmentUpsertWithWhereUniqueWithoutGroupInput | GroupGptAssignmentUpsertWithWhereUniqueWithoutGroupInput[]
+    createMany?: GroupGptAssignmentCreateManyGroupInputEnvelope
+    set?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+    disconnect?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+    delete?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+    connect?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+    update?: GroupGptAssignmentUpdateWithWhereUniqueWithoutGroupInput | GroupGptAssignmentUpdateWithWhereUniqueWithoutGroupInput[]
+    updateMany?: GroupGptAssignmentUpdateManyWithWhereWithoutGroupInput | GroupGptAssignmentUpdateManyWithWhereWithoutGroupInput[]
+    deleteMany?: GroupGptAssignmentScalarWhereInput | GroupGptAssignmentScalarWhereInput[]
+  }
+
+  export type GroupMemberUncheckedUpdateManyWithoutGroupNestedInput = {
+    create?: XOR<GroupMemberCreateWithoutGroupInput, GroupMemberUncheckedCreateWithoutGroupInput> | GroupMemberCreateWithoutGroupInput[] | GroupMemberUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: GroupMemberCreateOrConnectWithoutGroupInput | GroupMemberCreateOrConnectWithoutGroupInput[]
+    upsert?: GroupMemberUpsertWithWhereUniqueWithoutGroupInput | GroupMemberUpsertWithWhereUniqueWithoutGroupInput[]
+    createMany?: GroupMemberCreateManyGroupInputEnvelope
+    set?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+    disconnect?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+    delete?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+    connect?: GroupMemberWhereUniqueInput | GroupMemberWhereUniqueInput[]
+    update?: GroupMemberUpdateWithWhereUniqueWithoutGroupInput | GroupMemberUpdateWithWhereUniqueWithoutGroupInput[]
+    updateMany?: GroupMemberUpdateManyWithWhereWithoutGroupInput | GroupMemberUpdateManyWithWhereWithoutGroupInput[]
+    deleteMany?: GroupMemberScalarWhereInput | GroupMemberScalarWhereInput[]
+  }
+
+  export type GroupGptAssignmentUncheckedUpdateManyWithoutGroupNestedInput = {
+    create?: XOR<GroupGptAssignmentCreateWithoutGroupInput, GroupGptAssignmentUncheckedCreateWithoutGroupInput> | GroupGptAssignmentCreateWithoutGroupInput[] | GroupGptAssignmentUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: GroupGptAssignmentCreateOrConnectWithoutGroupInput | GroupGptAssignmentCreateOrConnectWithoutGroupInput[]
+    upsert?: GroupGptAssignmentUpsertWithWhereUniqueWithoutGroupInput | GroupGptAssignmentUpsertWithWhereUniqueWithoutGroupInput[]
+    createMany?: GroupGptAssignmentCreateManyGroupInputEnvelope
+    set?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+    disconnect?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+    delete?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+    connect?: GroupGptAssignmentWhereUniqueInput | GroupGptAssignmentWhereUniqueInput[]
+    update?: GroupGptAssignmentUpdateWithWhereUniqueWithoutGroupInput | GroupGptAssignmentUpdateWithWhereUniqueWithoutGroupInput[]
+    updateMany?: GroupGptAssignmentUpdateManyWithWhereWithoutGroupInput | GroupGptAssignmentUpdateManyWithWhereWithoutGroupInput[]
+    deleteMany?: GroupGptAssignmentScalarWhereInput | GroupGptAssignmentScalarWhereInput[]
+  }
+
+  export type TeamGroupCreateNestedOneWithoutMembersInput = {
+    create?: XOR<TeamGroupCreateWithoutMembersInput, TeamGroupUncheckedCreateWithoutMembersInput>
+    connectOrCreate?: TeamGroupCreateOrConnectWithoutMembersInput
+    connect?: TeamGroupWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutGroupMembersInput = {
+    create?: XOR<UserCreateWithoutGroupMembersInput, UserUncheckedCreateWithoutGroupMembersInput>
+    connectOrCreate?: UserCreateOrConnectWithoutGroupMembersInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type TeamGroupUpdateOneRequiredWithoutMembersNestedInput = {
+    create?: XOR<TeamGroupCreateWithoutMembersInput, TeamGroupUncheckedCreateWithoutMembersInput>
+    connectOrCreate?: TeamGroupCreateOrConnectWithoutMembersInput
+    upsert?: TeamGroupUpsertWithoutMembersInput
+    connect?: TeamGroupWhereUniqueInput
+    update?: XOR<XOR<TeamGroupUpdateToOneWithWhereWithoutMembersInput, TeamGroupUpdateWithoutMembersInput>, TeamGroupUncheckedUpdateWithoutMembersInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutGroupMembersNestedInput = {
+    create?: XOR<UserCreateWithoutGroupMembersInput, UserUncheckedCreateWithoutGroupMembersInput>
+    connectOrCreate?: UserCreateOrConnectWithoutGroupMembersInput
+    upsert?: UserUpsertWithoutGroupMembersInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutGroupMembersInput, UserUpdateWithoutGroupMembersInput>, UserUncheckedUpdateWithoutGroupMembersInput>
+  }
+
+  export type TeamGroupCreateNestedOneWithoutGptAssignmentsInput = {
+    create?: XOR<TeamGroupCreateWithoutGptAssignmentsInput, TeamGroupUncheckedCreateWithoutGptAssignmentsInput>
+    connectOrCreate?: TeamGroupCreateOrConnectWithoutGptAssignmentsInput
+    connect?: TeamGroupWhereUniqueInput
+  }
+
+  export type GptCreateNestedOneWithoutGroupAssignmentsInput = {
+    create?: XOR<GptCreateWithoutGroupAssignmentsInput, GptUncheckedCreateWithoutGroupAssignmentsInput>
+    connectOrCreate?: GptCreateOrConnectWithoutGroupAssignmentsInput
+    connect?: GptWhereUniqueInput
+  }
+
+  export type TeamGroupUpdateOneRequiredWithoutGptAssignmentsNestedInput = {
+    create?: XOR<TeamGroupCreateWithoutGptAssignmentsInput, TeamGroupUncheckedCreateWithoutGptAssignmentsInput>
+    connectOrCreate?: TeamGroupCreateOrConnectWithoutGptAssignmentsInput
+    upsert?: TeamGroupUpsertWithoutGptAssignmentsInput
+    connect?: TeamGroupWhereUniqueInput
+    update?: XOR<XOR<TeamGroupUpdateToOneWithWhereWithoutGptAssignmentsInput, TeamGroupUpdateWithoutGptAssignmentsInput>, TeamGroupUncheckedUpdateWithoutGptAssignmentsInput>
+  }
+
+  export type GptUpdateOneRequiredWithoutGroupAssignmentsNestedInput = {
+    create?: XOR<GptCreateWithoutGroupAssignmentsInput, GptUncheckedCreateWithoutGroupAssignmentsInput>
+    connectOrCreate?: GptCreateOrConnectWithoutGroupAssignmentsInput
+    upsert?: GptUpsertWithoutGroupAssignmentsInput
+    connect?: GptWhereUniqueInput
+    update?: XOR<XOR<GptUpdateToOneWithWhereWithoutGroupAssignmentsInput, GptUpdateWithoutGroupAssignmentsInput>, GptUncheckedUpdateWithoutGroupAssignmentsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -17729,6 +22260,7 @@ export namespace Prisma {
     assignedToUsers?: AssignGptCreateNestedManyWithoutGptInput
     conversations?: ConversationCreateNestedManyWithoutGptInput
     composioConnections?: ComposioConnectionCreateNestedManyWithoutGptInput
+    groupAssignments?: GroupGptAssignmentCreateNestedManyWithoutGptInput
   }
 
   export type GptUncheckedCreateWithoutUserInput = {
@@ -17750,6 +22282,7 @@ export namespace Prisma {
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutGptInput
     composioConnections?: ComposioConnectionUncheckedCreateNestedManyWithoutGptInput
+    groupAssignments?: GroupGptAssignmentUncheckedCreateNestedManyWithoutGptInput
   }
 
   export type GptCreateOrConnectWithoutUserInput = {
@@ -17813,6 +22346,62 @@ export namespace Prisma {
 
   export type ConversationCreateManyUserInputEnvelope = {
     data: ConversationCreateManyUserInput | ConversationCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type GroupMemberCreateWithoutUserInput = {
+    id?: string
+    addedAt?: Date | string
+    addedBy: string
+    group: TeamGroupCreateNestedOneWithoutMembersInput
+  }
+
+  export type GroupMemberUncheckedCreateWithoutUserInput = {
+    id?: string
+    groupId: string
+    addedAt?: Date | string
+    addedBy: string
+  }
+
+  export type GroupMemberCreateOrConnectWithoutUserInput = {
+    where: GroupMemberWhereUniqueInput
+    create: XOR<GroupMemberCreateWithoutUserInput, GroupMemberUncheckedCreateWithoutUserInput>
+  }
+
+  export type GroupMemberCreateManyUserInputEnvelope = {
+    data: GroupMemberCreateManyUserInput | GroupMemberCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TeamGroupCreateWithoutCreatorInput = {
+    id?: string
+    name: string
+    description?: string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: GroupMemberCreateNestedManyWithoutGroupInput
+    gptAssignments?: GroupGptAssignmentCreateNestedManyWithoutGroupInput
+  }
+
+  export type TeamGroupUncheckedCreateWithoutCreatorInput = {
+    id?: string
+    name: string
+    description?: string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: GroupMemberUncheckedCreateNestedManyWithoutGroupInput
+    gptAssignments?: GroupGptAssignmentUncheckedCreateNestedManyWithoutGroupInput
+  }
+
+  export type TeamGroupCreateOrConnectWithoutCreatorInput = {
+    where: TeamGroupWhereUniqueInput
+    create: XOR<TeamGroupCreateWithoutCreatorInput, TeamGroupUncheckedCreateWithoutCreatorInput>
+  }
+
+  export type TeamGroupCreateManyCreatorInputEnvelope = {
+    data: TeamGroupCreateManyCreatorInput | TeamGroupCreateManyCreatorInput[]
     skipDuplicates?: boolean
   }
 
@@ -17976,6 +22565,62 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Conversation"> | Date | string
   }
 
+  export type GroupMemberUpsertWithWhereUniqueWithoutUserInput = {
+    where: GroupMemberWhereUniqueInput
+    update: XOR<GroupMemberUpdateWithoutUserInput, GroupMemberUncheckedUpdateWithoutUserInput>
+    create: XOR<GroupMemberCreateWithoutUserInput, GroupMemberUncheckedCreateWithoutUserInput>
+  }
+
+  export type GroupMemberUpdateWithWhereUniqueWithoutUserInput = {
+    where: GroupMemberWhereUniqueInput
+    data: XOR<GroupMemberUpdateWithoutUserInput, GroupMemberUncheckedUpdateWithoutUserInput>
+  }
+
+  export type GroupMemberUpdateManyWithWhereWithoutUserInput = {
+    where: GroupMemberScalarWhereInput
+    data: XOR<GroupMemberUpdateManyMutationInput, GroupMemberUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type GroupMemberScalarWhereInput = {
+    AND?: GroupMemberScalarWhereInput | GroupMemberScalarWhereInput[]
+    OR?: GroupMemberScalarWhereInput[]
+    NOT?: GroupMemberScalarWhereInput | GroupMemberScalarWhereInput[]
+    id?: StringFilter<"GroupMember"> | string
+    groupId?: StringFilter<"GroupMember"> | string
+    userId?: StringFilter<"GroupMember"> | string
+    addedAt?: DateTimeFilter<"GroupMember"> | Date | string
+    addedBy?: StringFilter<"GroupMember"> | string
+  }
+
+  export type TeamGroupUpsertWithWhereUniqueWithoutCreatorInput = {
+    where: TeamGroupWhereUniqueInput
+    update: XOR<TeamGroupUpdateWithoutCreatorInput, TeamGroupUncheckedUpdateWithoutCreatorInput>
+    create: XOR<TeamGroupCreateWithoutCreatorInput, TeamGroupUncheckedCreateWithoutCreatorInput>
+  }
+
+  export type TeamGroupUpdateWithWhereUniqueWithoutCreatorInput = {
+    where: TeamGroupWhereUniqueInput
+    data: XOR<TeamGroupUpdateWithoutCreatorInput, TeamGroupUncheckedUpdateWithoutCreatorInput>
+  }
+
+  export type TeamGroupUpdateManyWithWhereWithoutCreatorInput = {
+    where: TeamGroupScalarWhereInput
+    data: XOR<TeamGroupUpdateManyMutationInput, TeamGroupUncheckedUpdateManyWithoutCreatorInput>
+  }
+
+  export type TeamGroupScalarWhereInput = {
+    AND?: TeamGroupScalarWhereInput | TeamGroupScalarWhereInput[]
+    OR?: TeamGroupScalarWhereInput[]
+    NOT?: TeamGroupScalarWhereInput | TeamGroupScalarWhereInput[]
+    id?: StringFilter<"TeamGroup"> | string
+    name?: StringFilter<"TeamGroup"> | string
+    description?: StringNullableFilter<"TeamGroup"> | string | null
+    image?: StringNullableFilter<"TeamGroup"> | string | null
+    createdBy?: StringFilter<"TeamGroup"> | string
+    createdAt?: DateTimeFilter<"TeamGroup"> | Date | string
+    updatedAt?: DateTimeFilter<"TeamGroup"> | Date | string
+  }
+
   export type UserCreateWithoutSessionsInput = {
     id?: string
     name: string
@@ -17992,6 +22637,8 @@ export namespace Prisma {
     Gpt?: GptCreateNestedManyWithoutUserInput
     assignedGpts?: AssignGptCreateNestedManyWithoutUserInput
     conversations?: ConversationCreateNestedManyWithoutUserInput
+    groupMembers?: GroupMemberCreateNestedManyWithoutUserInput
+    createdGroups?: TeamGroupCreateNestedManyWithoutCreatorInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -18010,6 +22657,8 @@ export namespace Prisma {
     Gpt?: GptUncheckedCreateNestedManyWithoutUserInput
     assignedGpts?: AssignGptUncheckedCreateNestedManyWithoutUserInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
+    groupMembers?: GroupMemberUncheckedCreateNestedManyWithoutUserInput
+    createdGroups?: TeamGroupUncheckedCreateNestedManyWithoutCreatorInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -18044,6 +22693,8 @@ export namespace Prisma {
     Gpt?: GptUpdateManyWithoutUserNestedInput
     assignedGpts?: AssignGptUpdateManyWithoutUserNestedInput
     conversations?: ConversationUpdateManyWithoutUserNestedInput
+    groupMembers?: GroupMemberUpdateManyWithoutUserNestedInput
+    createdGroups?: TeamGroupUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -18062,6 +22713,8 @@ export namespace Prisma {
     Gpt?: GptUncheckedUpdateManyWithoutUserNestedInput
     assignedGpts?: AssignGptUncheckedUpdateManyWithoutUserNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
+    groupMembers?: GroupMemberUncheckedUpdateManyWithoutUserNestedInput
+    createdGroups?: TeamGroupUncheckedUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserCreateWithoutAccountsInput = {
@@ -18080,6 +22733,8 @@ export namespace Prisma {
     Gpt?: GptCreateNestedManyWithoutUserInput
     assignedGpts?: AssignGptCreateNestedManyWithoutUserInput
     conversations?: ConversationCreateNestedManyWithoutUserInput
+    groupMembers?: GroupMemberCreateNestedManyWithoutUserInput
+    createdGroups?: TeamGroupCreateNestedManyWithoutCreatorInput
   }
 
   export type UserUncheckedCreateWithoutAccountsInput = {
@@ -18098,6 +22753,8 @@ export namespace Prisma {
     Gpt?: GptUncheckedCreateNestedManyWithoutUserInput
     assignedGpts?: AssignGptUncheckedCreateNestedManyWithoutUserInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
+    groupMembers?: GroupMemberUncheckedCreateNestedManyWithoutUserInput
+    createdGroups?: TeamGroupUncheckedCreateNestedManyWithoutCreatorInput
   }
 
   export type UserCreateOrConnectWithoutAccountsInput = {
@@ -18132,6 +22789,8 @@ export namespace Prisma {
     Gpt?: GptUpdateManyWithoutUserNestedInput
     assignedGpts?: AssignGptUpdateManyWithoutUserNestedInput
     conversations?: ConversationUpdateManyWithoutUserNestedInput
+    groupMembers?: GroupMemberUpdateManyWithoutUserNestedInput
+    createdGroups?: TeamGroupUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -18150,6 +22809,8 @@ export namespace Prisma {
     Gpt?: GptUncheckedUpdateManyWithoutUserNestedInput
     assignedGpts?: AssignGptUncheckedUpdateManyWithoutUserNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
+    groupMembers?: GroupMemberUncheckedUpdateManyWithoutUserNestedInput
+    createdGroups?: TeamGroupUncheckedUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserCreateWithoutGptInput = {
@@ -18168,6 +22829,8 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     assignedGpts?: AssignGptCreateNestedManyWithoutUserInput
     conversations?: ConversationCreateNestedManyWithoutUserInput
+    groupMembers?: GroupMemberCreateNestedManyWithoutUserInput
+    createdGroups?: TeamGroupCreateNestedManyWithoutCreatorInput
   }
 
   export type UserUncheckedCreateWithoutGptInput = {
@@ -18186,6 +22849,8 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     assignedGpts?: AssignGptUncheckedCreateNestedManyWithoutUserInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
+    groupMembers?: GroupMemberUncheckedCreateNestedManyWithoutUserInput
+    createdGroups?: TeamGroupUncheckedCreateNestedManyWithoutCreatorInput
   }
 
   export type UserCreateOrConnectWithoutGptInput = {
@@ -18275,6 +22940,30 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type GroupGptAssignmentCreateWithoutGptInput = {
+    id?: string
+    assignedAt?: Date | string
+    assignedBy: string
+    group: TeamGroupCreateNestedOneWithoutGptAssignmentsInput
+  }
+
+  export type GroupGptAssignmentUncheckedCreateWithoutGptInput = {
+    id?: string
+    groupId: string
+    assignedAt?: Date | string
+    assignedBy: string
+  }
+
+  export type GroupGptAssignmentCreateOrConnectWithoutGptInput = {
+    where: GroupGptAssignmentWhereUniqueInput
+    create: XOR<GroupGptAssignmentCreateWithoutGptInput, GroupGptAssignmentUncheckedCreateWithoutGptInput>
+  }
+
+  export type GroupGptAssignmentCreateManyGptInputEnvelope = {
+    data: GroupGptAssignmentCreateManyGptInput | GroupGptAssignmentCreateManyGptInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutGptInput = {
     update: XOR<UserUpdateWithoutGptInput, UserUncheckedUpdateWithoutGptInput>
     create: XOR<UserCreateWithoutGptInput, UserUncheckedCreateWithoutGptInput>
@@ -18302,6 +22991,8 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     assignedGpts?: AssignGptUpdateManyWithoutUserNestedInput
     conversations?: ConversationUpdateManyWithoutUserNestedInput
+    groupMembers?: GroupMemberUpdateManyWithoutUserNestedInput
+    createdGroups?: TeamGroupUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserUncheckedUpdateWithoutGptInput = {
@@ -18320,6 +23011,8 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     assignedGpts?: AssignGptUncheckedUpdateManyWithoutUserNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
+    groupMembers?: GroupMemberUncheckedUpdateManyWithoutUserNestedInput
+    createdGroups?: TeamGroupUncheckedUpdateManyWithoutCreatorNestedInput
   }
 
   export type AssignGptUpsertWithWhereUniqueWithoutGptInput = {
@@ -18383,6 +23076,33 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"ComposioConnection"> | Date | string
   }
 
+  export type GroupGptAssignmentUpsertWithWhereUniqueWithoutGptInput = {
+    where: GroupGptAssignmentWhereUniqueInput
+    update: XOR<GroupGptAssignmentUpdateWithoutGptInput, GroupGptAssignmentUncheckedUpdateWithoutGptInput>
+    create: XOR<GroupGptAssignmentCreateWithoutGptInput, GroupGptAssignmentUncheckedCreateWithoutGptInput>
+  }
+
+  export type GroupGptAssignmentUpdateWithWhereUniqueWithoutGptInput = {
+    where: GroupGptAssignmentWhereUniqueInput
+    data: XOR<GroupGptAssignmentUpdateWithoutGptInput, GroupGptAssignmentUncheckedUpdateWithoutGptInput>
+  }
+
+  export type GroupGptAssignmentUpdateManyWithWhereWithoutGptInput = {
+    where: GroupGptAssignmentScalarWhereInput
+    data: XOR<GroupGptAssignmentUpdateManyMutationInput, GroupGptAssignmentUncheckedUpdateManyWithoutGptInput>
+  }
+
+  export type GroupGptAssignmentScalarWhereInput = {
+    AND?: GroupGptAssignmentScalarWhereInput | GroupGptAssignmentScalarWhereInput[]
+    OR?: GroupGptAssignmentScalarWhereInput[]
+    NOT?: GroupGptAssignmentScalarWhereInput | GroupGptAssignmentScalarWhereInput[]
+    id?: StringFilter<"GroupGptAssignment"> | string
+    groupId?: StringFilter<"GroupGptAssignment"> | string
+    gptId?: StringFilter<"GroupGptAssignment"> | string
+    assignedAt?: DateTimeFilter<"GroupGptAssignment"> | Date | string
+    assignedBy?: StringFilter<"GroupGptAssignment"> | string
+  }
+
   export type GptCreateWithoutComposioConnectionsInput = {
     id?: string
     name: string
@@ -18402,6 +23122,7 @@ export namespace Prisma {
     user: UserCreateNestedOneWithoutGptInput
     assignedToUsers?: AssignGptCreateNestedManyWithoutGptInput
     conversations?: ConversationCreateNestedManyWithoutGptInput
+    groupAssignments?: GroupGptAssignmentCreateNestedManyWithoutGptInput
   }
 
   export type GptUncheckedCreateWithoutComposioConnectionsInput = {
@@ -18423,6 +23144,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutGptInput
+    groupAssignments?: GroupGptAssignmentUncheckedCreateNestedManyWithoutGptInput
   }
 
   export type GptCreateOrConnectWithoutComposioConnectionsInput = {
@@ -18460,6 +23182,7 @@ export namespace Prisma {
     user?: UserUpdateOneRequiredWithoutGptNestedInput
     assignedToUsers?: AssignGptUpdateManyWithoutGptNestedInput
     conversations?: ConversationUpdateManyWithoutGptNestedInput
+    groupAssignments?: GroupGptAssignmentUpdateManyWithoutGptNestedInput
   }
 
   export type GptUncheckedUpdateWithoutComposioConnectionsInput = {
@@ -18481,6 +23204,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutGptNestedInput
+    groupAssignments?: GroupGptAssignmentUncheckedUpdateManyWithoutGptNestedInput
   }
 
   export type UserCreateWithoutAssignedGptsInput = {
@@ -18499,6 +23223,8 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     Gpt?: GptCreateNestedManyWithoutUserInput
     conversations?: ConversationCreateNestedManyWithoutUserInput
+    groupMembers?: GroupMemberCreateNestedManyWithoutUserInput
+    createdGroups?: TeamGroupCreateNestedManyWithoutCreatorInput
   }
 
   export type UserUncheckedCreateWithoutAssignedGptsInput = {
@@ -18517,6 +23243,8 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     Gpt?: GptUncheckedCreateNestedManyWithoutUserInput
     conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
+    groupMembers?: GroupMemberUncheckedCreateNestedManyWithoutUserInput
+    createdGroups?: TeamGroupUncheckedCreateNestedManyWithoutCreatorInput
   }
 
   export type UserCreateOrConnectWithoutAssignedGptsInput = {
@@ -18543,6 +23271,7 @@ export namespace Prisma {
     user: UserCreateNestedOneWithoutGptInput
     conversations?: ConversationCreateNestedManyWithoutGptInput
     composioConnections?: ComposioConnectionCreateNestedManyWithoutGptInput
+    groupAssignments?: GroupGptAssignmentCreateNestedManyWithoutGptInput
   }
 
   export type GptUncheckedCreateWithoutAssignedToUsersInput = {
@@ -18564,6 +23293,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     conversations?: ConversationUncheckedCreateNestedManyWithoutGptInput
     composioConnections?: ComposioConnectionUncheckedCreateNestedManyWithoutGptInput
+    groupAssignments?: GroupGptAssignmentUncheckedCreateNestedManyWithoutGptInput
   }
 
   export type GptCreateOrConnectWithoutAssignedToUsersInput = {
@@ -18598,6 +23328,8 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     Gpt?: GptUpdateManyWithoutUserNestedInput
     conversations?: ConversationUpdateManyWithoutUserNestedInput
+    groupMembers?: GroupMemberUpdateManyWithoutUserNestedInput
+    createdGroups?: TeamGroupUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAssignedGptsInput = {
@@ -18616,6 +23348,8 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     Gpt?: GptUncheckedUpdateManyWithoutUserNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
+    groupMembers?: GroupMemberUncheckedUpdateManyWithoutUserNestedInput
+    createdGroups?: TeamGroupUncheckedUpdateManyWithoutCreatorNestedInput
   }
 
   export type GptUpsertWithoutAssignedToUsersInput = {
@@ -18648,6 +23382,7 @@ export namespace Prisma {
     user?: UserUpdateOneRequiredWithoutGptNestedInput
     conversations?: ConversationUpdateManyWithoutGptNestedInput
     composioConnections?: ComposioConnectionUpdateManyWithoutGptNestedInput
+    groupAssignments?: GroupGptAssignmentUpdateManyWithoutGptNestedInput
   }
 
   export type GptUncheckedUpdateWithoutAssignedToUsersInput = {
@@ -18669,6 +23404,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     conversations?: ConversationUncheckedUpdateManyWithoutGptNestedInput
     composioConnections?: ComposioConnectionUncheckedUpdateManyWithoutGptNestedInput
+    groupAssignments?: GroupGptAssignmentUncheckedUpdateManyWithoutGptNestedInput
   }
 
   export type UserCreateWithoutConversationsInput = {
@@ -18687,6 +23423,8 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     Gpt?: GptCreateNestedManyWithoutUserInput
     assignedGpts?: AssignGptCreateNestedManyWithoutUserInput
+    groupMembers?: GroupMemberCreateNestedManyWithoutUserInput
+    createdGroups?: TeamGroupCreateNestedManyWithoutCreatorInput
   }
 
   export type UserUncheckedCreateWithoutConversationsInput = {
@@ -18705,6 +23443,8 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     Gpt?: GptUncheckedCreateNestedManyWithoutUserInput
     assignedGpts?: AssignGptUncheckedCreateNestedManyWithoutUserInput
+    groupMembers?: GroupMemberUncheckedCreateNestedManyWithoutUserInput
+    createdGroups?: TeamGroupUncheckedCreateNestedManyWithoutCreatorInput
   }
 
   export type UserCreateOrConnectWithoutConversationsInput = {
@@ -18731,6 +23471,7 @@ export namespace Prisma {
     user: UserCreateNestedOneWithoutGptInput
     assignedToUsers?: AssignGptCreateNestedManyWithoutGptInput
     composioConnections?: ComposioConnectionCreateNestedManyWithoutGptInput
+    groupAssignments?: GroupGptAssignmentCreateNestedManyWithoutGptInput
   }
 
   export type GptUncheckedCreateWithoutConversationsInput = {
@@ -18752,6 +23493,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
     composioConnections?: ComposioConnectionUncheckedCreateNestedManyWithoutGptInput
+    groupAssignments?: GroupGptAssignmentUncheckedCreateNestedManyWithoutGptInput
   }
 
   export type GptCreateOrConnectWithoutConversationsInput = {
@@ -18810,6 +23552,8 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     Gpt?: GptUpdateManyWithoutUserNestedInput
     assignedGpts?: AssignGptUpdateManyWithoutUserNestedInput
+    groupMembers?: GroupMemberUpdateManyWithoutUserNestedInput
+    createdGroups?: TeamGroupUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserUncheckedUpdateWithoutConversationsInput = {
@@ -18828,6 +23572,8 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     Gpt?: GptUncheckedUpdateManyWithoutUserNestedInput
     assignedGpts?: AssignGptUncheckedUpdateManyWithoutUserNestedInput
+    groupMembers?: GroupMemberUncheckedUpdateManyWithoutUserNestedInput
+    createdGroups?: TeamGroupUncheckedUpdateManyWithoutCreatorNestedInput
   }
 
   export type GptUpsertWithoutConversationsInput = {
@@ -18860,6 +23606,7 @@ export namespace Prisma {
     user?: UserUpdateOneRequiredWithoutGptNestedInput
     assignedToUsers?: AssignGptUpdateManyWithoutGptNestedInput
     composioConnections?: ComposioConnectionUpdateManyWithoutGptNestedInput
+    groupAssignments?: GroupGptAssignmentUpdateManyWithoutGptNestedInput
   }
 
   export type GptUncheckedUpdateWithoutConversationsInput = {
@@ -18881,6 +23628,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
     composioConnections?: ComposioConnectionUncheckedUpdateManyWithoutGptNestedInput
+    groupAssignments?: GroupGptAssignmentUncheckedUpdateManyWithoutGptNestedInput
   }
 
   export type MessageUpsertWithWhereUniqueWithoutConversationInput = {
@@ -18966,6 +23714,502 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type UserCreateWithoutCreatedGroupsInput = {
+    id?: string
+    name: string
+    email: string
+    role?: string
+    banned?: boolean
+    banReason?: string | null
+    banExpires?: Date | string | null
+    emailVerified?: boolean
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    Gpt?: GptCreateNestedManyWithoutUserInput
+    assignedGpts?: AssignGptCreateNestedManyWithoutUserInput
+    conversations?: ConversationCreateNestedManyWithoutUserInput
+    groupMembers?: GroupMemberCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutCreatedGroupsInput = {
+    id?: string
+    name: string
+    email: string
+    role?: string
+    banned?: boolean
+    banReason?: string | null
+    banExpires?: Date | string | null
+    emailVerified?: boolean
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    Gpt?: GptUncheckedCreateNestedManyWithoutUserInput
+    assignedGpts?: AssignGptUncheckedCreateNestedManyWithoutUserInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
+    groupMembers?: GroupMemberUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutCreatedGroupsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutCreatedGroupsInput, UserUncheckedCreateWithoutCreatedGroupsInput>
+  }
+
+  export type GroupMemberCreateWithoutGroupInput = {
+    id?: string
+    addedAt?: Date | string
+    addedBy: string
+    user: UserCreateNestedOneWithoutGroupMembersInput
+  }
+
+  export type GroupMemberUncheckedCreateWithoutGroupInput = {
+    id?: string
+    userId: string
+    addedAt?: Date | string
+    addedBy: string
+  }
+
+  export type GroupMemberCreateOrConnectWithoutGroupInput = {
+    where: GroupMemberWhereUniqueInput
+    create: XOR<GroupMemberCreateWithoutGroupInput, GroupMemberUncheckedCreateWithoutGroupInput>
+  }
+
+  export type GroupMemberCreateManyGroupInputEnvelope = {
+    data: GroupMemberCreateManyGroupInput | GroupMemberCreateManyGroupInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type GroupGptAssignmentCreateWithoutGroupInput = {
+    id?: string
+    assignedAt?: Date | string
+    assignedBy: string
+    gpt: GptCreateNestedOneWithoutGroupAssignmentsInput
+  }
+
+  export type GroupGptAssignmentUncheckedCreateWithoutGroupInput = {
+    id?: string
+    gptId: string
+    assignedAt?: Date | string
+    assignedBy: string
+  }
+
+  export type GroupGptAssignmentCreateOrConnectWithoutGroupInput = {
+    where: GroupGptAssignmentWhereUniqueInput
+    create: XOR<GroupGptAssignmentCreateWithoutGroupInput, GroupGptAssignmentUncheckedCreateWithoutGroupInput>
+  }
+
+  export type GroupGptAssignmentCreateManyGroupInputEnvelope = {
+    data: GroupGptAssignmentCreateManyGroupInput | GroupGptAssignmentCreateManyGroupInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type UserUpsertWithoutCreatedGroupsInput = {
+    update: XOR<UserUpdateWithoutCreatedGroupsInput, UserUncheckedUpdateWithoutCreatedGroupsInput>
+    create: XOR<UserCreateWithoutCreatedGroupsInput, UserUncheckedCreateWithoutCreatedGroupsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutCreatedGroupsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutCreatedGroupsInput, UserUncheckedUpdateWithoutCreatedGroupsInput>
+  }
+
+  export type UserUpdateWithoutCreatedGroupsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    banned?: BoolFieldUpdateOperationsInput | boolean
+    banReason?: NullableStringFieldUpdateOperationsInput | string | null
+    banExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    Gpt?: GptUpdateManyWithoutUserNestedInput
+    assignedGpts?: AssignGptUpdateManyWithoutUserNestedInput
+    conversations?: ConversationUpdateManyWithoutUserNestedInput
+    groupMembers?: GroupMemberUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutCreatedGroupsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    banned?: BoolFieldUpdateOperationsInput | boolean
+    banReason?: NullableStringFieldUpdateOperationsInput | string | null
+    banExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    Gpt?: GptUncheckedUpdateManyWithoutUserNestedInput
+    assignedGpts?: AssignGptUncheckedUpdateManyWithoutUserNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
+    groupMembers?: GroupMemberUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type GroupMemberUpsertWithWhereUniqueWithoutGroupInput = {
+    where: GroupMemberWhereUniqueInput
+    update: XOR<GroupMemberUpdateWithoutGroupInput, GroupMemberUncheckedUpdateWithoutGroupInput>
+    create: XOR<GroupMemberCreateWithoutGroupInput, GroupMemberUncheckedCreateWithoutGroupInput>
+  }
+
+  export type GroupMemberUpdateWithWhereUniqueWithoutGroupInput = {
+    where: GroupMemberWhereUniqueInput
+    data: XOR<GroupMemberUpdateWithoutGroupInput, GroupMemberUncheckedUpdateWithoutGroupInput>
+  }
+
+  export type GroupMemberUpdateManyWithWhereWithoutGroupInput = {
+    where: GroupMemberScalarWhereInput
+    data: XOR<GroupMemberUpdateManyMutationInput, GroupMemberUncheckedUpdateManyWithoutGroupInput>
+  }
+
+  export type GroupGptAssignmentUpsertWithWhereUniqueWithoutGroupInput = {
+    where: GroupGptAssignmentWhereUniqueInput
+    update: XOR<GroupGptAssignmentUpdateWithoutGroupInput, GroupGptAssignmentUncheckedUpdateWithoutGroupInput>
+    create: XOR<GroupGptAssignmentCreateWithoutGroupInput, GroupGptAssignmentUncheckedCreateWithoutGroupInput>
+  }
+
+  export type GroupGptAssignmentUpdateWithWhereUniqueWithoutGroupInput = {
+    where: GroupGptAssignmentWhereUniqueInput
+    data: XOR<GroupGptAssignmentUpdateWithoutGroupInput, GroupGptAssignmentUncheckedUpdateWithoutGroupInput>
+  }
+
+  export type GroupGptAssignmentUpdateManyWithWhereWithoutGroupInput = {
+    where: GroupGptAssignmentScalarWhereInput
+    data: XOR<GroupGptAssignmentUpdateManyMutationInput, GroupGptAssignmentUncheckedUpdateManyWithoutGroupInput>
+  }
+
+  export type TeamGroupCreateWithoutMembersInput = {
+    id?: string
+    name: string
+    description?: string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    creator: UserCreateNestedOneWithoutCreatedGroupsInput
+    gptAssignments?: GroupGptAssignmentCreateNestedManyWithoutGroupInput
+  }
+
+  export type TeamGroupUncheckedCreateWithoutMembersInput = {
+    id?: string
+    name: string
+    description?: string | null
+    image?: string | null
+    createdBy: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    gptAssignments?: GroupGptAssignmentUncheckedCreateNestedManyWithoutGroupInput
+  }
+
+  export type TeamGroupCreateOrConnectWithoutMembersInput = {
+    where: TeamGroupWhereUniqueInput
+    create: XOR<TeamGroupCreateWithoutMembersInput, TeamGroupUncheckedCreateWithoutMembersInput>
+  }
+
+  export type UserCreateWithoutGroupMembersInput = {
+    id?: string
+    name: string
+    email: string
+    role?: string
+    banned?: boolean
+    banReason?: string | null
+    banExpires?: Date | string | null
+    emailVerified?: boolean
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    Gpt?: GptCreateNestedManyWithoutUserInput
+    assignedGpts?: AssignGptCreateNestedManyWithoutUserInput
+    conversations?: ConversationCreateNestedManyWithoutUserInput
+    createdGroups?: TeamGroupCreateNestedManyWithoutCreatorInput
+  }
+
+  export type UserUncheckedCreateWithoutGroupMembersInput = {
+    id?: string
+    name: string
+    email: string
+    role?: string
+    banned?: boolean
+    banReason?: string | null
+    banExpires?: Date | string | null
+    emailVerified?: boolean
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    Gpt?: GptUncheckedCreateNestedManyWithoutUserInput
+    assignedGpts?: AssignGptUncheckedCreateNestedManyWithoutUserInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutUserInput
+    createdGroups?: TeamGroupUncheckedCreateNestedManyWithoutCreatorInput
+  }
+
+  export type UserCreateOrConnectWithoutGroupMembersInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutGroupMembersInput, UserUncheckedCreateWithoutGroupMembersInput>
+  }
+
+  export type TeamGroupUpsertWithoutMembersInput = {
+    update: XOR<TeamGroupUpdateWithoutMembersInput, TeamGroupUncheckedUpdateWithoutMembersInput>
+    create: XOR<TeamGroupCreateWithoutMembersInput, TeamGroupUncheckedCreateWithoutMembersInput>
+    where?: TeamGroupWhereInput
+  }
+
+  export type TeamGroupUpdateToOneWithWhereWithoutMembersInput = {
+    where?: TeamGroupWhereInput
+    data: XOR<TeamGroupUpdateWithoutMembersInput, TeamGroupUncheckedUpdateWithoutMembersInput>
+  }
+
+  export type TeamGroupUpdateWithoutMembersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creator?: UserUpdateOneRequiredWithoutCreatedGroupsNestedInput
+    gptAssignments?: GroupGptAssignmentUpdateManyWithoutGroupNestedInput
+  }
+
+  export type TeamGroupUncheckedUpdateWithoutMembersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    gptAssignments?: GroupGptAssignmentUncheckedUpdateManyWithoutGroupNestedInput
+  }
+
+  export type UserUpsertWithoutGroupMembersInput = {
+    update: XOR<UserUpdateWithoutGroupMembersInput, UserUncheckedUpdateWithoutGroupMembersInput>
+    create: XOR<UserCreateWithoutGroupMembersInput, UserUncheckedCreateWithoutGroupMembersInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutGroupMembersInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutGroupMembersInput, UserUncheckedUpdateWithoutGroupMembersInput>
+  }
+
+  export type UserUpdateWithoutGroupMembersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    banned?: BoolFieldUpdateOperationsInput | boolean
+    banReason?: NullableStringFieldUpdateOperationsInput | string | null
+    banExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    Gpt?: GptUpdateManyWithoutUserNestedInput
+    assignedGpts?: AssignGptUpdateManyWithoutUserNestedInput
+    conversations?: ConversationUpdateManyWithoutUserNestedInput
+    createdGroups?: TeamGroupUpdateManyWithoutCreatorNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutGroupMembersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    banned?: BoolFieldUpdateOperationsInput | boolean
+    banReason?: NullableStringFieldUpdateOperationsInput | string | null
+    banExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    Gpt?: GptUncheckedUpdateManyWithoutUserNestedInput
+    assignedGpts?: AssignGptUncheckedUpdateManyWithoutUserNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutUserNestedInput
+    createdGroups?: TeamGroupUncheckedUpdateManyWithoutCreatorNestedInput
+  }
+
+  export type TeamGroupCreateWithoutGptAssignmentsInput = {
+    id?: string
+    name: string
+    description?: string | null
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    creator: UserCreateNestedOneWithoutCreatedGroupsInput
+    members?: GroupMemberCreateNestedManyWithoutGroupInput
+  }
+
+  export type TeamGroupUncheckedCreateWithoutGptAssignmentsInput = {
+    id?: string
+    name: string
+    description?: string | null
+    image?: string | null
+    createdBy: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    members?: GroupMemberUncheckedCreateNestedManyWithoutGroupInput
+  }
+
+  export type TeamGroupCreateOrConnectWithoutGptAssignmentsInput = {
+    where: TeamGroupWhereUniqueInput
+    create: XOR<TeamGroupCreateWithoutGptAssignmentsInput, TeamGroupUncheckedCreateWithoutGptAssignmentsInput>
+  }
+
+  export type GptCreateWithoutGroupAssignmentsInput = {
+    id?: string
+    name: string
+    description: string
+    model: $Enums.ModelEnum
+    instruction: string
+    webBrowser?: boolean
+    hybridRag?: boolean
+    image: string
+    knowledgeBase?: string | null
+    imageEnabled?: boolean
+    videoEnabled?: boolean
+    imageModel?: string | null
+    videoModel?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutGptInput
+    assignedToUsers?: AssignGptCreateNestedManyWithoutGptInput
+    conversations?: ConversationCreateNestedManyWithoutGptInput
+    composioConnections?: ComposioConnectionCreateNestedManyWithoutGptInput
+  }
+
+  export type GptUncheckedCreateWithoutGroupAssignmentsInput = {
+    id?: string
+    userId: string
+    name: string
+    description: string
+    model: $Enums.ModelEnum
+    instruction: string
+    webBrowser?: boolean
+    hybridRag?: boolean
+    image: string
+    knowledgeBase?: string | null
+    imageEnabled?: boolean
+    videoEnabled?: boolean
+    imageModel?: string | null
+    videoModel?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutGptInput
+    composioConnections?: ComposioConnectionUncheckedCreateNestedManyWithoutGptInput
+  }
+
+  export type GptCreateOrConnectWithoutGroupAssignmentsInput = {
+    where: GptWhereUniqueInput
+    create: XOR<GptCreateWithoutGroupAssignmentsInput, GptUncheckedCreateWithoutGroupAssignmentsInput>
+  }
+
+  export type TeamGroupUpsertWithoutGptAssignmentsInput = {
+    update: XOR<TeamGroupUpdateWithoutGptAssignmentsInput, TeamGroupUncheckedUpdateWithoutGptAssignmentsInput>
+    create: XOR<TeamGroupCreateWithoutGptAssignmentsInput, TeamGroupUncheckedCreateWithoutGptAssignmentsInput>
+    where?: TeamGroupWhereInput
+  }
+
+  export type TeamGroupUpdateToOneWithWhereWithoutGptAssignmentsInput = {
+    where?: TeamGroupWhereInput
+    data: XOR<TeamGroupUpdateWithoutGptAssignmentsInput, TeamGroupUncheckedUpdateWithoutGptAssignmentsInput>
+  }
+
+  export type TeamGroupUpdateWithoutGptAssignmentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creator?: UserUpdateOneRequiredWithoutCreatedGroupsNestedInput
+    members?: GroupMemberUpdateManyWithoutGroupNestedInput
+  }
+
+  export type TeamGroupUncheckedUpdateWithoutGptAssignmentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: GroupMemberUncheckedUpdateManyWithoutGroupNestedInput
+  }
+
+  export type GptUpsertWithoutGroupAssignmentsInput = {
+    update: XOR<GptUpdateWithoutGroupAssignmentsInput, GptUncheckedUpdateWithoutGroupAssignmentsInput>
+    create: XOR<GptCreateWithoutGroupAssignmentsInput, GptUncheckedCreateWithoutGroupAssignmentsInput>
+    where?: GptWhereInput
+  }
+
+  export type GptUpdateToOneWithWhereWithoutGroupAssignmentsInput = {
+    where?: GptWhereInput
+    data: XOR<GptUpdateWithoutGroupAssignmentsInput, GptUncheckedUpdateWithoutGroupAssignmentsInput>
+  }
+
+  export type GptUpdateWithoutGroupAssignmentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    model?: EnumModelEnumFieldUpdateOperationsInput | $Enums.ModelEnum
+    instruction?: StringFieldUpdateOperationsInput | string
+    webBrowser?: BoolFieldUpdateOperationsInput | boolean
+    hybridRag?: BoolFieldUpdateOperationsInput | boolean
+    image?: StringFieldUpdateOperationsInput | string
+    knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
+    imageEnabled?: BoolFieldUpdateOperationsInput | boolean
+    videoEnabled?: BoolFieldUpdateOperationsInput | boolean
+    imageModel?: NullableStringFieldUpdateOperationsInput | string | null
+    videoModel?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutGptNestedInput
+    assignedToUsers?: AssignGptUpdateManyWithoutGptNestedInput
+    conversations?: ConversationUpdateManyWithoutGptNestedInput
+    composioConnections?: ComposioConnectionUpdateManyWithoutGptNestedInput
+  }
+
+  export type GptUncheckedUpdateWithoutGroupAssignmentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    model?: EnumModelEnumFieldUpdateOperationsInput | $Enums.ModelEnum
+    instruction?: StringFieldUpdateOperationsInput | string
+    webBrowser?: BoolFieldUpdateOperationsInput | boolean
+    hybridRag?: BoolFieldUpdateOperationsInput | boolean
+    image?: StringFieldUpdateOperationsInput | string
+    knowledgeBase?: NullableStringFieldUpdateOperationsInput | string | null
+    imageEnabled?: BoolFieldUpdateOperationsInput | boolean
+    videoEnabled?: BoolFieldUpdateOperationsInput | boolean
+    imageModel?: NullableStringFieldUpdateOperationsInput | string | null
+    videoModel?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutGptNestedInput
+    composioConnections?: ComposioConnectionUncheckedUpdateManyWithoutGptNestedInput
+  }
+
   export type SessionCreateManyUserInput = {
     id?: string
     expiresAt: Date | string
@@ -19022,6 +24266,22 @@ export namespace Prisma {
     title: string
     gptId: string
     sessionId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GroupMemberCreateManyUserInput = {
+    id?: string
+    groupId: string
+    addedAt?: Date | string
+    addedBy: string
+  }
+
+  export type TeamGroupCreateManyCreatorInput = {
+    id?: string
+    name: string
+    description?: string | null
+    image?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -19123,6 +24383,7 @@ export namespace Prisma {
     assignedToUsers?: AssignGptUpdateManyWithoutGptNestedInput
     conversations?: ConversationUpdateManyWithoutGptNestedInput
     composioConnections?: ComposioConnectionUpdateManyWithoutGptNestedInput
+    groupAssignments?: GroupGptAssignmentUpdateManyWithoutGptNestedInput
   }
 
   export type GptUncheckedUpdateWithoutUserInput = {
@@ -19144,6 +24405,7 @@ export namespace Prisma {
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
     conversations?: ConversationUncheckedUpdateManyWithoutGptNestedInput
     composioConnections?: ComposioConnectionUncheckedUpdateManyWithoutGptNestedInput
+    groupAssignments?: GroupGptAssignmentUncheckedUpdateManyWithoutGptNestedInput
   }
 
   export type GptUncheckedUpdateManyWithoutUserInput = {
@@ -19214,6 +24476,58 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type GroupMemberUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    addedBy?: StringFieldUpdateOperationsInput | string
+    group?: TeamGroupUpdateOneRequiredWithoutMembersNestedInput
+  }
+
+  export type GroupMemberUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    groupId?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    addedBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type GroupMemberUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    groupId?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    addedBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type TeamGroupUpdateWithoutCreatorInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: GroupMemberUpdateManyWithoutGroupNestedInput
+    gptAssignments?: GroupGptAssignmentUpdateManyWithoutGroupNestedInput
+  }
+
+  export type TeamGroupUncheckedUpdateWithoutCreatorInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    members?: GroupMemberUncheckedUpdateManyWithoutGroupNestedInput
+    gptAssignments?: GroupGptAssignmentUncheckedUpdateManyWithoutGroupNestedInput
+  }
+
+  export type TeamGroupUncheckedUpdateManyWithoutCreatorInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type AssignGptCreateManyGptInput = {
     id?: string
     userId: string
@@ -19237,6 +24551,13 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type GroupGptAssignmentCreateManyGptInput = {
+    id?: string
+    groupId: string
+    assignedAt?: Date | string
+    assignedBy: string
   }
 
   export type AssignGptUpdateWithoutGptInput = {
@@ -19316,6 +24637,27 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type GroupGptAssignmentUpdateWithoutGptInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedBy?: StringFieldUpdateOperationsInput | string
+    group?: TeamGroupUpdateOneRequiredWithoutGptAssignmentsNestedInput
+  }
+
+  export type GroupGptAssignmentUncheckedUpdateWithoutGptInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    groupId?: StringFieldUpdateOperationsInput | string
+    assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type GroupGptAssignmentUncheckedUpdateManyWithoutGptInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    groupId?: StringFieldUpdateOperationsInput | string
+    assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedBy?: StringFieldUpdateOperationsInput | string
+  }
+
   export type MessageCreateManyConversationInput = {
     id?: string
     role: $Enums.MessageRole
@@ -19342,6 +24684,62 @@ export namespace Prisma {
     role?: EnumMessageRoleFieldUpdateOperationsInput | $Enums.MessageRole
     content?: StringFieldUpdateOperationsInput | string
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GroupMemberCreateManyGroupInput = {
+    id?: string
+    userId: string
+    addedAt?: Date | string
+    addedBy: string
+  }
+
+  export type GroupGptAssignmentCreateManyGroupInput = {
+    id?: string
+    gptId: string
+    assignedAt?: Date | string
+    assignedBy: string
+  }
+
+  export type GroupMemberUpdateWithoutGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    addedBy?: StringFieldUpdateOperationsInput | string
+    user?: UserUpdateOneRequiredWithoutGroupMembersNestedInput
+  }
+
+  export type GroupMemberUncheckedUpdateWithoutGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    addedBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type GroupMemberUncheckedUpdateManyWithoutGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    addedBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type GroupGptAssignmentUpdateWithoutGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedBy?: StringFieldUpdateOperationsInput | string
+    gpt?: GptUpdateOneRequiredWithoutGroupAssignmentsNestedInput
+  }
+
+  export type GroupGptAssignmentUncheckedUpdateWithoutGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gptId?: StringFieldUpdateOperationsInput | string
+    assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type GroupGptAssignmentUncheckedUpdateManyWithoutGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gptId?: StringFieldUpdateOperationsInput | string
+    assignedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedBy?: StringFieldUpdateOperationsInput | string
   }
 
 

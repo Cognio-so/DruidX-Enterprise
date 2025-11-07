@@ -25,6 +25,8 @@ model User {
   Gpt           Gpt[]
   assignedGpts  AssignGpt[]
   conversations Conversation[]
+  groupMembers  GroupMember[]
+  createdGroups TeamGroup[]
 
   @@unique([email])
   @@map("user")
@@ -97,6 +99,7 @@ model Gpt {
   assignedToUsers     AssignGpt[]
   conversations       Conversation[]
   composioConnections ComposioConnection[]
+  groupAssignments    GroupGptAssignment[]
 }
 
 model ComposioConnection {
@@ -204,4 +207,45 @@ model KnowledgeBase {
   updatedAt DateTime @updatedAt
 
   @@map("knowledge_base")
+}
+
+model TeamGroup {
+  id             String               @id @default(cuid())
+  name           String
+  description    String?
+  image          String?
+  createdBy      String
+  creator        User                 @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  members        GroupMember[]
+  gptAssignments GroupGptAssignment[]
+
+  @@map("team_group")
+}
+
+model GroupMember {
+  id      String    @id @default(cuid())
+  groupId String
+  userId  String
+  addedAt DateTime  @default(now())
+  addedBy String
+  group   TeamGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@map("group_member")
+}
+
+model GroupGptAssignment {
+  id         String    @id @default(cuid())
+  groupId    String
+  gptId      String
+  assignedAt DateTime  @default(now())
+  assignedBy String
+  group      TeamGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  gpt        Gpt       @relation(fields: [gptId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, gptId])
+  @@map("group_gpt_assignment")
 }
