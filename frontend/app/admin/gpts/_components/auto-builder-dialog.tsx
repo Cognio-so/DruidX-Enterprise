@@ -260,39 +260,104 @@ export function AutoBuilderDialog({
         }
       }
 
-      // Extract tools - be explicit about what's enabled/disabled
+      // Extract tools - enable based on exact tool names user provides
       const userMsgLower = lastUserMessage.toLowerCase();
       
-      // Check for explicit tool selections
-      if (lowerContent.includes('web search') || lowerContent.includes('websearch') || lowerContent.includes('tools')) {
-        updated.webSearch = userMsgLower.includes('websearch') || 
-          userMsgLower.includes('web search') ||
-          userMsgLower.includes('yes') ||
-          userMsgLower.includes('enable');
-      }
-      
-      if (lowerContent.includes('hybrid rag') || lowerContent.includes('rag')) {
-        updated.hybridRag = userMsgLower.includes('hybrid rag') ||
-          userMsgLower.includes('rag') ||
-          userMsgLower.includes('yes') ||
-          userMsgLower.includes('enable');
-      }
-      
-      if (lowerContent.includes('image generation') || lowerContent.includes('image')) {
-        updated.image = userMsgLower.includes('image') &&
-          (userMsgLower.includes('yes') || userMsgLower.includes('enable'));
-      }
-      
-      if (lowerContent.includes('video generation') || lowerContent.includes('video')) {
-        updated.video = userMsgLower.includes('video') &&
-          (userMsgLower.includes('yes') || userMsgLower.includes('enable'));
-      }
-      
-      // If user says "only websearch" or "websearch only", explicitly disable others
-      if (userMsgLower.includes('only') && (userMsgLower.includes('websearch') || userMsgLower.includes('web search'))) {
-        updated.image = false;
-        updated.video = false;
-        updated.hybridRag = false;
+      // Only update tools if we're in a tools-related conversation
+      if (lowerContent.includes('tools') || lowerContent.includes('web search') || lowerContent.includes('image generation') || lowerContent.includes('video generation') || lowerContent.includes('hybrid rag')) {
+        // Web Search - enable if user mentions the tool name
+        if (lowerContent.includes('web search') || lowerContent.includes('websearch') || lowerContent.includes('tools')) {
+          // User provides the tool name directly (e.g., "websearch", "web search")
+          const hasWebSearchKeyword = userMsgLower.includes('websearch') || userMsgLower.includes('web search');
+          updated.webSearch = hasWebSearchKeyword;
+          
+          // If not mentioned, set to false
+          if (!updated.webSearch) {
+            updated.webSearch = false;
+          }
+        }
+        
+        // Hybrid RAG - enable if user mentions the tool name
+        if (lowerContent.includes('hybrid rag') || lowerContent.includes('rag')) {
+          // User provides the tool name directly (e.g., "hybrid rag", "rag")
+          const hasRagKeyword = userMsgLower.includes('hybrid rag') || userMsgLower.includes('hybridrag');
+          updated.hybridRag = hasRagKeyword;
+          
+          // If not mentioned, set to false
+          if (!updated.hybridRag) {
+            updated.hybridRag = false;
+          }
+        }
+        
+        // Image generation - enable if user mentions the tool name
+        if (lowerContent.includes('image generation') || lowerContent.includes('image')) {
+          // User provides the tool name directly (e.g., "image generation", "image")
+          // Check for explicit image generation mentions (not just the word "image" in other contexts)
+          const hasImageGeneration = userMsgLower.includes('image generation') || 
+            (userMsgLower.includes('image') && (userMsgLower.includes('generation') || lowerContent.includes('image generation')));
+          updated.image = hasImageGeneration;
+          
+          // If not mentioned, explicitly set to false
+          if (!updated.image) {
+            updated.image = false;
+            updated.imageModel = undefined;
+          }
+        } else {
+          // If not in image conversation context, ensure it's false
+          updated.image = false;
+          updated.imageModel = undefined;
+        }
+        
+        // Video generation - enable if user mentions the tool name
+        if (lowerContent.includes('video generation') || lowerContent.includes('video')) {
+          // User provides the tool name directly (e.g., "video generation", "video")
+          // Check for explicit video generation mentions (not just the word "video" in other contexts)
+          const hasVideoGeneration = userMsgLower.includes('video generation') || 
+            (userMsgLower.includes('video') && (userMsgLower.includes('generation') || lowerContent.includes('video generation')));
+          updated.video = hasVideoGeneration;
+          
+          // If not mentioned, explicitly set to false
+          if (!updated.video) {
+            updated.video = false;
+            updated.videoModel = undefined;
+          }
+        } else {
+          // If not in video conversation context, ensure it's false
+          updated.video = false;
+          updated.videoModel = undefined;
+        }
+        
+        // If user says "only websearch" or "websearch only", explicitly disable others
+        if (userMsgLower.includes('only') && (userMsgLower.includes('websearch') || userMsgLower.includes('web search'))) {
+          updated.image = false;
+          updated.video = false;
+          updated.hybridRag = false;
+          updated.imageModel = undefined;
+          updated.videoModel = undefined;
+        }
+        
+        // If user only mentions websearch without mentioning image/video, disable them
+        if ((userMsgLower.includes('websearch') || userMsgLower.includes('web search')) && 
+            !userMsgLower.includes('image') && 
+            !userMsgLower.includes('video') && 
+            !userMsgLower.includes('rag')) {
+          updated.image = false;
+          updated.video = false;
+          updated.imageModel = undefined;
+          updated.videoModel = undefined;
+        }
+      } else {
+        // If not in tools conversation, ensure all tools are false (don't auto-enable)
+        if (!updated.webSearch) updated.webSearch = false;
+        if (!updated.hybridRag) updated.hybridRag = false;
+        if (!updated.image) {
+          updated.image = false;
+          updated.imageModel = undefined;
+        }
+        if (!updated.video) {
+          updated.video = false;
+          updated.videoModel = undefined;
+        }
       }
 
       return updated;
@@ -312,6 +377,7 @@ export function AutoBuilderDialog({
           const parsed = JSON.parse(dataMatch[1]);
           // Ensure image/video are explicitly false unless explicitly enabled
           // Default to false if not explicitly set to true
+          // Also check collectedData to ensure we're not inheriting incorrect values
           if (parsed.image !== true) {
             parsed.image = false;
             parsed.imageModel = undefined;
@@ -320,10 +386,31 @@ export function AutoBuilderDialog({
             parsed.video = false;
             parsed.videoModel = undefined;
           }
+          
+          // Also ensure collectedData doesn't have incorrect image/video values
+          if (collectedData.image !== true) {
+            collectedData.image = false;
+            collectedData.imageModel = undefined;
+          }
+          if (collectedData.video !== true) {
+            collectedData.video = false;
+            collectedData.videoModel = undefined;
+          }
+          
           formData = { ...formData, ...parsed };
         } catch (e) {
           console.error('Failed to parse JSON data:', e);
         }
+      }
+      
+      // Final safety check: ensure image/video are false if not explicitly true
+      if (formData.image !== true) {
+        formData.image = false;
+        formData.imageModel = undefined;
+      }
+      if (formData.video !== true) {
+        formData.video = false;
+        formData.videoModel = undefined;
       }
 
       // Ensure required fields - map from AI response format to form format
@@ -342,17 +429,36 @@ export function AutoBuilderDialog({
       // Prepare final form data with proper types
       const model = modelValue as GptFormValues['model'];
       
+      // Get tool selections
+      const webSearchEnabled = Boolean(formData.webSearch ?? collectedData.webSearch ?? false);
+      const hybridRagEnabled = Boolean(formData.hybridRag ?? collectedData.hybridRag ?? false);
+      
+      // Check if image/video were explicitly enabled in collectedData (from conversation)
+      // This is more reliable than trusting the AI's JSON response
+      const imageExplicitlyEnabled = collectedData.image === true;
+      const videoExplicitlyEnabled = collectedData.video === true;
+      
       // Ensure image/video are boolean and only set imageModel/videoModel if enabled
-      const imageEnabled = Boolean(formData.image ?? collectedData.image ?? false);
-      const videoEnabled = Boolean(formData.video ?? collectedData.video ?? false);
+      // Use strict check: only true if explicitly enabled in collectedData OR explicitly true in formData
+      let imageEnabled = imageExplicitlyEnabled || formData.image === true;
+      let videoEnabled = videoExplicitlyEnabled || formData.video === true;
+      
+      // CRITICAL SAFETY CHECK: If user only selected webSearch, force image/video to false
+      // This prevents the AI from incorrectly setting image/video to true in the JSON response
+      if (webSearchEnabled && !hybridRagEnabled && !imageExplicitlyEnabled && !videoExplicitlyEnabled) {
+        // User only selected webSearch and never explicitly enabled image/video
+        // Force them to false regardless of what the AI's JSON says
+        imageEnabled = false;
+        videoEnabled = false;
+      }
       
       const finalData: GptFormValues = {
         gptName,
         gptDescription,
         instructions,
         model: model,
-        webSearch: Boolean(formData.webSearch ?? collectedData.webSearch ?? false),
-        hybridRag: Boolean(formData.hybridRag ?? collectedData.hybridRag ?? false),
+        webSearch: webSearchEnabled,
+        hybridRag: hybridRagEnabled,
         image: imageEnabled,
         video: videoEnabled,
         // Only include imageModel/videoModel if the feature is enabled
@@ -419,12 +525,12 @@ export function AutoBuilderDialog({
 
   const handleSubmit = useCallback(
     async (message: PromptInputMessage) => {
-      const hasText = Boolean(message.text);
-      const hasAttachments = Boolean(message.files?.length);
+    const hasText = Boolean(message.text);
+    const hasAttachments = Boolean(message.files?.length);
 
-      if (!(hasText || hasAttachments)) {
-        return;
-      }
+    if (!(hasText || hasAttachments)) {
+      return;
+    }
 
       let textContent = message.text || '';
       const uploadedFiles: string[] = [];
@@ -477,14 +583,14 @@ export function AutoBuilderDialog({
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <Conversation className="flex-1 min-h-0">
             <ConversationContent className="px-6 py-4">
-              {messages.map((message) => (
+            {messages.map((message) => (
                 <Fragment key={message.id}>
-                  <Message from={message.role}>
-                    <MessageContent>
+                          <Message from={message.role}>
+                            <MessageContent>
                       <Response>{message.content}</Response>
-                    </MessageContent>
-                  </Message>
-                </Fragment>
+                            </MessageContent>
+                          </Message>
+                        </Fragment>
               ))}
               {isLoading && <Loader />}
               {isSubmitting && (
@@ -494,9 +600,9 @@ export function AutoBuilderDialog({
                   </MessageContent>
                 </Message>
               )}
-            </ConversationContent>
-            <ConversationScrollButton />
-          </Conversation>
+          </ConversationContent>
+          <ConversationScrollButton />
+        </Conversation>
 
           <div className="border-t px-6 py-4">
             <PromptInput
@@ -505,31 +611,31 @@ export function AutoBuilderDialog({
               multiple
               disabled={isSubmitting || isComplete || isLoading}
             >
-              <PromptInputHeader>
-                <PromptInputAttachments>
+          <PromptInputHeader>
+            <PromptInputAttachments>
                   {(attachment: unknown) => <PromptInputAttachment data={attachment} />}
-                </PromptInputAttachments>
-              </PromptInputHeader>
-              <PromptInputBody>
+            </PromptInputAttachments>
+          </PromptInputHeader>
+          <PromptInputBody>
                 <PromptInputTextarea placeholder="Type your response..." />
-              </PromptInputBody>
-              <PromptInputFooter>
-                <PromptInputTools>
-                  <PromptInputActionMenu>
-                    <PromptInputActionMenuTrigger />
-                    <PromptInputActionMenuContent>
-                      <PromptInputActionAddAttachments />
-                    </PromptInputActionMenuContent>
-                  </PromptInputActionMenu>
-                </PromptInputTools>
+          </PromptInputBody>
+          <PromptInputFooter>
+            <PromptInputTools>
+              <PromptInputActionMenu>
+                <PromptInputActionMenuTrigger />
+                <PromptInputActionMenuContent>
+                  <PromptInputActionAddAttachments />
+                </PromptInputActionMenuContent>
+              </PromptInputActionMenu>
+            </PromptInputTools>
                 <PromptInputSubmit
                   disabled={isSubmitting || isComplete || isLoading}
                   status={isLoading ? 'submitted' : undefined}
                 />
-              </PromptInputFooter>
-            </PromptInput>
-          </div>
-        </div>
+          </PromptInputFooter>
+        </PromptInput>
+      </div>
+    </div>
       </DialogContent>
     </Dialog>
   );
