@@ -8,6 +8,8 @@ from typing import Optional, List, Callable, Any, AsyncIterable, AsyncGenerator
 import sys
 import subprocess
 import platform
+import json
+import redis.asyncio as redis
 
 from livekit import agents
 from livekit.agents import (
@@ -55,12 +57,28 @@ logger = logging.getLogger("voice_assistant")
 load_dotenv()
 
 
+async def get_redis_client():
+    """Initialize and return an async Redis client for the agent."""
+    redis_url = os.getenv("REDIS_URL")
+    if not redis_url:
+        logger.warning("REDIS_URL not found. Cannot fetch voice config from Redis.")
+        return None
+    try:
+        client = await redis.from_url(redis_url, decode_responses=True)
+        await client.ping()
+        logger.info("Agent successfully connected to Redis.")
+        return client
+    except Exception as e:
+        logger.error(f"Agent could not connect to Redis: {e}")
+        return None
+
+
 class ReliableDeepgramSTT(deepgram.STT):
     """Enhanced Deepgram STT implementation with better error handling"""
 
     def __init__(
         self,
-        model: str = "nova-2",
+        model: str = "nova-3",
         api_key: Optional[str] = None,
         language: str = "multi",
         max_retries: int = 3,
@@ -108,7 +126,7 @@ class VoiceAssistant:
         instructions: str = None,
         tools: List[Callable] = None,
         openai_model: str = "gpt-4.1-nano",
-        deepgram_stt_model: str = "nova-2",
+        deepgram_stt_model: str = "nova-3",
         deepgram_tts_model: str = "aura-2-ophelia-en",
         initial_greeting: str = "Greet the user warmly, introduce yourself as a voice assistant, and offer your assistance.",
         enable_parallel_tts: bool = False,
@@ -271,9 +289,9 @@ class VoiceAssistant:
         deepgram_api_key = os.getenv("DEEPGRAM_API_KEY")
 
         # Deepgram TTS
-        tts = deepgram.TTS(
-            model=self.deepgram_tts_model, api_key=deepgram_api_key
-        )
+        # tts = deepgram.TTS(
+        #     model=self.deepgram_tts_model, api_key=deepgram_api_key
+        # )
         # tts.connect(self.transcription_node)
 
 
@@ -282,7 +300,7 @@ class VoiceAssistant:
             # Voice activity detection
             vad=silero.VAD.load(
                 force_cpu=True,
-                activation_threshold=0.6,
+                activation_threshold=0.7,
                 min_silence_duration=0.8,
                 sample_rate=16000,
             ),
@@ -298,10 +316,16 @@ class VoiceAssistant:
             llm=openai.LLM(
                 model=self.openai_model,
             ),
-            tts=tts,
+            tts=deepgram.TTS(
+                model=self.deepgram_tts_model, api_key=deepgram_api_key),
             use_tts_aligned_transcript=True,
-            
         )
+
+        logger.info("AgentSession initialized with the following models:")
+        logger.info(f"  - VAD: Silero VAD")
+        logger.info(f"  - STT: Deepgram (Model: {self.deepgram_stt_model})")
+        logger.info(f"  - LLM: OpenAI (Model: {self.openai_model})")
+        logger.info(f"  - TTS: Deepgram (Model: {self.deepgram_tts_model})")
 
         return self.session
 
@@ -601,7 +625,7 @@ class VoiceAssistant:
 def prewarm(proc: JobProcess):
     proc.userdata["vad"] = silero.VAD.load(
         force_cpu=True,
-        activation_threshold=0.6,
+        activation_threshold=0.7,
         min_silence_duration=0.8,
         sample_rate=16000)
 
@@ -611,9 +635,50 @@ async def entrypoint(ctx: agents.JobContext):
     try:
         logger.info("=" * 70)
         logger.info(f"🎯 Agent entrypoint CALLED for room: {ctx.room.name}")
-        logger.info("Initializing VoiceAssistant...")
-        logger.info("=" * 70)
-        assistant = VoiceAssistant()
+
+        # Define default models
+        openai_model = "gpt-4.1-nano"
+        deepgram_stt_model = "nova-3"
+        deepgram_tts_model = "aura-2-ophelia-en"
+
+        # Try to extract session_id from room name
+        session_id = None
+        if ctx.room.name and ctx.room.name.startswith("voice-"):
+            session_id = ctx.room.name[len("voice-"):]
+
+        if session_id:
+            redis_client = await get_redis_client()
+            if redis_client:
+                try:
+                    config_key = f"voice_config:{session_id}"
+                    config_data = await redis_client.get(config_key)
+                    if config_data:
+                        config = json.loads(config_data)
+                        logger.info(f"Found voice config in Redis for session {session_id}: {config}")
+                        
+                        # Override defaults with values from Redis if they are not None/empty
+                        openai_model = config.get("openai_model") or openai_model
+                        deepgram_stt_model = config.get("deepgram_stt_model") or deepgram_stt_model
+                        deepgram_tts_model = config.get("deepgram_tts_model") or deepgram_tts_model
+                    else:
+                        logger.info(f"No voice config found in Redis for key '{config_key}'. Using default models.")
+                except Exception as e:
+                    logger.error(f"Error fetching/parsing voice config from Redis: {e}. Using default models.")
+                finally:
+                    await redis_client.close()
+        else:
+            logger.warning("Could not determine session_id from room name. Using default models.")
+
+        logger.info("Initializing VoiceAssistant with the following models:")
+        logger.info(f"  - OpenAI LLM Model: {openai_model}")
+        logger.info(f"  - Deepgram STT Model: {deepgram_stt_model}")
+        logger.info(f"  - Deepgram TTS Model: {deepgram_tts_model}")
+        
+        assistant = VoiceAssistant(
+            openai_model=openai_model,
+            deepgram_stt_model=deepgram_stt_model,
+            deepgram_tts_model=deepgram_tts_model,
+        )
         logger.info("VoiceAssistant created, starting run()...")
         await assistant.run(ctx)
         logger.info("✅ VoiceAssistant run() completed")
