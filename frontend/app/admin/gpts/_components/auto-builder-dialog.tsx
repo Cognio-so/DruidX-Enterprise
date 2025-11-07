@@ -470,7 +470,7 @@ export function AutoBuilderDialog({
         <DialogHeader className="px-6 pt-6 pb-4 border-b">
           <DialogTitle>Auto-Build GPT</DialogTitle>
           <DialogDescription>
-            I'll guide you through creating your custom GPT step by step.
+            I&apos;ll guide you through creating your custom GPT step by step.
           </DialogDescription>
         </DialogHeader>
 
