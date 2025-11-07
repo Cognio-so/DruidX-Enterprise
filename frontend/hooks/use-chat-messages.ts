@@ -37,7 +37,7 @@ interface ChatMessagesHook {
     videoModel?: string;
   }) => Promise<void>;
   clearMessages: () => void;
-  addMessage: (message: { role: 'user' | 'assistant'; content: string; timestamp: string; isStreaming?: boolean; imageUrls?: string[] }) => void;
+  addMessage: (message: { role: 'user' | 'assistant'; content: string; timestamp: string; isStreaming?: boolean; imageUrls?: string[]; videoUrls?: string[] }) => void;
   approvalRequest: ApprovalRequest | null;
   clearApprovalRequest: () => void;
   currentPhase: StatusPhase | null;
@@ -77,7 +77,7 @@ export function useChatMessages(sessionId: string | null): ChatMessagesHook {
     });
   }, [sessionId, sendMessage]);
 
-  const handleAddMessage = useCallback((message: { role: 'user' | 'assistant'; content: string; timestamp: string; isStreaming?: boolean; imageUrls?: string[] }) => {
+  const handleAddMessage = useCallback((message: { role: 'user' | 'assistant'; content: string; timestamp: string; isStreaming?: boolean; imageUrls?: string[]; videoUrls?: string[] }) => {
     addMessage(message);
   }, [addMessage]);
 

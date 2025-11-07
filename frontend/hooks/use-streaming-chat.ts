@@ -13,6 +13,7 @@ interface Message {
   timestamp: string;
   isStreaming?: boolean;
   imageUrls?: string[];
+  videoUrls?: string[];
   tokenUsage?: TokenUsage;
 }
 
@@ -266,10 +267,10 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
                   // Don't add status messages to content - they're for UI state only
                 }
               } else if (data.type === 'content' && data.data) {
-                const { content, full_response, is_complete, img_urls, token_usage } = data.data;
+                const { content, full_response, is_complete, img_urls, video_urls, token_usage } = data.data;
                 
                 // Debug logging to see what we're receiving
-                console.log('Streaming data received:', { content, full_response, is_complete, img_urls, token_usage });
+                console.log('Streaming data received:', { content, full_response, is_complete, img_urls, video_urls, token_usage });
                 
                 // If we start receiving content, websearch is likely done - close the reasoning dropdown
                 setWebSearchStatus((prevStatus) => {
@@ -289,6 +290,7 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
                         ...msg,
                         content: full_response || content || '',
                         imageUrls: img_urls || msg.imageUrls, // Preserve existing if not in update
+                        videoUrls: video_urls || msg.videoUrls, // Preserve existing if not in update
                         tokenUsage: token_usage || msg.tokenUsage, // Preserve existing if not in update
                         isStreaming: !is_complete,
                       }

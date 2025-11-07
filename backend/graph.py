@@ -6,6 +6,7 @@ from Basic_llm.basic_llm import SimpleLLm
 from Rag.Rag import Rag
 from WebSearch.websearch import run_web_search
 from Image.image import generate_image
+from Video.video import generate_video
 from Synthesizer.synthesizer import synthesize_final_answer
 from MCP.mcp import mcp_node
 # Deep research nodes removed - now handled by separate endpoint
@@ -17,6 +18,7 @@ def create_graph():
     g.add_node("RAG", trace_node(Rag, "RAG"))
     g.add_node("WebSearch", trace_node(run_web_search, "WebSearch"))
     g.add_node("image", trace_node(generate_image, "image"))
+    g.add_node("video", trace_node(generate_video, "video"))
     g.add_node("MCP", trace_node(mcp_node, "MCP"))
    
     g.add_node("AnswerSynthesizer", trace_node(synthesize_final_answer, "AnswerSynthesizer"))
@@ -29,6 +31,7 @@ def create_graph():
             "SimpleLLM": "SimpleLLM",
             "WebSearch": "WebSearch",
             "image": "image",
+            "video": "video",
              "MCP": "MCP",
             "AnswerSynthesizer": "AnswerSynthesizer",
             "END": END
@@ -38,6 +41,7 @@ def create_graph():
     g.add_edge("RAG", "orchestrator")
     g.add_edge("WebSearch", "orchestrator")
     g.add_edge("image", "orchestrator")
+    g.add_edge("video", "orchestrator")
     g.add_edge("MCP", "orchestrator")
     g.add_edge("AnswerSynthesizer", END)
     

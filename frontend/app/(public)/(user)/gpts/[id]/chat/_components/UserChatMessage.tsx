@@ -55,6 +55,7 @@ interface ChatMessageProps {
   uploadedDocs?: UploadedDoc[];
   sources?: Source[];
   imageUrls?: string[];
+  videoUrls?: string[];
   tokenUsage?: TokenUsage;
   researchPhases?: ResearchPhase[];
   currentPhase?: StatusPhase | null;
@@ -69,11 +70,39 @@ export default function ChatMessage({
   uploadedDocs = [],
   sources = [],
   imageUrls = [],
+  videoUrls = [],
   tokenUsage,
   researchPhases = [],
   currentPhase = null,
   webSearchStatus,
 }: ChatMessageProps) {
+
+  // Handle download for images and videos
+  const handleDownload = async (url: string, filename?: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename || url.split('/').pop() || 'download';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Download failed:', error);
+      // Fallback: open in new tab
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  // Handle external link - ensure it opens in new tab
+  const handleExternalLink = (e: React.MouseEvent<HTMLElement>, url: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
 
   const getFileIcon = (type: string) => {
     if (type.startsWith("image/")) return "🖼️";
@@ -193,12 +222,60 @@ export default function ChatMessage({
                           loading="lazy"
                         />
                         <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <a href={url} download className="p-2 bg-background/80 rounded-md">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDownload(url, `image-${idx + 1}.${url.split('.').pop()?.split('?')[0] || 'png'}`);
+                            }}
+                            className="p-2 bg-background/80 rounded-md hover:bg-background/90 transition-colors cursor-pointer"
+                            title="Download image"
+                          >
                             <Download className="h-4 w-4" />
-                          </a>
-                          <a href={url} target="_blank" rel="noopener noreferrer" className="p-2 bg-background/80 rounded-md">
+                          </button>
+                          <button
+                            onClick={(e) => handleExternalLink(e, url)}
+                            className="p-2 bg-background/80 rounded-md hover:bg-background/90 transition-colors cursor-pointer"
+                            title="Open in new tab"
+                          >
                             <ExternalLink className="h-4 w-4" />
-                          </a>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {videoUrls && videoUrls.length > 0 && (
+                  <div className="grid grid-cols-1 gap-4 mb-4">
+                    {videoUrls.map((url, idx) => (
+                      <div key={idx} className="relative group">
+                        <video
+                          src={url}
+                          controls
+                          className="w-full h-auto rounded-lg border border-border"
+                          preload="metadata"
+                        >
+                          Your browser does not support the video tag.
+                        </video>
+                        <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDownload(url, `video-${idx + 1}.${url.split('.').pop()?.split('?')[0] || 'mp4'}`);
+                            }}
+                            className="p-2 bg-background/80 rounded-md backdrop-blur-sm hover:bg-background/90 transition-colors cursor-pointer"
+                            title="Download video"
+                          >
+                            <Download className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={(e) => handleExternalLink(e, url)}
+                            className="p-2 bg-background/80 rounded-md backdrop-blur-sm hover:bg-background/90 transition-colors cursor-pointer"
+                            title="Open in new tab"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </button>
                         </div>
                       </div>
                     ))}
