@@ -1,4 +1,4 @@
-import { Logo } from '@/app/(public)/_components/logo'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -129,8 +129,15 @@ export default function FooterSection() {
                     <Link
                         href="/"
                         aria-label="go home"
-                        className="block size-fit">
-                        <Logo />
+                        className="flex items-center space-x-2 size-fit">
+                        <Image
+                            src="/DruidX logo.png"
+                            alt="DruidX Logo"
+                            width={80}
+                            height={20}
+                            className="h-6 w-auto"
+                        />
+                        <span className="text-lg font-semibold text-foreground">DruidX</span>
                     </Link>
                     <div className="flex flex-wrap justify-center gap-6 text-sm">
                         <Link
