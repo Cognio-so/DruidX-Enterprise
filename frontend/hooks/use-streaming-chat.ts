@@ -289,8 +289,9 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
                     ? {
                         ...msg,
                         content: full_response || content || '',
-                        imageUrls: img_urls || msg.imageUrls, // Preserve existing if not in update
-                        videoUrls: video_urls || msg.videoUrls, // Preserve existing if not in update
+                        // Use the new values if provided (even if empty array), otherwise preserve existing
+                        imageUrls: img_urls !== undefined ? img_urls : (msg.imageUrls || []),
+                        videoUrls: video_urls !== undefined ? video_urls : (msg.videoUrls || []),
                         tokenUsage: token_usage || msg.tokenUsage, // Preserve existing if not in update
                         isStreaming: !is_complete,
                       }

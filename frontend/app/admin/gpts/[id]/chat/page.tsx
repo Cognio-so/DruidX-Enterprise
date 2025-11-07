@@ -231,6 +231,7 @@ export default function ChatGptById() {
                           isDeepResearchActive ? false : msg.isStreaming
                         }
                         imageUrls={msg.imageUrls}
+                        videoUrls={msg.videoUrls}
                         tokenUsage={msg.tokenUsage}
                         researchPhases={researchPhases}
                         currentPhase={currentPhase}
