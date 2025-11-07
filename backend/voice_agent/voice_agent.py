@@ -149,17 +149,17 @@ class VoiceAssistant:
 
         current_dir = os.path.dirname(os.path.abspath(__file__))
 
-        audio_file_path = os.path.join(current_dir, "assets", "web_search_bgm.mp3")
+        audio_file_path = os.path.join(current_dir, "assets", "thinking_sound.wav")
         self.background_audio = BackgroundAudioPlayer(
             # ambient_sound=AudioConfig(BuiltinAudioClip.OFFICE_AMBIENCE, volume=0.1),
             thinking_sound=[
-                AudioConfig(audio_file_path, volume=0.1),
-            ],
+                AudioConfig(audio_file_path, volume=0.05)
+            ]
         )
 
         # Initialize the web search tool
         try:
-            self.web_search_tool = TavilyWebSearchTool(max_results=3)
+            self.web_search_tool = TavilyWebSearchTool(max_results=2)
             logger.info("Tavily web search tool initialized.")
         except Exception as e:
             self.web_search_tool = None
