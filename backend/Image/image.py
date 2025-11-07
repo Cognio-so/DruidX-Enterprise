@@ -79,9 +79,9 @@ Return ONLY the JSON.
 
 async def generate_image(state: GraphState) -> GraphState:
     print("🖼️ Image Node Executing...")
-    
-    query = state.get("resolved_query") or state.get("user_query", "")
-    model = state.get("img_model", "google/imagen-4-fast") 
+
+    query = state.get("user_query", "")
+    model = state.get("img_model", "google/imagen-4-fast")
     previous_images = state.get("img_urls", [])
     print(f"🖼️ User Query: {query}")
     print(f"🖼️ Using Image Model: {model}")
@@ -99,7 +99,7 @@ async def generate_image(state: GraphState) -> GraphState:
             output = await replicate.async_run(
                 model,
                 input={
-                    "redux_image": image_to_edit,
+                    "image_input": [image_to_edit],
                     "prompt": query,
                 }
             )
@@ -112,7 +112,7 @@ async def generate_image(state: GraphState) -> GraphState:
                 input={"prompt": query}
             )
 
-        # Extract image URL from output (handles both edit and new generation)
+       
         if isinstance(output, list):
             first = output[0]
             if hasattr(first, "url"):
