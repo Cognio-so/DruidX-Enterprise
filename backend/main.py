@@ -80,6 +80,8 @@ class SessionManager:
             "gpt_config": None,
             "created_at": datetime.now().isoformat(),
             "doc_embeddings":False,
+            "img_urls": [],
+            "video_urls": [],
         }
         redis_client = await ensure_redis_client()
         if redis_client:
@@ -540,6 +542,10 @@ async def stream_chat(session_id: str, request: ChatRequest):
             new_uploaded_docs=newly_uploaded_docs_metadata,
             uploaded_images=session.get("uploaded_images", []),  
             gpt_config=gpt_config,
+            img_model=image_model,
+            video_model=video_model,
+            is_image=bool(image_enabled),
+            is_video=bool(video_enabled),
             kb=kb_docs_structured,
             web_search=request.web_search,  
             rag=request.rag, 
@@ -559,7 +565,9 @@ async def stream_chat(session_id: str, request: ChatRequest):
             },
             _chunk_callback=chunk_callback,
             _status_callback=status_callback,
-            token_usage={"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+            token_usage={"input_tokens": 0, "output_tokens": 0, "total_tokens": 0},
+            img_urls=session.get("img_urls", []),
+            video_urls=session.get("video_urls", [])
         )
         
         async def generate_stream():
@@ -608,9 +616,10 @@ async def stream_chat(session_id: str, request: ChatRequest):
                 await graph_task
                 if final_state:
                     for node_name, node_state in final_state.items():
-                        if isinstance(node_state, dict) and 'img_urls' in node_state:
-                            state.update(node_state)
-                            break
+                        if isinstance(node_state, dict):
+                            if 'img_urls' in node_state or 'video_urls' in node_state:
+                                state.update(node_state)
+                                break
               
                 token_usage = state.get("token_usage")
                 if not token_usage:
@@ -623,22 +632,26 @@ async def stream_chat(session_id: str, request: ChatRequest):
                         "is_complete": True,
                         "full_response": full_response,
                         "img_urls": state.get("img_urls", []),
+                        "video_urls": state.get("video_urls", []),
                         "token_usage": token_usage
                     }
                 }
                 
                 print(f"🔥 Final chunk img_urls: {final_chunk['data']['img_urls']}")
+                print(f"🔥 Final chunk video_urls: {final_chunk['data']['video_urls']}")
                 print(f"🔥 Token usage: {token_usage}")
                 yield f"data: {json.dumps(final_chunk)}\n\n"
                 
-                if full_response:
-                    session["messages"].append({"role": "assistant", "content": full_response})
-                    
-                    # Store image URLs in session for persistence
-                    if state.get("img_urls"):
+                
+                if state.get("img_urls"):
+                        print(f"Storing img_urls in session: {state.get('img_urls')}")
                         session["img_urls"] = state.get("img_urls", [])
-                    
-                    await SessionManager.update_session(session_id, session)
+                        await SessionManager.update_session(session_id, session)
+                
+                if state.get("video_urls"):
+                        print(f"Storing video_urls in session: {state.get('video_urls')}")
+                        session["video_urls"] = state.get("video_urls", [])
+                        await SessionManager.update_session(session_id, session)
                 if state.get("context", {}).get("session", {}).get("summary"):
                     session["summary"] = state["context"]["session"]["summary"]
 
@@ -649,7 +662,7 @@ async def stream_chat(session_id: str, request: ChatRequest):
                 if state.get("context", {}).get("session"):
                     await SessionManager.update_session(session_id, session)
                 
-                if state.get("route"):
+                if state.get("route") and state.get("route") != "END":
                     session["last_route"] = state["route"]
                     await SessionManager.update_session(session_id, session)
 
@@ -818,7 +831,9 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
             },
             _chunk_callback=chunk_callback,
             _status_callback=status_callback,
-            token_usage={"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+            token_usage={"input_tokens": 0, "output_tokens": 0, "total_tokens": 0},
+            img_urls=session.get("img_urls", []),
+            video_urls=session.get("video_urls", [])
         )
         
         async def generate_stream():
@@ -891,9 +906,10 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
                 
                 if final_state:
                     for node_name, node_state in final_state.items():
-                        if isinstance(node_state, dict) and 'img_urls' in node_state:
-                            state.update(node_state)
-                            break
+                        if isinstance(node_state, dict):
+                            if 'img_urls' in node_state or 'video_urls' in node_state:
+                                state.update(node_state)
+                                break
     
                 # Aggregate token usage from state
                 token_usage = state.get("token_usage")
@@ -907,11 +923,13 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
                         "is_complete": True,
                         "full_response": full_response,
                         "img_urls": state.get("img_urls", []),
+                        "video_urls": state.get("video_urls", []),
                         "token_usage": token_usage
                     }
                 }
                 
                 print(f"🔥 Final deep research chunk img_urls: {final_chunk['data']['img_urls']}")
+                print(f"🔥 Final deep research chunk video_urls: {final_chunk['data']['video_urls']}")
                 print(f"🔥 Token usage: {token_usage}")
                 yield f"data: {json.dumps(final_chunk)}\n\n"
                 
@@ -919,6 +937,8 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
                     session["messages"].append({"role": "assistant", "content": full_response})
                     if state.get("img_urls"):
                         session["img_urls"] = state.get("img_urls", [])
+                    if state.get("video_urls"):
+                        session["video_urls"] = state.get("video_urls", [])
                     
                     await SessionManager.update_session(session_id, session)
                 if state.get("context", {}).get("session", {}).get("summary"):

@@ -189,6 +189,8 @@ async def analyze_query(
     session_summary: str,
     last_route: str | None,
     available_composio_tools: List[str] = None,  # Add this parameter
+    is_image: bool = False,
+    is_video: bool = False,
 ) -> Optional[Dict[str, Any]]:
     """
     Analyze the user's message in context (conversation, summary, last route)
@@ -227,6 +229,8 @@ async def analyze_query(
         {recent_messages_text[:300] or '(none)'}
 
         Last Route: {last_route or 'None'}{composio_tools_text}
+        Image Intent Flag: {is_image}
+        Video Intent Flag: {is_video}
         """
 
         messages = [system_msg, HumanMessage(content=dynamic_context)]
@@ -382,6 +386,8 @@ def normalize_route(name: str) -> str:
         "rag": "RAG",
         "simple_llm": "SimpleLLM",
         "llm": "SimpleLLM",
+        "image": "image",  # Must match graph node name (lowercase)
+        "video": "video",  # Must match graph node name (lowercase)
         "mcp": "MCP",  # Add MCP mapping
         "composio": "MCP",  # Add composio mapping
         "end": "END",
@@ -405,6 +411,8 @@ async def orchestrator(state: GraphState) -> GraphState:
     session_meta = ctx.get("session") or {}
     last_route = session_meta.get("last_route")
     new_Doc=state.get("new_uploaded_docs", [])
+    is_image=state.get("is_image", False)
+    is_video=state.get("is_video", False)
     if not state.get("active_docs"):
         state["active_docs"] = None
         print("[Orchestrator] Initialized active_docs as None.")
@@ -454,6 +462,8 @@ async def orchestrator(state: GraphState) -> GraphState:
             session_summary=session_summary,
             last_route=last_route,
             available_composio_tools=available_composio_tools,
+            is_image=is_image,
+            is_video=is_video,
         )
         
         tentative_rewrite_task = rewrite_query(state)
