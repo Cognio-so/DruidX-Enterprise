@@ -422,6 +422,10 @@ async def stream_chat(session_id: str, request: ChatRequest):
     print(f"Deep search enabled: {request.deep_search}")
     print(f"Uploaded doc: {request.uploaded_doc}")
     print(f"Composio tools: {request.composio_tools}")
+    print(f"Image enabled: {request.image}")
+    print(f"Video enabled: {request.video}")
+    print(f"Image model: {request.imageModel}")
+    print(f"Video model: {request.videoModel}")
     
     session = await SessionManager.get_session(session_id)
     print(f"Previous last_route in session: {session.get('last_route')}")  
@@ -440,6 +444,20 @@ async def stream_chat(session_id: str, request: ChatRequest):
         session["gpt_config"] = gpt_config
         await SessionManager.update_session(session_id, session)
     
+    # Use image/video from request if provided, otherwise fall back to gpt_config
+    image_enabled = request.image if request.image is not None else gpt_config.get("image", False)
+    video_enabled = request.video if request.video is not None else gpt_config.get("video", False)
+    image_model = request.imageModel if request.imageModel is not None else gpt_config.get("imageModel")
+    video_model = request.videoModel if request.videoModel is not None else gpt_config.get("videoModel")
+    
+    # Update gpt_config with image/video settings
+    gpt_config["image"] = image_enabled
+    gpt_config["video"] = video_enabled
+    if image_model:
+        gpt_config["imageModel"] = image_model
+    if video_model:
+        gpt_config["videoModel"] = video_model
+    
     llm_model = gpt_config.get("model", "gpt-4o-mini")
     print(f"=== GPT CONFIG ===")
     print(f"Model: {llm_model}")
@@ -447,6 +465,10 @@ async def stream_chat(session_id: str, request: ChatRequest):
     print(f"Hybrid RAG: {gpt_config.get('hybridRag', False)}")
     print(f"MCP: {gpt_config.get('mcp', False)}")
     print(f"MCP Schema: {gpt_config.get('mcpSchema', 'None')}")
+    print(f"Image enabled: {image_enabled}")
+    print(f"Video enabled: {video_enabled}")
+    print(f"Image model: {image_model}")
+    print(f"Video model: {video_model}")
     print(f"Instruction: {gpt_config.get('instruction', '')[:100]}...")
     
     try:

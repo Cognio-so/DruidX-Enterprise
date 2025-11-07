@@ -15,6 +15,10 @@ class ChatRequest(BaseModel):
     uploaded_doc: Optional[bool] = False  # Add uploaded doc indicator
     composio_tools: Optional[List[str]] = []  # Add composio tools selection
     gpt_id: Optional[str] = None
+    image: Optional[bool] = None  # Image generation enabled
+    video: Optional[bool] = None  # Video generation enabled
+    imageModel: Optional[str] = None  # Image model name (camelCase from frontend)
+    videoModel: Optional[str] = None  # Video model name (camelCase from frontend)
 class ChatResponse(BaseModel):
     message: str
     session_id: str

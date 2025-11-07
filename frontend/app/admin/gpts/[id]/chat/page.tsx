@@ -18,6 +18,10 @@ interface GptData {
   image: string;
   description: string;
   model: string;
+  imageEnabled?: boolean;
+  videoEnabled?: boolean;
+  imageModel?: string;
+  videoModel?: string;
 }
 
 export default function ChatGptById() {
@@ -129,6 +133,10 @@ export default function ChatGptById() {
               image: gpt.image,
               description: gpt.description,
               model: gpt.model,
+              imageEnabled: gpt.imageEnabled,
+              videoEnabled: gpt.videoEnabled,
+              imageModel: gpt.imageModel,
+              videoModel: gpt.videoModel,
             });
           } else {
             console.error("Failed to fetch GPT data:", response.status);
@@ -221,6 +229,10 @@ export default function ChatGptById() {
             sessionId={sessionId}
             onVoiceMessage={handleVoiceMessage}
             onVoiceConnectionChange={setVoiceConnected}
+            imageEnabled={gptData?.imageEnabled}
+            videoEnabled={gptData?.videoEnabled}
+            imageModel={gptData?.imageModel}
+            videoModel={gptData?.videoModel}
           />
         </div>
       </div>
