@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { Logo } from '@/app/(public)/_components/logo'
+import Image from 'next/image'
 import { Menu, X } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -39,7 +39,14 @@ export const HeroHeader = () => {
                                 href="/"
                                 aria-label="home"
                                 className="flex items-center space-x-2">
-                                <Logo />
+                                <Image
+                                    src="/DruidX logo.png"
+                                    alt="DruidX Logo"
+                                    width={80}
+                                    height={20}
+                                    className="h-6 w-auto"
+                                />
+                                <span className="text-lg font-semibold text-foreground">DruidX</span>
                             </Link>
 
                             <button

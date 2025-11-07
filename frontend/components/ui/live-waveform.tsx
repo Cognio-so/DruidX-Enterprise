@@ -86,7 +86,7 @@ export function LiveWaveform({
           // Create a temporary element and apply the CSS variable
           // The browser will compute it to RGB regardless of the source format (OKLCH, HSL, etc.)
           const tempEl = document.createElement("div");
-          tempEl.style.setProperty("color", `var(--${barColor})`);
+          tempEl.style.setProperty("background-color", `var(--${barColor})`);
           tempEl.style.position = "absolute";
           tempEl.style.visibility = "hidden";
           tempEl.style.top = "-9999px";
@@ -94,7 +94,7 @@ export function LiveWaveform({
           document.body.appendChild(tempEl);
           
           // Get computed color (browser converts OKLCH/HSL to RGB automatically)
-          const computed = window.getComputedStyle(tempEl).color;
+          const computed = window.getComputedStyle(tempEl).backgroundColor;
           document.body.removeChild(tempEl);
           
           // Parse RGB from computed style (format: "rgb(r, g, b)" or "rgba(r, g, b, a)")
@@ -110,8 +110,10 @@ export function LiveWaveform({
           console.warn("Failed to parse color:", e);
         }
         
-        // Fallback to a reasonable primary orange color
-        return { r: 251, g: 146, b: 60 };
+        // Fallback to primary color (purple/blue from theme)
+        // This matches the primary color in the theme: oklch(0.5854 0.2041 277.1173)
+        // Approximate RGB conversion: rgb(139, 92, 246)
+        return { r: 139, g: 92, b: 246 };
       };
       
       const colorValues = getColorFromCSS();
@@ -182,7 +184,7 @@ export function LiveWaveform({
           // Create a temporary element and apply the CSS variable
           // The browser will compute it to RGB regardless of the source format (OKLCH, HSL, etc.)
           const tempEl = document.createElement("div");
-          tempEl.style.setProperty("color", `var(--${barColor})`);
+          tempEl.style.setProperty("background-color", `var(--${barColor})`);
           tempEl.style.position = "absolute";
           tempEl.style.visibility = "hidden";
           tempEl.style.top = "-9999px";
@@ -190,7 +192,7 @@ export function LiveWaveform({
           document.body.appendChild(tempEl);
           
           // Get computed color (browser converts OKLCH/HSL to RGB automatically)
-          const computed = window.getComputedStyle(tempEl).color;
+          const computed = window.getComputedStyle(tempEl).backgroundColor;
           document.body.removeChild(tempEl);
           
           // Parse RGB from computed style (format: "rgb(r, g, b)" or "rgba(r, g, b, a)")
@@ -206,8 +208,10 @@ export function LiveWaveform({
           console.warn("Failed to parse color:", e);
         }
         
-        // Fallback to a reasonable primary orange color
-        return { r: 251, g: 146, b: 60 };
+        // Fallback to primary color (purple/blue from theme)
+        // This matches the primary color in the theme: oklch(0.5854 0.2041 277.1173)
+        // Approximate RGB conversion: rgb(139, 92, 246)
+        return { r: 139, g: 92, b: 246 };
       };
       
       const colorValues = getColorFromCSS();

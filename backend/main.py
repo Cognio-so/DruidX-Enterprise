@@ -799,7 +799,7 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
             })
         
         async def status_callback(status_data: dict):
-            """Callback for status updates from nodes (e.g., WebSearch)"""
+            """Callback for status updates from nodes (e.g, WebSearch)"""
             print(f"🔥 STATUS CALLBACK RECEIVED (deepresearch): {status_data}")
             await queue.put(status_data)
         
@@ -1135,7 +1135,7 @@ async def _ensure_agent_worker_running():
             try:
                 # Get the voice agent script path
                 backend_dir = os.path.dirname(os.path.abspath(__file__))
-                voice_agent_path = os.path.join(backend_dir, "voice_agent", "voice_agent.py")
+                voice_agent_path = os.path.join(backend_dir,"voice_agent", "voice_agent.py")
                 
                 if not os.path.exists(voice_agent_path):
                     print(f"Warning: Voice agent script not found at {voice_agent_path}")
@@ -1237,11 +1237,32 @@ async def voice_connect(request: dict):
     
     session_id = request.get("sessionId")
     gpt_id = request.get("gptId")
+    # Get model configuration from request body
+    # openai_model = request.get("openai_model")
+    # deepgram_stt_model = request.get("deepgram_stt_model")
+    # deepgram_tts_model = request.get("deepgram_tts_model")
+    openai_model = "gpt-4.1-nano"
+    deepgram_stt_model = "nova-3"
+    deepgram_tts_model = "aura-2-ophelia-en"
     
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID is required")
     
     try:
+        # Store voice config in Redis for the agent worker to pick up
+        redis_client = await ensure_redis_client()
+        if redis_client:
+            voice_config = {
+                "openai_model": openai_model,
+                "deepgram_stt_model": deepgram_stt_model,
+                "deepgram_tts_model": deepgram_tts_model,
+            }
+            config_key = f"voice_config:{session_id}"
+            await redis_client.set(config_key, json.dumps(voice_config), ex=3600) # 1-hour expiry
+            print(f"Stored voice config for session {session_id} in Redis: {voice_config}")
+        else:
+            print("[Warning] Redis not available. Agent will use default models.")
+
         # Ensure agent worker is running
         await _ensure_agent_worker_running()
         

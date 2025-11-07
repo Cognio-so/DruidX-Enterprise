@@ -113,28 +113,40 @@ const Markdown: React.FC<MarkdownProps> = ({ content, className, sources = [] })
           // Custom heading components with Shadcn typography
           h1({ children, ...props }) {
             return (
-              <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl" {...props}>
+              <h1
+                className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl mt-10 mb-6 first:mt-0 last:mb-6"
+                {...props}
+              >
                 {children}
               </h1>
             );
           },
           h2({ children, ...props }) {
             return (
-              <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0" {...props}>
+              <h2
+                className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight mt-8 mb-4 first:mt-0 last:mb-5"
+                {...props}
+              >
                 {children}
               </h2>
             );
           },
           h3({ children, ...props }) {
             return (
-              <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight" {...props}>
+              <h3
+                className="scroll-m-20 text-2xl font-semibold tracking-tight mt-6 mb-3 first:mt-0 last:mb-4"
+                {...props}
+              >
                 {children}
               </h3>
             );
           },
           h4({ children, ...props }) {
             return (
-              <h4 className="scroll-m-20 text-xl font-semibold tracking-tight" {...props}>
+              <h4
+                className="scroll-m-20 text-xl font-semibold tracking-tight mt-5 mb-2 first:mt-0 last:mb-3"
+                {...props}
+              >
                 {children}
               </h4>
             );
@@ -142,7 +154,10 @@ const Markdown: React.FC<MarkdownProps> = ({ content, className, sources = [] })
           // Custom paragraph with proper spacing
           p({ children, ...props }) {
             return (
-              <p className="leading-7 [&:not(:first-child)]:mt-6 break-words" {...props}>
+              <p
+                className="leading-7 break-words [&:not(:first-child)]:mt-5 mb-4 last:mb-0"
+                {...props}
+              >
                 {children}
               </p>
             );
@@ -150,14 +165,14 @@ const Markdown: React.FC<MarkdownProps> = ({ content, className, sources = [] })
           // Custom list styling
           ul({ children, ...props }) {
             return (
-              <ul className="my-6 ml-6 list-disc [&>li]:mt-2" {...props}>
+              <ul className="my-5 ml-6 list-disc space-y-2" {...props}>
                 {children}
               </ul>
             );
           },
           ol({ children, ...props }) {
             return (
-              <ol className="my-6 ml-6 list-decimal [&>li]:mt-2" {...props}>
+              <ol className="my-5 ml-6 list-decimal space-y-2" {...props}>
                 {children}
               </ol>
             );
@@ -165,7 +180,7 @@ const Markdown: React.FC<MarkdownProps> = ({ content, className, sources = [] })
           // Custom list item styling
           li({ children, ...props }) {
             return (
-              <li className="mt-2 break-words" {...props}>
+              <li className="break-words leading-relaxed" {...props}>
                 {children}
               </li>
             );

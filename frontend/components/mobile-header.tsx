@@ -15,11 +15,11 @@ export function MobileHeader() {
       {/* DruidX Logo in center */}
       <div className="flex-1 flex justify-center ">
         <Image
-          src="/Horizontal DruidX logo.png"
-          alt="DruidX"
+          src="/DruidX logo.png"
+          alt="DruidX Logo"
           width={120}
           height={40}
-          className="h-8 w-auto bg-white rounded-md"
+          className="h-8 w-auto"
         />
       </div>
       

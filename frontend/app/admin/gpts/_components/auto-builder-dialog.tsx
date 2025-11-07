@@ -1,0 +1,536 @@
+'use client';
+
+import {
+  Conversation,
+  ConversationContent,
+  ConversationScrollButton,
+} from '@/components/ai-elements/conversation';
+import { Message, MessageContent } from '@/components/ai-elements/message';
+import {
+  PromptInput,
+  PromptInputActionAddAttachments,
+  PromptInputActionMenu,
+  PromptInputActionMenuContent,
+  PromptInputActionMenuTrigger,
+  PromptInputAttachment,
+  PromptInputAttachments,
+  PromptInputBody,
+  PromptInputHeader,
+  type PromptInputMessage,
+  PromptInputSubmit,
+  PromptInputTextarea,
+  PromptInputFooter,
+  PromptInputTools,
+} from '@/components/ai-elements/prompt-input';
+import { Fragment, useState, useEffect, useCallback, useRef } from 'react';
+import { Response } from '@/components/ai-elements/response';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Loader } from '@/components/ai-elements/loader';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import { createGpt } from '../create-gpt/action';
+import type { GptFormValues } from '@/lib/zodSchema';
+
+interface AutoBuilderDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+interface CollectedData {
+  whatToBuild?: string;
+  purpose?: string;
+  name?: string;
+  description?: string;
+  instructions?: string;
+  model?: string;
+  webSearch?: boolean;
+  hybridRag?: boolean;
+  image?: boolean;
+  video?: boolean;
+  imageModel?: string;
+  videoModel?: string;
+  imageUrl?: string;
+  kbFiles?: string[];
+}
+
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export function AutoBuilderDialog({
+  open,
+  onOpenChange,
+}: AutoBuilderDialogProps) {
+  const router = useRouter();
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [collectedData, setCollectedData] = useState<CollectedData>({
+    model: 'gpt_4o',
+    webSearch: false,
+    hybridRag: false,
+    image: false,
+    video: false,
+    kbFiles: [],
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
+  const lastMessageRef = useRef<string>('');
+  const hasInitializedRef = useRef(false);
+
+  const messagesRef = useRef<ChatMessage[]>([]);
+  const collectedDataRef = useRef<CollectedData>(collectedData);
+
+  // Keep refs in sync
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  useEffect(() => {
+    collectedDataRef.current = collectedData;
+  }, [collectedData]);
+
+  const handleSendMessage = useCallback(async (textContent: string) => {
+    // Prevent multiple simultaneous calls
+    if (isLoading) return;
+
+    // Add user message
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: textContent,
+    };
+    setMessages((prev) => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/gpts/auto-build', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [
+            ...messagesRef.current.map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
+            {
+              role: 'user',
+              content: textContent,
+            },
+          ],
+          collectedData: collectedDataRef.current,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('No response body');
+      }
+
+      const decoder = new TextDecoder();
+      let assistantMessage = '';
+      const assistantMessageId = (Date.now() + 1).toString();
+
+      // Add assistant message placeholder
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: assistantMessageId,
+          role: 'assistant',
+          content: '',
+        },
+      ]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // toTextStreamResponse returns plain text chunks
+        const chunk = decoder.decode(value, { stream: true });
+        assistantMessage += chunk;
+        
+        // Update the assistant message in real-time
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessageId
+              ? { ...msg, content: assistantMessage }
+              : msg
+          )
+        );
+      }
+
+      // Check if completion signal is present
+      if (assistantMessage.includes('<complete>true</complete>')) {
+        setIsComplete(true);
+        await parseAndSubmitForm(assistantMessage);
+      } else {
+        // Update collected data based on conversation
+        updateCollectedData(assistantMessage, [...messagesRef.current, userMessage]);
+      }
+    } catch (error: any) {
+      console.error('Error sending message:', error);
+      toast.error(`Failed to send message: ${error.message}`);
+      // Don't remove the user message on error - keep it for user to see
+      // setMessages((prev) => prev.filter((msg) => msg.id !== userMessage.id));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLoading]);
+
+  // Initialize conversation when dialog opens - only once
+  useEffect(() => {
+    if (open && messages.length === 0 && !hasInitializedRef.current && !isLoading) {
+      hasInitializedRef.current = true;
+      // Start the conversation
+      const timer = setTimeout(() => {
+        handleSendMessage('Hello, I want to create a new GPT.');
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  // Reset state when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setMessages([]);
+      setCollectedData({
+        model: 'gpt_4o',
+        webSearch: false,
+        hybridRag: false,
+        image: false,
+        video: false,
+        kbFiles: [],
+      });
+      setIsComplete(false);
+      setIsLoading(false);
+      lastMessageRef.current = '';
+      hasInitializedRef.current = false;
+    }
+  }, [open]);
+
+  const updateCollectedData = (content: string, allMessages: ChatMessage[]) => {
+    // Extract data from AI responses and user messages
+    const lowerContent = content.toLowerCase();
+    const lastUserMessage =
+      allMessages.filter((m) => m.role === 'user').pop()?.content || '';
+
+    // Try to extract structured data from XML tags if present
+    const dataMatch = content.match(/<data>([\s\S]*?)<\/data>/);
+    if (dataMatch) {
+      try {
+        const parsed = JSON.parse(dataMatch[1]);
+        setCollectedData((prev) => ({ ...prev, ...parsed }));
+      } catch (e) {
+        // If JSON parsing fails, continue with text parsing
+      }
+    }
+
+    // Simple keyword-based extraction (can be improved)
+    setCollectedData((prev) => {
+      const updated = { ...prev };
+
+      // Extract name
+      if (lowerContent.includes('name') && lastUserMessage) {
+        const nameMatch = lastUserMessage.match(/name[:\s]+(.+)/i);
+        if (nameMatch && nameMatch[1].length > 0) {
+          updated.name = nameMatch[1].trim();
+        }
+      }
+
+      // Extract description
+      if (lowerContent.includes('description') && lastUserMessage) {
+        const descMatch = lastUserMessage.match(/description[:\s]+(.+)/i);
+        if (descMatch && descMatch[1].length > 0) {
+          updated.description = descMatch[1].trim();
+        }
+      }
+
+      // Extract tools - be explicit about what's enabled/disabled
+      const userMsgLower = lastUserMessage.toLowerCase();
+      
+      // Check for explicit tool selections
+      if (lowerContent.includes('web search') || lowerContent.includes('websearch') || lowerContent.includes('tools')) {
+        updated.webSearch = userMsgLower.includes('websearch') || 
+          userMsgLower.includes('web search') ||
+          userMsgLower.includes('yes') ||
+          userMsgLower.includes('enable');
+      }
+      
+      if (lowerContent.includes('hybrid rag') || lowerContent.includes('rag')) {
+        updated.hybridRag = userMsgLower.includes('hybrid rag') ||
+          userMsgLower.includes('rag') ||
+          userMsgLower.includes('yes') ||
+          userMsgLower.includes('enable');
+      }
+      
+      if (lowerContent.includes('image generation') || lowerContent.includes('image')) {
+        updated.image = userMsgLower.includes('image') &&
+          (userMsgLower.includes('yes') || userMsgLower.includes('enable'));
+      }
+      
+      if (lowerContent.includes('video generation') || lowerContent.includes('video')) {
+        updated.video = userMsgLower.includes('video') &&
+          (userMsgLower.includes('yes') || userMsgLower.includes('enable'));
+      }
+      
+      // If user says "only websearch" or "websearch only", explicitly disable others
+      if (userMsgLower.includes('only') && (userMsgLower.includes('websearch') || userMsgLower.includes('web search'))) {
+        updated.image = false;
+        updated.video = false;
+        updated.hybridRag = false;
+      }
+
+      return updated;
+    });
+  };
+
+  const parseAndSubmitForm = async (content: string) => {
+    try {
+      setIsSubmitting(true);
+
+      // Extract JSON data from response
+      const dataMatch = content.match(/<data>([\s\S]*?)<\/data>/);
+      let formData: any = { ...collectedData };
+
+      if (dataMatch) {
+        try {
+          const parsed = JSON.parse(dataMatch[1]);
+          // Ensure image/video are explicitly false unless explicitly enabled
+          // Default to false if not explicitly set to true
+          if (parsed.image !== true) {
+            parsed.image = false;
+            parsed.imageModel = undefined;
+          }
+          if (parsed.video !== true) {
+            parsed.video = false;
+            parsed.videoModel = undefined;
+          }
+          formData = { ...formData, ...parsed };
+        } catch (e) {
+          console.error('Failed to parse JSON data:', e);
+        }
+      }
+
+      // Ensure required fields - map from AI response format to form format
+      const gptName = formData.name || formData.gptName || collectedData.name;
+      const gptDescription = formData.description || formData.gptDescription || collectedData.description;
+      const instructions = formData.instructions || collectedData.instructions;
+      const modelValue = formData.model || collectedData.model;
+
+      if (!gptName || !gptDescription || !instructions || !modelValue) {
+        console.error('Missing fields:', { gptName, gptDescription, instructions, modelValue, formData, collectedData });
+        toast.error(`Missing required fields: ${!gptName ? 'name ' : ''}${!gptDescription ? 'description ' : ''}${!instructions ? 'instructions ' : ''}${!modelValue ? 'model' : ''}`);
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Prepare final form data with proper types
+      const model = modelValue as GptFormValues['model'];
+      
+      // Ensure image/video are boolean and only set imageModel/videoModel if enabled
+      const imageEnabled = Boolean(formData.image ?? collectedData.image ?? false);
+      const videoEnabled = Boolean(formData.video ?? collectedData.video ?? false);
+      
+      const finalData: GptFormValues = {
+        gptName,
+        gptDescription,
+        instructions,
+        model: model,
+        webSearch: Boolean(formData.webSearch ?? collectedData.webSearch ?? false),
+        hybridRag: Boolean(formData.hybridRag ?? collectedData.hybridRag ?? false),
+        image: imageEnabled,
+        video: videoEnabled,
+        // Only include imageModel/videoModel if the feature is enabled
+        imageModel: imageEnabled ? (formData.imageModel || collectedData.imageModel) : undefined,
+        videoModel: videoEnabled ? (formData.videoModel || collectedData.videoModel) : undefined,
+        imageUrl: formData.imageUrl || collectedData.imageUrl || '',
+        docs: formData.docs || collectedData.kbFiles || [],
+      };
+
+      // Submit the form
+      const result = await createGpt(finalData);
+
+      if (result.success) {
+        toast.success('GPT created successfully!');
+        onOpenChange(false);
+        router.push('/admin/gpts');
+        router.refresh();
+      } else {
+        toast.error(result.error || 'Failed to create GPT');
+      }
+    } catch (error: any) {
+      console.error('Error submitting form:', error);
+      toast.error('An error occurred while creating the GPT');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const uploadToS3 = async (file: File): Promise<string> => {
+    const response = await fetch('/api/s3/upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fileName: file.name,
+        fileType: file.type,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to get upload URL');
+    }
+
+    const { uploadUrl, fileUrl } = await response.json();
+
+    // Upload file to S3
+    const uploadResponse = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': file.type,
+      },
+      body: file,
+    });
+
+    if (!uploadResponse.ok) {
+      throw new Error('Failed to upload file');
+    }
+
+    return fileUrl;
+  };
+
+
+  const handleSubmit = useCallback(
+    async (message: PromptInputMessage) => {
+      const hasText = Boolean(message.text);
+      const hasAttachments = Boolean(message.files?.length);
+
+      if (!(hasText || hasAttachments)) {
+        return;
+      }
+
+      let textContent = message.text || '';
+      const uploadedFiles: string[] = [];
+
+      // Handle file uploads
+      if (message.files && message.files.length > 0) {
+        try {
+          for (const file of message.files) {
+            // Check if it's an image (for avatar)
+            if (file.type.startsWith('image/')) {
+              const imageUrl = await uploadToS3(file);
+              setCollectedData((prev) => ({ ...prev, imageUrl }));
+              textContent += `\n[Uploaded image: ${file.name}]`;
+            } else {
+              // KB file
+              const fileUrl = await uploadToS3(file);
+              uploadedFiles.push(fileUrl);
+              textContent += `\n[Uploaded file: ${file.name}]`;
+            }
+          }
+
+          if (uploadedFiles.length > 0) {
+            setCollectedData((prev) => ({
+              ...prev,
+              kbFiles: [...(prev.kbFiles || []), ...uploadedFiles],
+            }));
+          }
+        } catch (error: any) {
+          toast.error(`Failed to upload file: ${error.message}`);
+          return;
+        }
+      }
+
+      // Send message to AI
+      await handleSendMessage(textContent);
+    },
+    [messages, collectedData]
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b">
+          <DialogTitle>Auto-Build GPT</DialogTitle>
+          <DialogDescription>
+            I&apos;ll guide you through creating your custom GPT step by step.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          <Conversation className="flex-1 min-h-0">
+            <ConversationContent className="px-6 py-4">
+              {messages.map((message) => (
+                <Fragment key={message.id}>
+                  <Message from={message.role}>
+                    <MessageContent>
+                      <Response>{message.content}</Response>
+                    </MessageContent>
+                  </Message>
+                </Fragment>
+              ))}
+              {isLoading && <Loader />}
+              {isSubmitting && (
+                <Message from="assistant">
+                  <MessageContent>
+                    <Response>Creating your GPT... Please wait.</Response>
+                  </MessageContent>
+                </Message>
+              )}
+            </ConversationContent>
+            <ConversationScrollButton />
+          </Conversation>
+
+          <div className="border-t px-6 py-4">
+            <PromptInput
+              onSubmit={handleSubmit}
+              globalDrop
+              multiple
+              disabled={isSubmitting || isComplete || isLoading}
+            >
+              <PromptInputHeader>
+                <PromptInputAttachments>
+                  {(attachment: unknown) => <PromptInputAttachment data={attachment} />}
+                </PromptInputAttachments>
+              </PromptInputHeader>
+              <PromptInputBody>
+                <PromptInputTextarea placeholder="Type your response..." />
+              </PromptInputBody>
+              <PromptInputFooter>
+                <PromptInputTools>
+                  <PromptInputActionMenu>
+                    <PromptInputActionMenuTrigger />
+                    <PromptInputActionMenuContent>
+                      <PromptInputActionAddAttachments />
+                    </PromptInputActionMenuContent>
+                  </PromptInputActionMenu>
+                </PromptInputTools>
+                <PromptInputSubmit
+                  disabled={isSubmitting || isComplete || isLoading}
+                  status={isLoading ? 'submitted' : undefined}
+                />
+              </PromptInputFooter>
+            </PromptInput>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

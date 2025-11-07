@@ -7,7 +7,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useChatSession } from "@/hooks/use-chat-session";
 import { useChatMessages } from "@/hooks/use-chat-messages";
 import { useAutoSaveConversation } from "@/hooks/use-auto-save-conversation";
-import { useEffect, useState } from "react";
+import { useChatScroll } from "@/hooks/use-chat-scroll";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import { getModelByFrontendValue } from "@/lib/modelMapping";
 import { ResearchPlanApprovalDialog } from "@/components/ResearchPlanApprovalDialog";
@@ -37,6 +38,39 @@ export default function ChatGptById() {
   const [gptData, setGptData] = useState<GptData | null>(null);
 
   const hasMessages = messages.length > 0;
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  
+  // Set up scroll management
+  const { shouldAutoScroll, scrollToBottom, scrollContainerRef } = useChatScroll({
+    enabled: hasMessages,
+  });
+
+  // Find and set the ScrollArea viewport element
+  useEffect(() => {
+    if (scrollAreaRef.current && hasMessages) {
+      const viewport = scrollAreaRef.current.querySelector(
+        '[data-slot="scroll-area-viewport"]'
+      ) as HTMLElement;
+      if (viewport) {
+        (scrollContainerRef as React.MutableRefObject<HTMLElement>).current = viewport;
+      }
+    }
+  }, [hasMessages, messages.length, scrollContainerRef]);
+
+  // Auto-scroll when messages update and user is at bottom
+  useEffect(() => {
+    if (hasMessages && shouldAutoScroll) {
+      const isStreaming = messages.some((msg) => msg.isStreaming);
+      // Scroll when streaming, loading, or when a new message is added
+      if (isStreaming || isLoading || messages.length > 0) {
+        // Small delay to ensure DOM is updated
+        const timeoutId = setTimeout(() => {
+          scrollToBottom();
+        }, 100);
+        return () => clearTimeout(timeoutId);
+      }
+    }
+  }, [messages, isLoading, hasMessages, shouldAutoScroll, scrollToBottom]);
 
   useAutoSaveConversation({
     gptId,
@@ -133,38 +167,39 @@ export default function ChatGptById() {
 
         {hasMessages && (
           <div className="flex-1 min-h-0">
-            <ScrollArea className="h-full p-2">
-              <div className="space-y-2">
-                {messages.map((msg, index) => {
-                  // Hide ChatMessage loader when deep research is active (to avoid duplicate loaders)
-                  const isDeepResearchActive =
-                    researchPhases.length > 0 ||
-                    (currentPhase && currentPhase.phase !== "waiting_approval");
-                  // Only show webSearchStatus on the last assistant message (currently streaming or if websearch is active)
-                  const isLastAssistantMessage = 
-                    !msg.isUser && 
-                    index === messages.length - 1 && 
-                    (msg.isStreaming || isLoading || webSearchStatus?.isActive);
-                  return (
-                    <ChatMessage
-                      key={msg.id}
-                      message={msg.content}
-                      isUser={msg.role === "user"}
-                      timestamp={new Date(msg.timestamp).toLocaleTimeString()}
-                      isStreaming={
-                        isDeepResearchActive ? false : msg.isStreaming
-                      }
-                      imageUrls={msg.imageUrls}
-                      videoUrls={msg.videoUrls}
-                      tokenUsage={msg.tokenUsage}
-                      researchPhases={researchPhases}
-                      currentPhase={currentPhase}
-                      webSearchStatus={isLastAssistantMessage ? webSearchStatus : undefined}
-                    />
-                  );
-                })}
-              </div>
-            </ScrollArea>
+            <div ref={scrollAreaRef} className="h-full">
+              <ScrollArea className="h-full p-2">
+                <div className="space-y-2">
+                  {messages.map((msg, index) => {
+                    // Hide ChatMessage loader when deep research is active (to avoid duplicate loaders)
+                    const isDeepResearchActive =
+                      researchPhases.length > 0 ||
+                      (currentPhase && currentPhase.phase !== "waiting_approval");
+                    // Only show webSearchStatus on the last assistant message (currently streaming or if websearch is active)
+                    const isLastAssistantMessage = 
+                      !msg.isUser && 
+                      index === messages.length - 1 && 
+                      (msg.isStreaming || isLoading || webSearchStatus?.isActive);
+                    return (
+                      <ChatMessage
+                        key={msg.id}
+                        message={msg.content}
+                        isUser={msg.role === "user"}
+                        timestamp={new Date(msg.timestamp).toLocaleTimeString()}
+                        isStreaming={
+                          isDeepResearchActive ? false : msg.isStreaming
+                        }
+                        imageUrls={msg.imageUrls}
+                        tokenUsage={msg.tokenUsage}
+                        researchPhases={researchPhases}
+                        currentPhase={currentPhase}
+                        webSearchStatus={isLastAssistantMessage ? webSearchStatus : undefined}
+                      />
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            </div>
           </div>
         )}
 

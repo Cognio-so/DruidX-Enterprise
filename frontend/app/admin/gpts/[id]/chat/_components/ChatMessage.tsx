@@ -6,7 +6,6 @@ import { Message, MessageContent } from "@/components/ai-elements/message";
 import { Response } from "@/components/ai-elements/response";
 import { Orb } from "@/components/ui/orb";
 import { Loader } from "@/components/ai-elements/loader";
-import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { ResearchTimeline } from "@/components/ResearchTimeline";
 import { ResearchPhaseShimmer } from "@/components/ResearchPhaseShimmer";
@@ -66,19 +65,6 @@ interface ChatMessageProps {
   webSearchStatus?: WebSearchStatus;
 }
 
-export function scrollToEnd(containerRef: React.RefObject<HTMLElement>) {
-  if (containerRef.current) {
-    const lastMessage = containerRef.current.lastElementChild;
-    if (lastMessage) {
-      const scrollOptions: ScrollIntoViewOptions = {
-        behavior: "smooth",
-        block: "end",
-      };
-      lastMessage.scrollIntoView(scrollOptions);
-    }
-  }
-}
-
 export default function ChatMessage({
   message,
   isUser,
@@ -93,14 +79,6 @@ export default function ChatMessage({
   currentPhase = null,
   webSearchStatus,
 }: ChatMessageProps) {
-  const messageRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll when streaming
-  useEffect(() => {
-    if (isStreaming && messageRef.current && messageRef.current.parentElement) {
-      scrollToEnd({ current: messageRef.current.parentElement });
-    }
-  }, [message, isStreaming]);
 
   // Handle download for images and videos
   const handleDownload = async (url: string, filename?: string) => {
@@ -148,7 +126,7 @@ export default function ChatMessage({
   };
 
   return (
-    <div ref={messageRef} className="w-full max-w-5xl mx-auto px-4 break-words">
+    <div className="w-full max-w-5xl mx-auto px-4 break-words">
       <Message from={isUser ? "user" : "assistant"}>
         {isUser ? (
           <>

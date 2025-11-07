@@ -24,10 +24,10 @@ export function TeamSwitcher({
         <Image
           src={logo}
           alt="DruidX Logo"
-          className="w-8 h-8 rounded-full transition-all duration-300"
+          className="w-6 h-6 rounded-full transition-all duration-300"
         />
         {showName && (
-          <span className="text-sm font-semibold text-sidebar-foreground transition-opacity duration-300">
+          <span className="text-xl font-semibold text-foreground transition-opacity duration-300">
             DruidX
           </span>
         )}
