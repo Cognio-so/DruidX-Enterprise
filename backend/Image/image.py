@@ -172,7 +172,7 @@ async def generate_image(state: GraphState) -> GraphState:
             image_to_edit = previous_images[-1] 
             
             output = await replicate.async_run(
-               "google/nano-banana",
+                model,
                 input={
                     "image_input": [image_to_edit],
                     "prompt": query,
