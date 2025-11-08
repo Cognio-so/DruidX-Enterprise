@@ -287,13 +287,10 @@ async def preprocess_images(uploaded_images: List[Dict[str, Any]], state: GraphS
         
         analysis = await extract_text_from_image(file_content, filename, state)
         await redis_client.hset(session_cache_key, filename, analysis)
-        # Push filename to ordered list and compute 1-based image index
         await redis_client.rpush(order_key, filename)
         image_index = await redis_client.llen(order_key)
 
         print(f"[ImagePreprocessor] Cached analysis for '{filename}' in session {session_id}")
-
-        # Embed the analysis into separate image collection in Qdrant
         try:
             collection_name = f"user_images_{session_id}"
             collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
@@ -312,7 +309,7 @@ async def preprocess_images(uploaded_images: List[Dict[str, Any]], state: GraphS
                 "file_type": image_data.get("file_type", "image"),
                 "id": image_data.get("id"),
                 "size": image_data.get("size", 0),
-                "image_index": image_index,  # 1-based position in session order
+                "image_index": image_index,  
                 "source": "image",
             }
             await asyncio.to_thread(
@@ -332,7 +329,7 @@ async def preprocess_images(uploaded_images: List[Dict[str, Any]], state: GraphS
 
     if redis_client and uploaded_images:
         await redis_client.expire(session_cache_key, 86400) 
-        await redis_client.expire(order_key, 86400) # Also expire the order list
+        await redis_client.expire(order_key, 86400) 
     if "uploaded_images" in state:
         state["uploaded_images"] = []
 
@@ -351,7 +348,6 @@ async def send_status_update(state: GraphState, message: str, progress: int = No
         })
 async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clear_existing: bool = False, is_kb: bool = False, is_user_doc: bool = False, session_id: str = "default", metadatas: Optional[List[Dict[str, Any]]] = None):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-    # Propagate per-document metadata to all chunks if provided
     if metadatas and len(metadatas) == len(doc):
         chunked_docs = text_splitter.create_documents(doc, metadatas=metadatas)
     else:
@@ -365,7 +361,7 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
     if clear_existing and name in collections:
         print(f"[RAG] Clearing existing collection: {name}")
         await asyncio.to_thread(QDRANT_CLIENT.delete_collection, collection_name=name)
-        collections.remove(name)  # Remove from local list
+        collections.remove(name)  
     
     if name not in collections:
         await asyncio.to_thread(
@@ -393,7 +389,6 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
                     "page": d.metadata.get("page", 0),
                     "chunk_index": i,
                     "heading": await extract_heading(d.page_content),
-                    # Provenance fields (if available)
                     "doc_id": d.metadata.get("doc_id"),
                     "filename": d.metadata.get("filename"),
                     "file_type": d.metadata.get("file_type"),
@@ -415,7 +410,7 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
                 })
                 redis_key = f"bm25_index:{name}"
                 await redis_client_binary.set(redis_key, serialized_bm25)
-                await redis_client_binary.expire(redis_key, 86400) # Expire after 24 hours
+                await redis_client_binary.expire(redis_key, 86400)
                 print(f"[RAG] Stored BM25 index in Redis for {name}")
             except Exception as e:
                 print(f"[RAG] ERROR: Failed to serialize and store BM25 index in Redis: {e}")
@@ -494,12 +489,8 @@ async def _search_image_collection(
     collection_name = f"user_images_{session_id}"
     try:
         query_embedding = await embed_query(query)
-        
-        # Build filter if image IDs or indices are provided
-        # Priority: Use IDs if available (most reliable), otherwise use indices
         query_filter = None
         if filter_image_ids:
-            # Use IDs for filtering (most reliable)
             query_filter = models.Filter(
                 must=[
                     models.FieldCondition(
@@ -509,7 +500,6 @@ async def _search_image_collection(
                 ]
             )
         elif filter_image_indices:
-            # Fallback to indices if no IDs provided
             query_filter = models.Filter(
                 must=[
                     models.FieldCondition(
@@ -1182,8 +1172,6 @@ async def hierarchical_summarize(state, batch_size: int = 10):
             if re.match(r"^(UNIT[\s–-]*[IVXLC0-9]+|CHAPTER[\s–-]*\d+|^\d+(\.\d+)+|[A-Z][A-Za-z\s]{4,})", l):
                 return re.sub(r"^[\d.:\s–-]+", "", l).strip(":–- ")
         return None
-    # If multiple documents are present, summarize each independently using the same mode logic
-    # to avoid large docs overshadowing short ones, and stream results one-by-one.
     docs_by_id: Dict[str, Dict[str, Any]] = {}
     for payload in chunks:
         did = payload.get("doc_id") or payload.get("filename") or "unknown"

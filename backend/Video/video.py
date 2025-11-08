@@ -9,6 +9,79 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from llm import get_llm, _extract_usage  # Assumes you have this in 'llm.py'
 from langchain_groq import ChatGroq
 
+async def _enhance_prompt_with_context(
+    query: str,
+    conversation: List[Dict[str, Any]],
+) -> str:
+    """
+    Uses an LLM to generate an enhanced, detailed prompt for video generation
+    based on the conversation history and current user query.
+    """
+    print("✨ Enhancing video prompt with conversation context...")
+    history_str = ""
+    for m in (conversation or [])[-5:]:  
+        role = (m.get("type") or m.get("role") or "").lower()
+        content = m.get("content", "")
+        speaker = "User" if role in ("human", "user") else "Assistant"
+        history_str += f"{speaker}: {content}\n"
+
+    system_prompt = """You are an expert prompt engineer for video generation models. Your job is to create detailed, optimized prompts that will generate high-quality videos.
+
+Rules:
+1. FIRST, check if the user's current query is SELF-CONTAINED and COMPLETE:
+   - If the query is specific and detailed (e.g., "a dog running in park", "sunset timelapse", "city traffic at night"), then use it directly or enhance it slightly
+   - DO NOT mix in unrelated past conversation when the query is already clear and complete
+   
+2. If user EXPLICITLY REFERENCES a previous prompt:
+   - Keywords: "above prompt", "previous prompt", "that prompt", "based on what I said", "the one before", "generate video based on", "create video from"
+   - Action: Find the exact prompt in the conversation history and return it EXACTLY AS WRITTEN
+   - DO NOT add any extra details, durations, camera movements, or enhancements
+   - DO NOT modify or improve it - just extract and return it verbatim
+   
+3. ONLY enhance/create when:
+   - User query is vague/incomplete: "generate that", "create a video", "make it", "the same thing" (with no clear prompt in history)
+   - User gives a complete new query (add minor quality modifiers only)
+   
+4. When enhancing NEW prompts (not extracted ones):
+   - For complete queries: Keep the core intent, just add quality/style modifiers if needed (e.g., "cinematic", "smooth motion")
+   - Include relevant details: subject, action, camera movement, lighting, mood, setting
+   - DO NOT add duration hints unless user specifically mentioned duration
+   
+5. Keep the prompt concise but descriptive (1-3 sentences)
+6. Do not include explanations, just return the final prompt text
+
+Return ONLY the prompt text, nothing else."""
+
+    human_prompt = f"""Conversation History:
+{history_str.strip()}
+
+Current User Query: "{query}"
+
+Generate the optimal video generation prompt:"""
+
+    try:
+        import os
+        
+        llm = ChatGroq(
+            model="openai/gpt-oss-120b",  
+            temperature=0.7,  
+            groq_api_key=os.getenv("GROQ_API_KEY")
+        )   
+        response = await llm.ainvoke(
+            [SystemMessage(content=system_prompt), HumanMessage(content=human_prompt)]
+        )
+        enhanced_prompt = (response.content or "").strip()
+        enhanced_prompt = enhanced_prompt.strip('"\'')
+        
+        print(f"✨ Enhanced Video Prompt: {enhanced_prompt}")
+        return enhanced_prompt
+        
+    except Exception as e:
+        print(f"❌ Error in _enhance_prompt_with_context: {e}")
+        print(f"✨ Fallback: Using original query as prompt")
+        return query
+
+
 async def _check_edit_intent(
     query: str,
     previous_videos: List[str],
@@ -80,6 +153,17 @@ async def generate_video(state: GraphState) -> GraphState:
     
     query = state.get("user_query", "")
     model = state.get("video_model", "google/veo-3.1") 
+   
+    
+    # Extract video URLs from user query if present (common video formats)
+    url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+\.(?:mp4|webm|mov|avi|mkv|flv|wmv|m4v)'
+    found_urls = re.findall(url_pattern, query, re.IGNORECASE)
+    
+    if found_urls and not previous_videos:
+        print(f"🎬 Found video URL(s) in user query: {found_urls}")
+        previous_videos = found_urls
+        # Also store in state for future reference
+        state["video_urls"] = found_urls
     previous_videos = state.get("video_urls", [])
     print(f"🎬 User Query: {query}")
     print(f"🎬 Using Video Model: {model}")
@@ -93,10 +177,24 @@ async def generate_video(state: GraphState) -> GraphState:
         if is_edit_intent:
             print(f"📹 Detected EDIT intent. Modifying video...")
             video_to_edit = previous_videos[-1] 
+            
+            # Remove video URL from query if present, keep only the edit instruction
+            clean_query = query
+            if found_urls:
+                for url in found_urls:
+                    clean_query = clean_query.replace(url, "").strip()
+                # Clean up extra spaces and common phrases
+                clean_query = re.sub(r'\s+', ' ', clean_query).strip()
+                clean_query = re.sub(r'^(edit this video|edit|modify|change)[\s:,.-]*', '', clean_query, flags=re.IGNORECASE).strip()
+                if not clean_query:
+                    clean_query = "enhance and improve this video"
+            
+            print(f"   Cleaned Edit Prompt: {clean_query}")
+            
             output = await replicate.async_run(
                 "luma/modify-video",
                 input={
-                    "prompt": query,
+                    "prompt": clean_query,
                     "video": video_to_edit,  
                     
 
@@ -104,15 +202,17 @@ async def generate_video(state: GraphState) -> GraphState:
             )
         else:
             print(f"✨ Detected NEW video generation intent.")
+            enhanced_prompt = await _enhance_prompt_with_context(query, conversation)
+            
             print(f"   Using Model: {model}")
-            print(f"   With Prompt: {query}")
+            print(f"   Original Query: {query}")
+            print(f"   Enhanced Prompt: {enhanced_prompt}")
+            
             output = await replicate.async_run(
                 model,
-                input={"prompt": query,
-                       "duration": 3}
+                input={"prompt": enhanced_prompt,
+                       "duration": 5}
             )
-
-        # Extract video URL from output (handles both edit and new generation)
         if isinstance(output, list):
             first = output[0]
             if hasattr(first, "url"):
@@ -125,16 +225,10 @@ async def generate_video(state: GraphState) -> GraphState:
             video_url = str(output)
 
         print("✅ Generated video URL:", video_url)
-        
-        # Store video URL in separate state
         video_urls = []
         video_urls.append(video_url)
         state["video_urls"] = video_urls
-        
-        # Also store in response for backward compatibility
         state["response"] = f"Video generated successfully! URL: {video_url}"
-        
-        # Add message to conversation history
         state.setdefault("messages", []).append({
             "role": "assistant", 
             "content": f"Generated video: {video_url}"

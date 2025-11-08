@@ -191,6 +191,7 @@ async def analyze_query(
     available_composio_tools: List[str] = None,  # Add this parameter
     is_image: bool = False,
     is_video: bool = False,
+    uploaded_images: List[str] = None,  # List of image URLs from new_uploaded_docs
 ) -> Optional[Dict[str, Any]]:
     """
     Analyze the user's message in context (conversation, summary, last route)
@@ -221,6 +222,10 @@ async def analyze_query(
         system_msg = SystemMessage(content=STATIC_SYS)
         
         # Create dynamic text separately (NOT part of system prompt)
+        uploaded_images_text = ""
+        if uploaded_images and len(uploaded_images) > 0:
+            uploaded_images_text = f"\nUploaded Images: {len(uploaded_images)} image URL(s) available in session"
+        
         dynamic_context = f"""
         User Message:
         {user_message}
@@ -230,7 +235,7 @@ async def analyze_query(
 
         Last Route: {last_route or 'None'}{composio_tools_text}
         Image Intent Flag: {is_image}
-        Video Intent Flag: {is_video}
+        Video Intent Flag: {is_video}{uploaded_images_text}
         """
 
         messages = [system_msg, HumanMessage(content=dynamic_context)]
@@ -454,8 +459,22 @@ async def orchestrator(state: GraphState) -> GraphState:
         session_summary = sess.get("summary", "")
         recent_messages_text = _format_last_turns_for_prompt(messages, k=2)
         
+        # Extract image URLs from new_uploaded_docs and populate edit_img_urls
+        edit_img_urls = []
+        if new_Doc:
+            for doc in new_Doc:
+                if isinstance(doc, dict):
+                    file_type = doc.get("file_type", "")
+                    file_url = doc.get("file_url") or doc.get("url")
+                    if file_type == "image" and file_url:
+                        edit_img_urls.append(file_url)
+        
+        if edit_img_urls:
+            state["edit_img_urls"] = edit_img_urls
+            print(f"[Orchestrator] Extracted {len(edit_img_urls)} image URL(s) from new_uploaded_docs: {edit_img_urls}")
+        
         analyze_task = analyze_query(
-            user_message=user_query,
+            user_message=state.get("user_query", ""),
             prompt_template=prompt_template,
             llm=llm_model,
             recent_messages_text=recent_messages_text,
@@ -464,6 +483,7 @@ async def orchestrator(state: GraphState) -> GraphState:
             available_composio_tools=available_composio_tools,
             is_image=is_image,
             is_video=is_video,
+            uploaded_images=edit_img_urls,
         )
         
         tentative_rewrite_task = rewrite_query(state)
@@ -477,7 +497,18 @@ async def orchestrator(state: GraphState) -> GraphState:
     if not state.get("tasks"):
         # Deep search is now handled by separate endpoint, not through orchestrator
         plan = result.get("execution_order", []) if result else ["SimpleLLM"]
-        if uploaded_doc:
+        has_image_in_plan = any(
+            task.lower() in ["image", "img"] 
+            for task in plan
+        )
+        if has_image_in_plan==False:
+            print(f"[Orchestrator] Image node found in execution_order: {plan}")
+            state["img_urls"]=[]
+        if len(edit_img_urls)==len(new_Doc) and is_image and plan[0].lower() == "image":
+            state["img_urls"]=edit_img_urls
+            print(f"hi.....................image editing.")
+        elif uploaded_doc:
+            state["img_urls"]=[]
             print(f"hi......................")
             if len(plan) == 1 and plan[0].lower() == "rag":
                 pass  
@@ -489,7 +520,6 @@ async def orchestrator(state: GraphState) -> GraphState:
                 pass
 
             print(f"[Orchestrator] New doc uploaded → updated plan = {plan}")
-
         
         if not plan:
             plan = ["SimpleLLM"]

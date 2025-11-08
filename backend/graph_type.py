@@ -44,6 +44,7 @@ class GraphState(TypedDict, total=False):
     deep_research_llm_model: Optional[str]  
     img_urls: Optional[List[str]]  
     video_urls: Optional[List[str]]
+    edit_img_urls: Optional[List[str]]
     gpt_id: Optional[str]
     token_usage: Optional[Dict[str, int]]  
     image_analysis_cache: Optional[Dict[str, str]]
