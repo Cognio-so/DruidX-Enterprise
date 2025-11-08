@@ -2,12 +2,87 @@ import asyncio
 import json
 import re
 from typing import List, Dict, Any
-import replicate  # Assuming you use replicate, as seen in logs
+import replicate  
 
 from graph_type import GraphState
 from langchain_core.messages import SystemMessage, HumanMessage
-from llm import get_llm, _extract_usage  # Assumes you have this in 'llm.py'
+from llm import get_llm, _extract_usage  
 from langchain_groq import ChatGroq
+
+async def _enhance_prompt_with_context(
+    query: str,
+    conversation: List[Dict[str, Any]],
+) -> str:
+    """
+    Uses an LLM to generate an enhanced, detailed prompt for image generation
+    based on the conversation history and current user query.
+    """
+    print("✨ Enhancing prompt with conversation context...")
+
+    history_str = ""
+    for m in (conversation or [])[-5:]:  # Last 5 messages for context
+        role = (m.get("type") or m.get("role") or "").lower()
+        content = m.get("content", "")
+        speaker = "User" if role in ("human", "user") else "Assistant"
+        history_str += f"{speaker}: {content}\n"
+
+    system_prompt = """You are an expert prompt engineer for image generation models. Your job is to create detailed, optimized prompts that will generate high-quality images.
+
+Rules:
+1. FIRST, check if the user's current query is SELF-CONTAINED and COMPLETE:
+   - If the query is specific and detailed (e.g., "a girl holding a book", "sunset over mountains", "cyberpunk city street"), then use it directly or enhance it slightly
+   - DO NOT mix in unrelated past conversation when the query is already clear and complete
+   
+2. If user EXPLICITLY REFERENCES a previous prompt:
+   - Keywords: "above prompt", "previous prompt", "that prompt", "based on what I said", "the one before", "generate image based on", "create image from"
+   - Action: Find the exact prompt in the conversation history and return it EXACTLY AS WRITTEN
+   - DO NOT add any extra details, style modifiers, or enhancements
+   - DO NOT modify or improve it - just extract and return it verbatim
+   
+3. ONLY enhance/create when:
+   - User query is vague/incomplete: "generate that", "create an image", "make it", "the same thing" (with no clear prompt in history)
+   - User gives a complete new query (add minor quality modifiers only)
+   
+4. When enhancing NEW prompts (not extracted ones):
+   - For complete queries: Keep the core intent, just add quality/style modifiers if needed (e.g., "highly detailed", "professional photography", "4K")
+   - Include relevant details: subject, style, mood, composition, lighting, colors, perspective
+   
+5. Keep the prompt concise but descriptive (1-3 sentences)
+6. Do not include explanations, just return the final prompt text
+
+Return ONLY the prompt text, nothing else."""
+
+    human_prompt = f"""Conversation History:
+{history_str.strip()}
+
+Current User Query: "{query}"
+
+Generate the optimal image generation prompt:"""
+
+    try:
+        import os
+        
+        llm = ChatGroq(
+            model="openai/gpt-oss-120b",  
+            temperature=0.5,  # Higher temperature for creativity
+            groq_api_key=os.getenv("GROQ_API_KEY")
+        )   
+        response = await llm.ainvoke(
+            [SystemMessage(content=system_prompt), HumanMessage(content=human_prompt)]
+        )
+        enhanced_prompt = (response.content or "").strip()
+        
+        # Remove any quotes that might wrap the prompt
+        enhanced_prompt = enhanced_prompt.strip('"\'')
+        
+        print(f"✨ Enhanced Prompt: {enhanced_prompt}")
+        return enhanced_prompt
+        
+    except Exception as e:
+        print(f"❌ Error in _enhance_prompt_with_context: {e}")
+        print(f"✨ Fallback: Using original query as prompt")
+        return query
+
 
 async def _check_edit_intent(
     query: str,
@@ -80,9 +155,9 @@ Return ONLY the JSON.
 async def generate_image(state: GraphState) -> GraphState:
     print("🖼️ Image Node Executing...")
 
-    query = state.get("user_query", "")
+    query =state.get("user_query", "")
     model = state.get("img_model", "google/imagen-4-fast")
-    previous_images = state.get("img_urls", [])
+    previous_images = state.get("img_urls", []) or state.get("edit_img_urls", [])
     print(f"🖼️ User Query: {query}")
     print(f"🖼️ Using Image Model: {model}")
     print(f"🖼️ Previous Images: {previous_images}")
@@ -97,7 +172,7 @@ async def generate_image(state: GraphState) -> GraphState:
             image_to_edit = previous_images[-1] 
             
             output = await replicate.async_run(
-                model,
+               "google/nano-banana",
                 input={
                     "image_input": [image_to_edit],
                     "prompt": query,
@@ -105,11 +180,16 @@ async def generate_image(state: GraphState) -> GraphState:
             )
         else:
             print(f"✨ Detected NEW image generation intent.")
+        
+            enhanced_prompt = await _enhance_prompt_with_context(query, conversation)
+            
             print(f"   Using Model: {model}")
-            print(f"   With Prompt: {query}")
+            print(f"   Original Query: {query}")
+            print(f"   Enhanced Prompt: {enhanced_prompt}")
+            
             output = await replicate.async_run(
                 model,
-                input={"prompt": query}
+                input={"prompt": enhanced_prompt}
             )
 
        
