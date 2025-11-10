@@ -4,6 +4,7 @@ import { CloudUploadIcon, Loader2, X } from "lucide-react";
 import { useState, ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { toast } from "sonner";
 
 type ImageUploaderProps = {
   value?: string; // S3 URL of uploaded image
@@ -90,13 +91,13 @@ export function ImageUploader({ value, onChange }: ImageUploaderProps) {
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
-      alert("Please select an image file");
+      toast.error("Please select an image file");
       return;
     }
 
     // Validate file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
-      alert("Image size must be less than 5MB");
+      toast.error("Image size must be less than 5MB");
       return;
     }
 
@@ -119,7 +120,7 @@ export function ImageUploader({ value, onChange }: ImageUploaderProps) {
       onChange?.(uploadedUrl);
     } catch (error) {
       console.error("Upload error:", error);
-      alert("Failed to upload image. Please try again.");
+      toast.error("Failed to upload image. Please try again.");
       setPreview(null);
     } finally {
       setUploading(false);

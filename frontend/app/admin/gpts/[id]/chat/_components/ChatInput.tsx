@@ -9,6 +9,7 @@ import { ComposioToolSelector } from "./ComposioToolSelector";
 import { useVoiceChat } from "@/hooks/use-voice-chat";
 import { LiveWaveform } from "@/components/ui/live-waveform";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface VoiceMessage {
   id: string;
@@ -195,7 +196,7 @@ export default function ChatInput({
     // Check if total files exceed 5 (including already uploaded)
     const totalFiles = uploadedDocs.length + files.length;
     if (totalFiles > 5) {
-      alert(`You can only upload up to 5 documents at once. You currently have ${uploadedDocs.length} document(s) uploaded.`);
+      toast.error(`You can only upload up to 5 documents at once. You currently have ${uploadedDocs.length} document(s) uploaded.`);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -216,7 +217,7 @@ export default function ChatInput({
     });
 
     if (invalidFiles.length > 0) {
-      alert(`The following files are not supported: ${invalidFiles.join(", ")}\n\nPlease upload PDF, Word document, Markdown, JSON, or image files only.`);
+      toast.error(`The following files are not supported: ${invalidFiles.join(", ")}\n\nPlease upload PDF, Word document, Markdown, JSON, or image files only.`);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -253,14 +254,14 @@ export default function ChatInput({
 
       // Show error message if some files failed
       if (errors.length > 0) {
-        alert(`Failed to upload the following files: ${errors.join(", ")}\n\n${uploadedDocsList.length} file(s) uploaded successfully.`);
+        toast.error(`Failed to upload the following files: ${errors.join(", ")}\n\n${uploadedDocsList.length} file(s) uploaded successfully.`);
       } else if (uploadedDocsList.length > 1) {
         // Success message for multiple files
         console.log(`Successfully uploaded ${uploadedDocsList.length} files`);
       }
     } catch (error) {
       console.error("Upload error:", error);
-      alert("Upload failed. Please try again.");
+      toast.error("Upload failed. Please try again.");
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {

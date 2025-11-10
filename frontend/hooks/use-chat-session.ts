@@ -157,6 +157,38 @@ export function useChatSession(): ChatSessionHook {
           console.error("GPT Config Exception:", backendError);
         }
 
+        // Fetch and send API keys to backend
+        try {
+          console.log("=== FRONTEND: Fetching API Keys ===");
+          const apiKeysResponse = await fetch("/api/api-keys");
+          if (apiKeysResponse.ok) {
+            const apiKeysData = await apiKeysResponse.json();
+            if (apiKeysData.success && apiKeysData.apiKeys) {
+              console.log("=== FRONTEND: Sending API Keys to Backend ===");
+              const apiKeysResponseBackend = await fetch(
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/sessions/${sessionId}/api-keys`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ apiKeys: apiKeysData.apiKeys }),
+                }
+              );
+
+              if (!apiKeysResponseBackend.ok) {
+                const errorText = await apiKeysResponseBackend.text();
+                console.error("API Keys Error:", errorText);
+              } else {
+                console.log("API Keys sent successfully to backend");
+              }
+            }
+          }
+        } catch (apiKeysError) {
+          console.error("API Keys Exception:", apiKeysError);
+          // Don't fail the whole initialization if API keys fail
+        }
+
         if (gpt.knowledgeBase) {
           const kbDocs = JSON.parse(gpt.knowledgeBase);
 

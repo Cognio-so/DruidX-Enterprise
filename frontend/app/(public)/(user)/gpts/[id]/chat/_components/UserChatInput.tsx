@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowUp, Globe, Paperclip, Sparkle, Telescope, X } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { getModelsForFrontend, frontendToBackend, getDisplayName } from "@/lib/modelMapping";
+import { toast } from "sonner";
 
 interface ChatInputProps {
   onSendMessage: (message: string, options: {
@@ -137,7 +138,7 @@ export default function ChatInput({
     // Check if total files exceed 5 (including already uploaded)
     const totalFiles = uploadedDocs.length + files.length;
     if (totalFiles > 5) {
-      alert(`You can only upload up to 5 documents at once. You currently have ${uploadedDocs.length} document(s) uploaded.`);
+      toast.error(`You can only upload up to 5 documents at once. You currently have ${uploadedDocs.length} document(s) uploaded.`);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -158,7 +159,7 @@ export default function ChatInput({
     });
 
     if (invalidFiles.length > 0) {
-      alert(`The following files are not supported: ${invalidFiles.join(", ")}\n\nPlease upload PDF, Word document, Markdown, JSON, or image files only.`);
+      toast.error(`The following files are not supported: ${invalidFiles.join(", ")}\n\nPlease upload PDF, Word document, Markdown, JSON, or image files only.`);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -195,11 +196,11 @@ export default function ChatInput({
 
       // Show error message if some files failed
       if (errors.length > 0) {
-        alert(`Failed to upload the following files: ${errors.join(", ")}\n\n${uploadedDocsList.length} file(s) uploaded successfully.`);
+        toast.error(`Failed to upload the following files: ${errors.join(", ")}\n\n${uploadedDocsList.length} file(s) uploaded successfully.`);
       }
     } catch (error) {
       console.error("Upload error:", error);
-      alert("Upload failed. Please try again.");
+      toast.error("Upload failed. Please try again.");
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {

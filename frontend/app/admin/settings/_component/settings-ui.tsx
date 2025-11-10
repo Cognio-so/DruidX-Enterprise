@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { User, Camera, Crown, Calendar, Save } from "lucide-react";
 import { updateProfile } from "../action";
 import { getUserDetails } from "../action";
+import ApiKeysManager from "./api-keys-manager";
 
 export default async function SettingsUI() {
   const userResult = await getUserDetails();
@@ -130,6 +131,8 @@ export default async function SettingsUI() {
             </form>
           </CardContent>
         </Card>
+
+        <ApiKeysManager />
       </div>
     </div>
   );
