@@ -522,10 +522,10 @@ class VoiceAssistant:
             await self.background_audio.start(room=ctx.room, agent_session=self.session)
 
             # Generate initial greeting with retry and send transcription
-            greeting_text = "Hello! I'm your voice assistant. How can I help you today?"
+            # greeting_text = "Hello! I'm your voice assistant. How can I help you today?"
             logger.info("Generating initial greeting...")
             await self._generate_greeting_with_retry()
-            await self._send_transcription(ctx, greeting_text, "assistant")
+            # await self._send_transcription(ctx, greeting_text, "assistant")
             logger.info("Initial greeting sent successfully")
 
         except Exception as e:
