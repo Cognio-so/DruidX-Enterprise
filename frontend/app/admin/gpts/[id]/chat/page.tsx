@@ -9,7 +9,7 @@ import { useChatMessages } from "@/hooks/use-chat-messages";
 import { useAutoSaveConversation } from "@/hooks/use-auto-save-conversation";
 import { useChatScroll } from "@/hooks/use-chat-scroll";
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { getModelByFrontendValue } from "@/lib/modelMapping";
 import { ResearchPlanApprovalDialog } from "@/components/ResearchPlanApprovalDialog";
 
@@ -27,8 +27,9 @@ interface GptData {
 
 export default function ChatGptById() {
   const params = useParams();
+  const router = useRouter();
   const gptId = params.id as string;
-  const { sessionId, uploadDocument, hybridRag } = useChatSession();
+  const { sessionId, uploadDocument, hybridRag, updateGPTConfig } = useChatSession();
   const {
     messages,
     isLoading,
@@ -39,6 +40,7 @@ export default function ChatGptById() {
     currentPhase,
     researchPhases,
     webSearchStatus,
+    clearMessages,
   } = useChatMessages(sessionId);
   const [gptData, setGptData] = useState<GptData | null>(null);
 
@@ -152,6 +154,13 @@ export default function ChatGptById() {
     }
   };
 
+  const handleNewChat = useCallback(() => {
+    // Clear messages first
+    clearMessages();
+    // Refresh the page to create a new session
+    router.refresh();
+  }, [clearMessages, router]);
+
   useEffect(() => {
     const fetchGptData = async () => {
       try {
@@ -203,7 +212,11 @@ export default function ChatGptById() {
       />
       <div className="h-screen flex flex-col overflow-hidden">
         <div className="flex-shrink-0 p-2 bg-background">
-          <ChatHeader gptName={gptData?.name} gptImage={gptData?.image} />
+          <ChatHeader 
+            gptName={gptData?.name} 
+            gptImage={gptData?.image} 
+            onNewChat={handleNewChat}
+          />
         </div>
 
         <div className="flex-1 min-h-0 overflow-hidden">
@@ -270,6 +283,7 @@ export default function ChatGptById() {
             videoEnabled={gptData?.videoEnabled}
             imageModel={gptData?.imageModel}
             videoModel={gptData?.videoModel}
+            onModelChange={updateGPTConfig}
           />
         </div>
       </div>

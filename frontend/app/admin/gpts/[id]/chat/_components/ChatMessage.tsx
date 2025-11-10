@@ -5,7 +5,6 @@ import { Sparkles, User, ExternalLink, Download } from "lucide-react";
 import { Message, MessageContent } from "@/components/ai-elements/message";
 import { Response } from "@/components/ai-elements/response";
 import { Orb } from "@/components/ui/orb";
-import { Loader } from "@/components/ai-elements/loader";
 import { cn } from "@/lib/utils";
 import { ResearchTimeline } from "@/components/ResearchTimeline";
 import { ResearchPhaseShimmer } from "@/components/ResearchPhaseShimmer";
@@ -164,10 +163,8 @@ export default function ChatMessage({
                   </div>
                 )}
                 <Response sources={sources}>{message}</Response>
-                {isStreaming && (
-                  <div className="inline-flex items-center ml-2 mt-1">
-                    <Loader size={14} className="text-muted-foreground" />
-                  </div>
+                {isStreaming && !webSearchStatus?.isActive && (
+                  <span className="inline-block animate-pulse ml-1">⚪</span>
                 )}
                 <div className="text-xs mt-1 opacity-70 text-muted-foreground">
                   {timestamp}
@@ -290,9 +287,7 @@ export default function ChatMessage({
                   <div className="bg-muted/60 border border-border rounded-lg p-4 break-words">
                     <Response sources={sources}>{message}</Response>
                     {isStreaming && !webSearchStatus?.isActive && (
-                      <div className="inline-flex items-center ml-2 mt-1">
-                        <Loader size={14} className="text-muted-foreground" />
-                      </div>
+                      <span className="inline-block animate-pulse ml-1">⚪</span>
                     )}
                     <div className="flex items-center justify-between mt-2">
                       <div className="text-xs opacity-70 text-muted-foreground">
@@ -317,9 +312,7 @@ export default function ChatMessage({
                     </div>
                   </div>
                 ) : isStreaming && !webSearchStatus?.isActive ? (
-                  <div className="flex items-center gap-2">
-                    <Loader size={16} className="text-muted-foreground" />
-                  </div>
+                  <span className="inline-block animate-pulse">⚪</span>
                 ) : null}
               </div>
             </div>
