@@ -249,3 +249,15 @@ model GroupGptAssignment {
   @@unique([groupId, gptId])
   @@map("group_gpt_assignment")
 }
+
+model ApiKey {
+  id          String   @id @default(cuid())
+  keyType     String   // Type of API key (e.g., "openai", "anthropic", "google", "openrouter", etc.)
+  encryptedValue String @db.Text // Encrypted API key value
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String   // Admin user ID who created this key
+
+  @@unique([keyType])
+  @@map("api_key")
+}

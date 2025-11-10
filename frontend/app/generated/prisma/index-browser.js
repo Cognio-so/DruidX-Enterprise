@@ -276,6 +276,15 @@ exports.Prisma.GroupGptAssignmentScalarFieldEnum = {
   assignedBy: 'assignedBy'
 };
 
+exports.Prisma.ApiKeyScalarFieldEnum = {
+  id: 'id',
+  keyType: 'keyType',
+  encryptedValue: 'encryptedValue',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  createdBy: 'createdBy'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -329,7 +338,8 @@ exports.Prisma.ModelName = {
   KnowledgeBase: 'KnowledgeBase',
   TeamGroup: 'TeamGroup',
   GroupMember: 'GroupMember',
-  GroupGptAssignment: 'GroupGptAssignment'
+  GroupGptAssignment: 'GroupGptAssignment',
+  ApiKey: 'ApiKey'
 };
 
 /**

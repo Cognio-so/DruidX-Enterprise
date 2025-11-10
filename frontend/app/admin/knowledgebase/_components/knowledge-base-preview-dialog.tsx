@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -10,17 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { ExternalLink, Trash2, Loader2 } from "lucide-react";
+import { ExternalLink, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { deleteKnowledgeBase } from "../action";
 
@@ -45,7 +35,6 @@ export function KnowledgeBasePreviewDialog({
   files,
 }: KnowledgeBasePreviewDialogProps) {
   const router = useRouter();
-  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const handleDelete = (id: string) => {
@@ -54,7 +43,6 @@ export function KnowledgeBasePreviewDialog({
         const result = await deleteKnowledgeBase(id);
         if (result.success) {
           toast.success("File deleted successfully");
-          setDeleteId(null);
           router.refresh();
           if (files.length === 1) {
             onOpenChange(false);
@@ -132,7 +120,7 @@ export function KnowledgeBasePreviewDialog({
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  onClick={() => setDeleteId(file.id)}
+                  onClick={() => handleDelete(file.id)}
                   disabled={isPending}
                 >
                   <Trash2 className="h-4 w-4 text-destructive" />
@@ -143,30 +131,7 @@ export function KnowledgeBasePreviewDialog({
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
-        open={deleteId !== null}
-        onOpenChange={(open) => !open && setDeleteId(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete File</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this file? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => deleteId && handleDelete(deleteId)}
-              disabled={isPending}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      
     </>
   );
 }

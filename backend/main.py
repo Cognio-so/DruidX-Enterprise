@@ -205,6 +205,21 @@ async def set_gpt_config(session_id: str, gpt_config: dict):
     await SessionManager.update_session(session_id, session)
     return {"message": "GPT configuration updated", "gpt_config": gpt_config}
 
+@app.post("/api/sessions/{session_id}/api-keys")
+async def set_api_keys(session_id: str, request: dict):
+    """Set API keys for a session"""
+    session = await SessionManager.get_session(session_id)
+    api_keys = request.get("apiKeys", {})
+    
+    # Store API keys in session
+    session["api_keys"] = api_keys
+    
+    print(f"[MAIN] Stored {len(api_keys)} API keys for session {session_id}")
+    print(f"[MAIN] API key types: {list(api_keys.keys())}")
+    
+    await SessionManager.update_session(session_id, session)
+    return {"message": "API keys updated", "key_count": len(api_keys)}
+
 @app.post("/api/sessions/{session_id}/add-documents")
 async def add_documents_by_url(session_id: str, request: dict):
     """Add documents by URL"""
