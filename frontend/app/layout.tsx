@@ -23,6 +23,11 @@ const nunito = Nunito({
 export const metadata: Metadata = {
   title: "DruidX",
   description: "AI powerful GPT platform for building custom AI assistants",
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({

@@ -2,16 +2,18 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/ui/themeToggle";
+import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
-import { Bot} from "lucide-react";
+import { Bot, MessageSquarePlus } from "lucide-react";
 import Image from "next/image";
 
 interface ChatHeaderProps {
   gptName?: string;
   gptImage?: string;
+  onNewChat?: () => void;
 }
 
-export default function ChatHeader({ gptName, gptImage }: ChatHeaderProps) {
+export default function ChatHeader({ gptName, gptImage, onNewChat }: ChatHeaderProps) {
   const { data: session } = authClient.useSession();
 
   return (
@@ -42,6 +44,18 @@ export default function ChatHeader({ gptName, gptImage }: ChatHeaderProps) {
       </div>
       
       <div className="flex items-center gap-3">
+        {onNewChat && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onNewChat}
+            className="gap-2"
+            title="New Chat"
+          >
+            <MessageSquarePlus className="h-4 w-4" />
+            <span className="hidden sm:inline">New Chat</span>
+          </Button>
+        )}
         <ThemeToggle />
         <Avatar className="h-8 w-8">
           <AvatarImage

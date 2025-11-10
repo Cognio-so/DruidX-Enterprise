@@ -44,6 +44,7 @@ interface ChatInputProps {
   videoEnabled?: boolean;
   imageModel?: string;
   videoModel?: string;
+  onModelChange?: (model: string) => Promise<void>;
 }
 
 interface UploadedDoc {
@@ -70,6 +71,7 @@ export default function ChatInput({
   videoEnabled = false,
   imageModel,
   videoModel,
+  onModelChange,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [selectedModel, setSelectedModel] = useState("gpt_4o");
@@ -110,8 +112,13 @@ export default function ChatInput({
     }
   }, [defaultModel]);
 
-  const handleModelChange = (value: string) => {
+  const handleModelChange = async (value: string) => {
     setSelectedModel(value);
+    // Update GPT config on backend when model changes
+    if (onModelChange) {
+      const backendModelName = frontendToBackend(value);
+      await onModelChange(backendModelName);
+    }
   };
 
   const handleSend = () => {
