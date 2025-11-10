@@ -34,7 +34,7 @@ class TavilyWebSearchTool:
     
     def __init__(
         self, 
-        max_results: int = 1,
+        max_results: int = 3,
         api_key: Optional[str] = None,
         search_depth: str = "advanced",
         topic: str = "general",
@@ -193,7 +193,7 @@ def get_search_components(llm):
     Returns:
         Dictionary with search tool and LLM with tools bound
     """
-    search_tool = TavilyWebSearchTool(max_results=1)
+    search_tool = TavilyWebSearchTool(max_results=3)
     llm_with_tools = search_tool.bind_to_llm(llm)
     
     return {

@@ -159,7 +159,7 @@ class VoiceAssistant:
 
         # Initialize the web search tool
         try:
-            self.web_search_tool = TavilyWebSearchTool(max_results=2)
+            self.web_search_tool = TavilyWebSearchTool(max_results=3)
             logger.info("Tavily web search tool initialized.")
         except Exception as e:
             self.web_search_tool = None
