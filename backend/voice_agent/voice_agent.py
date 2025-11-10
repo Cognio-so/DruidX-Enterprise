@@ -82,7 +82,7 @@ class ReliableDeepgramSTT(deepgram.STT):
         api_key: Optional[str] = None,
         language: str = "multi",
         max_retries: int = 3,
-        retry_delay: float = 0.5,
+        retry_delay: float = 0.2,
     ):
         super().__init__(model=model, api_key=api_key, language=language)
         self.max_retries = max_retries
@@ -105,7 +105,7 @@ class ReliableDeepgramSTT(deepgram.STT):
                     )
                     await asyncio.sleep(self.retry_delay)
                     # Increase retry delay with each attempt (exponential backoff)
-                    self.retry_delay *= 0.05
+                    self.retry_delay *= 1.0
 
         logger.error(
             f"STT failed after {self.max_retries} attempts: {str(last_error)}"
@@ -299,9 +299,9 @@ class VoiceAssistant:
         self.session = AgentSession(
             # Voice activity detection
             vad=silero.VAD.load(
-                force_cpu=True,
-                activation_threshold=0.7,
-                min_silence_duration=0.8,
+                force_cpu=False,
+                activation_threshold=0.5,
+                min_silence_duration=0.5,
                 sample_rate=16000,
             ),
             # Enhanced STT with retry logic
@@ -310,7 +310,7 @@ class VoiceAssistant:
                 api_key=deepgram_api_key,
                 language="multi",
                 max_retries=3,
-                retry_delay=0.05,
+                retry_delay=0.02,
             ),
             # Language model with increased timeout
             llm=openai.LLM(
@@ -423,7 +423,7 @@ class VoiceAssistant:
                     print(f"{word}{' ' if i < len(words) - 1 else ''}", end="", flush=True)
 
                     # Optional: small delay for a more natural typing effect
-                    time.sleep(0.05)
+                    # time.sleep(0.05)
 
                 self.last_printed_len = len(full_text)
 
@@ -624,9 +624,9 @@ class VoiceAssistant:
 
 def prewarm(proc: JobProcess):
     proc.userdata["vad"] = silero.VAD.load(
-        force_cpu=True,
-        activation_threshold=0.7,
-        min_silence_duration=0.8,
+        force_cpu=False,
+        activation_threshold=0.5,
+        min_silence_duration=0.5,
         sample_rate=16000)
 
 # Updated entrypoint function
