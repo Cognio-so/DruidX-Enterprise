@@ -35,6 +35,7 @@ interface ApiKey {
 }
 
 const COMMON_KEY_TYPES = [
+  { value: "openai", label: "OpenAI" },
   { value: "composio", label: "Composio" },
   { value: "tavily", label: "Tavily" },
   { value: "openrouter", label: "OpenRouter" },
