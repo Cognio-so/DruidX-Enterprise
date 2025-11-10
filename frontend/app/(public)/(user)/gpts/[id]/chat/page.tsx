@@ -9,7 +9,7 @@ import { useChatMessages } from "@/hooks/use-chat-messages";
 import { useAutoSaveConversation } from "@/hooks/use-auto-save-conversation";
 import { useChatScroll } from "@/hooks/use-chat-scroll";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getModelByFrontendValue } from "@/lib/modelMapping";
 import { ResearchPlanApprovalDialog } from "@/components/ResearchPlanApprovalDialog";
 
@@ -24,12 +24,15 @@ interface GptData {
 export default function ChatGptById() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const gptId = params.id as string;
+  const conversationId = searchParams.get("conversation");
   const { sessionId, uploadDocument, hybridRag, updateGPTConfig } = useChatSession();
   const {
     messages,
     isLoading,
     sendMessage,
+    addMessage,
     approvalRequest,
     clearApprovalRequest,
     currentPhase,
@@ -38,6 +41,7 @@ export default function ChatGptById() {
     clearMessages,
   } = useChatMessages(sessionId);
   const [gptData, setGptData] = useState<GptData | null>(null);
+  const [isLoadingConversation, setIsLoadingConversation] = useState(false);
 
   const hasMessages = messages.length > 0;
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -123,6 +127,40 @@ export default function ChatGptById() {
     // Refresh the page to create a new session
     router.refresh();
   }, [clearMessages, router]);
+
+  // Load conversation history if conversationId is provided
+  useEffect(() => {
+    const loadConversation = async () => {
+      if (!conversationId || messages.length > 0) return;
+
+      setIsLoadingConversation(true);
+      try {
+        const { getConversation } = await import("@/app/admin/history/action");
+        const result = await getConversation(conversationId, false);
+        
+        if (result.success && result.conversation?.messages && result.conversation.messages.length > 0) {
+          // Clear any existing messages first
+          clearMessages();
+          
+          // Load all messages from the conversation
+          result.conversation.messages.forEach((msg: any) => {
+            addMessage({
+              role: msg.role,
+              content: msg.content,
+              timestamp: new Date(msg.timestamp).toISOString(),
+              isStreaming: false,
+            });
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load conversation:", error);
+      } finally {
+        setIsLoadingConversation(false);
+      }
+    };
+
+    loadConversation();
+  }, [conversationId, addMessage, clearMessages, messages.length]);
 
   useEffect(() => {
     const fetchGptData = async () => {
