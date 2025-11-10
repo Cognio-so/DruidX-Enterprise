@@ -275,7 +275,7 @@ export default function ApiKeysManager() {
             </div>
           ) : apiKeys.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No API keys configured. Click "Add API Key" to get started.
+              No API keys configured. Click &quot;Add API Key&quot; to get started.
             </div>
           ) : (
             <div className="space-y-4">
