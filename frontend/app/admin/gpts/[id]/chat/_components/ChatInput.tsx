@@ -404,7 +404,7 @@ export default function ChatInput({
           </div>
 
           <div className="flex items-center gap-1.5">
-            {/* <Button
+            <Button
               variant={connected ? "default" : "outline"}
               size="icon"
               className={cn(
@@ -420,7 +420,7 @@ export default function ChatInput({
               ) : (
                 <AudioLines className="h-3.5 w-3.5" />
               )}
-            </Button> */}
+            </Button>
             <input
               ref={fileInputRef}
               type="file"
