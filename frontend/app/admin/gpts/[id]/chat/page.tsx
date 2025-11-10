@@ -9,7 +9,7 @@ import { useChatMessages } from "@/hooks/use-chat-messages";
 import { useAutoSaveConversation } from "@/hooks/use-auto-save-conversation";
 import { useChatScroll } from "@/hooks/use-chat-scroll";
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getModelByFrontendValue } from "@/lib/modelMapping";
 import { ResearchPlanApprovalDialog } from "@/components/ResearchPlanApprovalDialog";
 
@@ -27,8 +27,11 @@ interface GptData {
 
 export default function ChatGptById() {
   const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const gptId = params.id as string;
-  const { sessionId, uploadDocument, hybridRag } = useChatSession();
+  const conversationId = searchParams.get("conversation");
+  const { sessionId, uploadDocument, hybridRag, updateGPTConfig } = useChatSession();
   const {
     messages,
     isLoading,
@@ -39,8 +42,10 @@ export default function ChatGptById() {
     currentPhase,
     researchPhases,
     webSearchStatus,
+    clearMessages,
   } = useChatMessages(sessionId);
   const [gptData, setGptData] = useState<GptData | null>(null);
+  const [isLoadingConversation, setIsLoadingConversation] = useState(false);
 
   // Debug: Log approval request changes
   useEffect(() => {
@@ -152,6 +157,47 @@ export default function ChatGptById() {
     }
   };
 
+  const handleNewChat = useCallback(() => {
+    // Clear messages first
+    clearMessages();
+    // Refresh the page to create a new session
+    router.refresh();
+  }, [clearMessages, router]);
+
+  // Load conversation history if conversationId is provided
+  useEffect(() => {
+    const loadConversation = async () => {
+      if (!conversationId || messages.length > 0) return;
+
+      setIsLoadingConversation(true);
+      try {
+        const { getConversation } = await import("@/app/admin/history/action");
+        const result = await getConversation(conversationId, true);
+        
+        if (result.success && result.conversation?.messages && result.conversation.messages.length > 0) {
+          // Clear any existing messages first
+          clearMessages();
+          
+          // Load all messages from the conversation
+          result.conversation.messages.forEach((msg: any) => {
+            addMessage({
+              role: msg.role,
+              content: msg.content,
+              timestamp: new Date(msg.timestamp).toISOString(),
+              isStreaming: false,
+            });
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load conversation:", error);
+      } finally {
+        setIsLoadingConversation(false);
+      }
+    };
+
+    loadConversation();
+  }, [conversationId, addMessage, clearMessages, messages.length]);
+
   useEffect(() => {
     const fetchGptData = async () => {
       try {
@@ -203,7 +249,11 @@ export default function ChatGptById() {
       />
       <div className="h-screen flex flex-col overflow-hidden">
         <div className="flex-shrink-0 p-2 bg-background">
-          <ChatHeader gptName={gptData?.name} gptImage={gptData?.image} />
+          <ChatHeader 
+            gptName={gptData?.name} 
+            gptImage={gptData?.image} 
+            onNewChat={handleNewChat}
+          />
         </div>
 
         <div className="flex-1 min-h-0 overflow-hidden">
@@ -270,6 +320,7 @@ export default function ChatGptById() {
             videoEnabled={gptData?.videoEnabled}
             imageModel={gptData?.imageModel}
             videoModel={gptData?.videoModel}
+            onModelChange={updateGPTConfig}
           />
         </div>
       </div>

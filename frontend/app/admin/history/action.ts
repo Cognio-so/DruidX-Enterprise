@@ -131,3 +131,19 @@ export async function deleteHistory(id: string) {
 export async function saveAdminHistory(history: ConversationData) {
   return saveConversation(history);
 }
+
+export async function getConversation(conversationId: string, isAdmin: boolean = false) {
+  try {
+    const { getConversationById } = await import("@/data/get-conversation");
+    const conversation = await getConversationById(conversationId, isAdmin);
+    
+    if (!conversation) {
+      return { success: false, error: "Conversation not found" };
+    }
+
+    return { success: true, conversation };
+  } catch (error) {
+    console.error("Error fetching conversation:", error);
+    return { success: false, error: "Failed to fetch conversation" };
+  }
+}
