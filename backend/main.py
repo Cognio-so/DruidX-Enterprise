@@ -1254,11 +1254,11 @@ async def voice_connect(request: dict):
     gpt_id = request.get("gptId")
     # Get model configuration from request body
     # openai_model = request.get("openai_model")
-    # deepgram_stt_model = request.get("deepgram_stt_model")
-    # deepgram_tts_model = request.get("deepgram_tts_model")
+    # stt_model = request.get("stt_model")
+    # tts_model = request.get("tts_model")
     openai_model = "gpt-4.1-nano"
-    deepgram_stt_model = "nova-3"
-    deepgram_tts_model = "aura-2-ophelia-en"
+    stt_model = "nova-3"
+    tts_model = "aura-2-ophelia-en"
     
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID is required")
@@ -1269,8 +1269,8 @@ async def voice_connect(request: dict):
         if redis_client:
             voice_config = {
                 "openai_model": openai_model,
-                "deepgram_stt_model": deepgram_stt_model,
-                "deepgram_tts_model": deepgram_tts_model,
+                "stt_model": stt_model,
+                "tts_model": tts_model,
             }
             config_key = f"voice_config:{session_id}"
             await redis_client.set(config_key, json.dumps(voice_config), ex=3600) # 1-hour expiry

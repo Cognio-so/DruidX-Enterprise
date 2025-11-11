@@ -37,6 +37,9 @@ from livekit.plugins import (
     silero,
     speechify,
     deepgram,
+    elevenlabs,
+    cartesia,
+    hume,
 )
 
 # Import the web search tool
@@ -120,14 +123,23 @@ class ReliableDeepgramSTT(deepgram.STT):
             raise
 
 
+# Define model tuples for dynamic provider selection
+DEEPGRAM_TTS_MODELS = ("aura-2-ophelia-en", "aura-2-helena-en", "aura-2-mars-en")
+DEEPGRAM_STT_MODELS = ("nova-3", "nova-2")
+CARTESIA_STT_MODELS = ("ink-whisper", "ink-whisper-2025-06-04")
+ELEVENLABS_TTS_MODELS = ("ODq5zmih8GrVes37Dizd","Xb7hH8MSUJpSbSDYk0k2", "iP95p4xoKVk53GoZ742B")
+CARTESIA_TTS_MODELS = ("f786b574-daa5-4673-aa0c-cbe3e8534c02", "9626c31c-bec5-4cca-baa8-f8ba9e84c8bc")
+# Hume does not have specific model names for TTS in the same way
+HUME_TTS_MODELS = ("Colton Rivers", "Ava Song","Priya","Suresh")
+
 class VoiceAssistant:
     def __init__(
         self,
         instructions: str = None,
         tools: List[Callable] = None,
         openai_model: str = "gpt-4.1-nano",
-        deepgram_stt_model: str = "nova-3",
-        deepgram_tts_model: str = "aura-2-ophelia-en",
+        stt_model: str = "nova-3",
+        tts_model: str = "aura-2-ophelia-en",
         initial_greeting: str = "Greet the user warmly, introduce yourself as a voice assistant, and offer your assistance.",
         enable_parallel_tts: bool = False,
     ):
@@ -142,8 +154,8 @@ class VoiceAssistant:
         else:
             self.instructions = instructions
         self.openai_model = openai_model
-        self.deepgram_stt_model = deepgram_stt_model
-        self.deepgram_tts_model = deepgram_tts_model
+        self.stt_model = stt_model
+        self.tts_model = tts_model
         self.initial_greeting = initial_greeting
         self.enable_parallel_tts = enable_parallel_tts
 
@@ -266,6 +278,9 @@ class VoiceAssistant:
             "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
             "DEEPGRAM_API_KEY": os.getenv("DEEPGRAM_API_KEY"),
             "TAVILY_API_KEY": os.getenv("TAVILY_API_KEY"),
+            "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),
+            "CARTESIA_API_KEY": os.getenv("CARTESIA_API_KEY"),
+            "HUME_API_KEY": os.getenv("HUME_API_KEY"),
         }
 
         missing_keys = [key for key, value in required_keys.items() if not value]
@@ -284,48 +299,66 @@ class VoiceAssistant:
         if not await self._verify_api_keys():
             return None
 
-        # Get API keys
-        openai_api_key = os.getenv("OPENAI_API_KEY")
-        deepgram_api_key = os.getenv("DEEPGRAM_API_KEY")
+        # Dynamically select STT plugin
+        stt_plugin = None
+        logger.info(f"Configuring STT with model: {self.stt_model}")
+        if self.stt_model in DEEPGRAM_STT_MODELS:
+            stt_plugin = deepgram.STT(model=self.stt_model,language="multi", api_key=os.getenv("DEEPGRAM_API_KEY"))
+            logger.info("Using Deepgram STT plugin.")
 
-        # Deepgram TTS
-        # tts = deepgram.TTS(
-        #     model=self.deepgram_tts_model, api_key=deepgram_api_key
-        # )
-        # tts.connect(self.transcription_node)
+        elif self.stt_model in CARTESIA_STT_MODELS:
+            stt_plugin = cartesia.STT(model=self.stt_model, api_key=os.getenv("CARTESIA_API_KEY"))
+            logger.info("Using Cartesia STT plugin.")
+
+        # Add other STT providers here, e.g., Cartesia STT if it becomes available
+        # elif self.stt_model in CARTESIA_STT_MODELS:
+        #     stt_plugin = cartesia.STT(...)
+        else:
+            logger.warning(f"STT model '{self.stt_model}' not recognized. Defaulting to Deepgram's 'nova-3'.")
+            stt_plugin = deepgram.STT(model="nova-3")
 
 
-        # Create the agent session with enhanced components
+        # Dynamically select TTS plugin
+        tts_plugin = None
+        logger.info(f"Configuring TTS with model: {self.tts_model}")
+        if self.tts_model in DEEPGRAM_TTS_MODELS:
+            tts_plugin = deepgram.TTS(model=self.tts_model, api_key=os.getenv("DEEPGRAM_API_KEY"))
+            logger.info("Using Deepgram TTS plugin.")
+        elif self.tts_model in ELEVENLABS_TTS_MODELS:
+            tts_plugin = elevenlabs.TTS(voice_id=self.tts_model, model="eleven_turbo_v2_5", api_key=os.getenv("ELEVENLABS_API_KEY"))
+            logger.info("Using ElevenLabs TTS plugin.")
+        elif self.tts_model in CARTESIA_TTS_MODELS:
+            # Cartesia requires a voice ID, retrieved from environment variables
+            # voice_id = os.getenv("CARTESIA_VOICE_ID", "9626c31c-bec5-4cca-baa8-f8ba9e84c8bc") # A default voice
+            tts_plugin = cartesia.TTS(model="sonic-3", voice=self.tts_model, api_key=os.getenv("CARTESIA_API_KEY"))
+            logger.info(f"Using Cartesia TTS plugin with voice ID: {voice_id}")
+        elif self.tts_model in HUME_TTS_MODELS:
+            tts_plugin = hume.TTS(voice=hume.VoiceByName(name=self.tts_model, provider=hume.VoiceProvider.hume), api_key=os.getenv("HUME_API_KEY"))
+            logger.info("Using Hume TTS plugin.")
+        else:
+            logger.warning(f"TTS model '{self.tts_model}' not recognized. Defaulting to Deepgram's 'aura-2-ophelia-en'.")
+            tts_plugin = deepgram.TTS(model="aura-2-ophelia-en", api_key=os.getenv("DEEPGRAM_API_KEY"))
+
+
+        # Create the agent session with the dynamically selected plugins
         self.session = AgentSession(
-            # Voice activity detection
             vad=silero.VAD.load(
                 force_cpu=False,
                 activation_threshold=0.5,
                 min_silence_duration=0.5,
-                sample_rate=16000,
-            ),
-            # Enhanced STT with retry logic
-            stt=ReliableDeepgramSTT(
-                model=self.deepgram_stt_model,
-                api_key=deepgram_api_key,
-                language="multi",
-                max_retries=3,
-                retry_delay=0.02,
-            ),
-            # Language model with increased timeout
-            llm=openai.LLM(
-                model=self.openai_model,
-            ),
-            tts=deepgram.TTS(
-                model=self.deepgram_tts_model, api_key=deepgram_api_key),
+                sample_rate=16000,),
+            stt=stt_plugin,
+            llm=openai.LLM(model=self.openai_model),
+            tts=tts_plugin,
             use_tts_aligned_transcript=True,
         )
 
         logger.info("AgentSession initialized with the following models:")
         logger.info(f"  - VAD: Silero VAD")
-        logger.info(f"  - STT: Deepgram (Model: {self.deepgram_stt_model})")
+        logger.info(f"  - STT: {stt_plugin.__class__.__module__} (Model: {self.stt_model})")
         logger.info(f"  - LLM: OpenAI (Model: {self.openai_model})")
-        logger.info(f"  - TTS: Deepgram (Model: {self.deepgram_tts_model})")
+        logger.info(f"  - TTS: {tts_plugin.__class__.__module__} (Model: {self.tts_model})")
+
 
         return self.session
 
@@ -638,8 +671,8 @@ async def entrypoint(ctx: agents.JobContext):
 
         # Define default models
         openai_model = "gpt-4.1-nano"
-        deepgram_stt_model = "nova-3"
-        deepgram_tts_model = "aura-2-ophelia-en"
+        stt_model = "nova-3"
+        tts_model = "aura-2-ophelia-en"
 
         # Try to extract session_id from room name
         session_id = None
@@ -658,8 +691,8 @@ async def entrypoint(ctx: agents.JobContext):
                         
                         # Override defaults with values from Redis if they are not None/empty
                         openai_model = config.get("openai_model") or openai_model
-                        deepgram_stt_model = config.get("deepgram_stt_model") or deepgram_stt_model
-                        deepgram_tts_model = config.get("deepgram_tts_model") or deepgram_tts_model
+                        stt_model = config.get("stt_model") or stt_model
+                        tts_model = config.get("tts_model") or tts_model
                     else:
                         logger.info(f"No voice config found in Redis for key '{config_key}'. Using default models.")
                 except Exception as e:
@@ -671,13 +704,13 @@ async def entrypoint(ctx: agents.JobContext):
 
         logger.info("Initializing VoiceAssistant with the following models:")
         logger.info(f"  - OpenAI LLM Model: {openai_model}")
-        logger.info(f"  - Deepgram STT Model: {deepgram_stt_model}")
-        logger.info(f"  - Deepgram TTS Model: {deepgram_tts_model}")
+        logger.info(f"  - STT Model: {stt_model}")
+        logger.info(f"  - TTS Model: {tts_model}")
         
         assistant = VoiceAssistant(
             openai_model=openai_model,
-            deepgram_stt_model=deepgram_stt_model,
-            deepgram_tts_model=deepgram_tts_model,
+            stt_model=stt_model,
+            tts_model=tts_model,
         )
         logger.info("VoiceAssistant created, starting run()...")
         await assistant.run(ctx)
