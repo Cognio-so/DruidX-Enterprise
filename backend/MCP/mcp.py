@@ -366,7 +366,7 @@ class MCPNode:
 )
             # print(f"🔧 Loaded {len(composio_tools)} MCP tools for GPT {gpt_id}")
             # print(f"composio_tools: {composio_tools}")
-            api_key=state.get("api_keys").get("openrouter")
+            api_key=os.getenv("OPENROUTER_API_KEY")
             openai = OpenAI(
     api_key=api_key,
     base_url="https://openrouter.ai/api/v1"
@@ -630,7 +630,7 @@ Analyze this output and create a clear, professional confirmation message that t
 IMPORTANT: Look for any IDs, URLs, or identifiers in the output and create direct clickable links for the user to access the resource immediately."""
 
         try:
-            api_key = state.get("api_keys").get("openrouter")
+            api_key = os.getenv("OPENROUTER_API_KEY")
             openai = OpenAI(
                 api_key=api_key,
                 base_url="https://openrouter.ai/api/v1"
