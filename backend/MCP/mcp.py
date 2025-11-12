@@ -7,7 +7,8 @@ from graph_type import GraphState
 import asyncio
 import json
 from llm import get_llm
-from langchain_core.messages import SystemMessage, HumanMessage
+# from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 import os
 from llm import get_llm
 SLACK_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_SLACK", "20251201_01")  
@@ -75,10 +76,7 @@ composio = Composio(api_key=os.getenv("COMPOSIO_API_KEY"),
 # })
 
 
-openai = OpenAI(
-    api_key=os.getenv("OPENROUTER_API_KEY"),
-    base_url="https://openrouter.ai/api/v1"
-)
+
 slack_auth_config_id = os.getenv("SLACK_AUTH_CONFIG_ID", "")
 gmail_auth_config_id = os.getenv("GMAIL_AUTH_CONFIG_ID", "")
 github_auth_config_id = os.getenv("GITHUB_AUTH_CONFIG_ID", "")
@@ -368,6 +366,12 @@ class MCPNode:
 )
             # print(f"🔧 Loaded {len(composio_tools)} MCP tools for GPT {gpt_id}")
             # print(f"composio_tools: {composio_tools}")
+            api_key=state.get("api_keys").get("openrouter")
+            openai = OpenAI(
+    api_key=api_key,
+    base_url="https://openrouter.ai/api/v1"
+)
+            llm_model=state.get("llm_model")
             completion = await asyncio.to_thread(
                 openai.chat.completions.create,
                 model="openai/gpt-4o-mini",
@@ -463,39 +467,79 @@ async def mcp_node(state: GraphState) -> GraphState:
         user_query = state.get("user_query", "")
         chunk_callback = state.get("_chunk_callback")
         
-        # CREATE INTELLIGENT USER MESSAGE
+        # CREATE INTELLIGENT USER MESSAGE - Handle all scenarios
+        past_messages = state.get("messages", [])
+        formatted_history = []
+        for i, m in enumerate(past_messages[-2:], 1):  # Get last 4 messages for context
+                role = (m.get("type") or m.get("role") or "").lower()
+                content = m.get("content") if isinstance(m, dict) else getattr(m, "content", "")
+                
+                if content:
+                    if len(content.split()) > 1000:
+                        content = " ".join(content.split()[:1000]) + "..."
+                    
+                    timestamp = m.get("timestamp", f"Message {i}")
+                    
+                    if role in ("human", "user"):
+                        formatted_history.append(f"User: {content}")
+                    else:
+                        formatted_history.append(f"Assistant: {content}")
+        
         if intermediate_results and previous_output:
             intelligent_user_message = f"""
 User Request: {user_query}
 
-Previous Node Output ({previous_node}):
+Available Context:
+1. Previous Node Output ({previous_node}):
 {previous_output}
 
+2. Recent Conversation History:
+{chr(10).join(formatted_history[-2:])}
+
 Instructions: 
-- Analyze the user request carefully
-- If the user wants to SEND, SHARE, or USE content from the previous node output, include that content in your tool parameters
-- If the user just wants to perform a simple action (like "send hello"), focus only on the user request
-- Be intelligent about when to use previous context vs. when to ignore it
-- Examples:
-  * "send the book list to slack" → Use the previous output (book list)
-  * "send hello to slack" → Don't use previous output, just send "hello"
-  * "send the email content to slack" → Use the previous output (email content)
+- Analyze the user's request intelligently to determine what content to use
+- If user says "send this", "share this", "save this" → Use Previous Node Output (the answer/data from the last operation)
+- If user says "send hello", "send hi", "create task: XYZ" → Use only what user explicitly mentioned, ignore previous output
+- If user references past conversation ("send what we discussed", "send the earlier response") → Use conversation history
+- DO NOT include the user's original question when sending content
+- DO NOT add headers like "User Message:" or "Assistant Response:"
+- Send ONLY the actual content/data that should be shared
+
+Examples:
+✅ "send this to slack" + previous output exists → Send the previous output content
+✅ "send hello to slack" → Send only "hello"  
+✅ "save this document" + previous output exists → Save the previous output
+✅ "send the conversation to email" → Include relevant conversation history
+✅ "create meeting for tomorrow at 3pm" → Create meeting with those details only
+
+CRITICAL: Be smart about context. Use previous output when user refers to it implicitly ("this", "it", "the data"), but use explicit content when user provides it directly.
 """
         else:
-            intelligent_user_message = user_query
+            intelligent_user_message = f"""
+User Request: {user_query}
+
+Recent Conversation History (if needed):
+{chr(10).join(formatted_history[-2:])}
+
+Instructions:
+- Execute the user's request as stated
+- If the request needs conversation context, use the history provided
+- If it's a standalone request, just execute it directly
+- DO NOT add headers or conversation metadata to the actual content being sent/created
+"""
         
         print(f"Enabled Composio Tools: {enabled_composio_tools}")
         print(f"MCP Tool Needed: {mcp_tool_needed}")
         print(f"GPT ID: {gpt_id}")
         print(f"User Query: {user_query}")
-        print(f"Intelligent User Message: {intelligent_user_message[:300]}...")
-        
+        # print(f"Intelligent User Message: {intelligent_user_message[:500]}...")
+
         if not enabled_composio_tools:
             print("No Composio tools enabled for this message")
             state["response"] = "No Composio tools are enabled for this message."
             return state
         mcp_connections = await MCPNode.get_user_connections(gpt_id)
-        print(f"Active MCP Connections: {mcp_connections}")
+        # print(f"Active MCP Connections: {mcp_connections}")
         
         if not mcp_connections:
             print("No active MCP connections found")
@@ -531,26 +575,70 @@ Instructions:
     
         raw_result_str = str(result)
         print(f"Raw MCP Node result: {raw_result_str[:4000]}...")
-        system_prompt = (
-            "You are an assistant that formats raw tool output into a clean, "
-            "user-friendly response. The user's original request was: "
-            f"'{user_query}'.\n"
-            "Do not include headers, HTML, or raw JSON structures. "
-            " For emails, list the sender, "
-            "subject, and a brief preview."
-        )
         
-        user_prompt = (
-            f"Here is the raw data from the tool:\n\n"
-            f"{raw_result_str[:8000]}\n\n" 
-            "Please format this into a concise, readable answer for the user."
-        )
+        # IMPROVED FORMATTING PROMPT - LET LLM INTELLIGENTLY UNDERSTAND THE ACTION
+        tool_names = ", ".join([t.upper() for t in connected_tools]) if connected_tools else "integrated tools"
+        
+        system_prompt = f"""You are a professional assistant that confirms completed actions to users.
+
+CRITICAL INSTRUCTIONS:
+1. The action has ALREADY been completed successfully
+2. Your job is to confirm what was done, not to say what will be done
+3. ALWAYS use past tense language: "sent", "created", "retrieved", "updated", "deleted" (NEVER use future tense like "will send", "I'll create", "here's what will be...")
+4. Analyze the user's request and the tool output to understand what action was performed
+5. Be specific about what was accomplished
+6. Format the output professionally and clearly
+
+Context:
+- User's original request: "{user_query}"
+- Tools used: {tool_names}
+
+Your Task:
+1. Understand what action was performed by analyzing the user request and tool output
+2. Confirm the completed action in past tense
+3. Provide relevant details from the output
+4. Format data cleanly (use bullet points, structured text, or tables when appropriate)
+5. **IMPORTANT: If the output contains IDs, URLs, or links (like document IDs, file URLs, Slack message links, GitHub PR links, etc.), ALWAYS create clickable links so users can directly access the resource**
+
+Link Creation Guidelines:
+- Google Docs: Use document ID to create link like: https://docs.google.com/document/d/DOCUMENT_ID/edit
+- Google Sheets: https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit
+- Google Drive: https://drive.google.com/file/d/FILE_ID/view
+- GitHub: Use the provided URL or create from repo/issue/PR numbers
+- Slack: Include channel name and message timestamp if available
+- Gmail: Provide subject and sender, but note that direct links require authentication
+- Always format links as: [Link Text](URL) for markdown, or simply provide the full URL
+
+Response Guidelines:
+- Start with "✅" to indicate success
+- Clearly state what was accomplished using past tense verbs
+- **Include direct links to created/modified resources when available**
+- For data retrieval: Present the data in a clean, readable format
+- For message sending: Confirm where it was sent, provide link if available, and show a brief preview of the actual content that was sent (NOT the user's question)
+- For creation/updates: Confirm what was created/updated with access link
+- Be concise, professional, and informative
+- DO NOT include headers like "Message 1 - User:" or "Assistant Response:" - just show the actual content
+- DO NOT show the user's original question in the confirmation - only show what was actually sent/created/updated
+- NEVER use phrases like "will be sent", "I'll prepare", "here's what will happen" - the action is DONE"""
+        
+        user_prompt = f"""The tool has successfully completed an action. Here is the raw output:
+
+{raw_result_str[:8000]}
+
+Analyze this output and create a clear, professional confirmation message that tells the user exactly what was accomplished (in past tense). 
+
+IMPORTANT: Look for any IDs, URLs, or identifiers in the output and create direct clickable links for the user to access the resource immediately."""
 
         try:
-            
+            api_key = state.get("api_keys").get("openrouter")
+            openai = OpenAI(
+                api_key=api_key,
+                base_url="https://openrouter.ai/api/v1"
+            )
+            llm_model = state.get("llm_model")
             formatting_completion = await asyncio.to_thread(
                 openai.chat.completions.create,
-                model="openai/gpt-4o-mini", 
+                model=llm_model, 
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
@@ -570,15 +658,13 @@ Instructions:
                 print(f"[TokenTracking] MCP formatting tokens: input={getattr(usage, 'prompt_tokens', 0)}, output={getattr(usage, 'completion_tokens', 0)}, total={getattr(usage, 'total_tokens', 0)}")
             
             formatted_result = formatting_completion.choices[0].message.content
-            # print(f"MCP Node formatted result: {formatted_result}")
             final_response = formatted_result
             
         except Exception as format_e:
             print(f"❌ Error during MCP result formatting: {format_e}")
-           
-            final_response = "Error formatting result. Raw data: " + raw_result_str[:1000] + "..."
+            # Fallback: create a basic confirmation message
+            # final_response = f"✅ Successfully {action_type} using {tool_name.upper()}.\n\nRaw result: {raw_result_str[:1000]}"
                 
-       
         if chunk_callback and hasattr(chunk_callback, '__call__'):
             await chunk_callback(str(final_response))
         

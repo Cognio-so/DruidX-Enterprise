@@ -1,4 +1,5 @@
 from graph_type import GraphState
+from graph_type import GraphState
 from langchain_core.prompts import ChatPromptTemplate
 from typing import Optional, Dict, Any
 from langchain_core.messages import SystemMessage, HumanMessage
@@ -26,7 +27,7 @@ try:
     if QDRANT_URL == ":memory:":
         QDRANT_CLIENT = QdrantClient(":memory:")
     else:
-        QDRANT_CLIENT = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
+        QDRANT_CLIENT = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY, timeout=120 )
         # Test the connection
         QDRANT_CLIENT.get_collections()
         print(f"[RAG] Connected to remote Qdrant at {QDRANT_URL}")
@@ -125,7 +126,12 @@ async def clear_image_cache(session_id: str = None):
             await redis_client.delete(*keys_to_delete)
         print("[RAG] Cleared all image analysis cache")
 
-async def preprocess_kb_documents(kb_docs: List[dict], session_id: str, is_hybrid: bool = False):
+async def preprocess_kb_documents(
+    kb_docs: List[dict], 
+    session_id: str, 
+    is_hybrid: bool = False,
+    state: Optional[GraphState] = None  # Add this parameter
+):
     """
     Pre-process KB documents when custom GPT is loaded.
     Generate embeddings once and cache for the session.
@@ -150,7 +156,15 @@ async def preprocess_kb_documents(kb_docs: List[dict], session_id: str, is_hybri
         else:
             kb_texts.append(str(doc))
 
-    await retreive_docs(kb_texts, collection_name, is_hybrid=is_hybrid, clear_existing=False, is_kb=True, session_id=session_id)
+    await retreive_docs(
+        kb_texts, 
+        collection_name, 
+        is_hybrid=is_hybrid, 
+        clear_existing=False, 
+        is_kb=True, 
+        session_id=session_id,
+        state=state  # Pass state here
+    )
     
     if redis_client:
         await redis_client.hset(cache_key, mapping={
@@ -163,7 +177,13 @@ async def preprocess_kb_documents(kb_docs: List[dict], session_id: str, is_hybri
     
     print(f"[RAG] Pre-processed and cached {len(kb_texts)} KB documents for session {session_id}")
 
-async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid: bool = False, is_new_upload: bool = False):
+async def preprocess_user_documents(
+    docs: List[dict], 
+    session_id: str, 
+    is_hybrid: bool = False, 
+    is_new_upload: bool = False,
+    state: Optional[GraphState] = None  # Add this parameter
+):
     """
     Pre-process user documents by generating embeddings and storing them in cache.
     This is called immediately after document upload to prepare for fast RAG retrieval.
@@ -173,6 +193,7 @@ async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid
         session_id: Session identifier for cache management
         is_hybrid: Whether to use hybrid RAG (BM25 + vector)
         is_new_upload: Whether this is a new document upload (clears old cache and processes only new docs)
+        state: Optional GraphState containing API keys
     """
     if not docs:
         return
@@ -229,6 +250,7 @@ async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid
         is_user_doc=True,
         session_id=session_id,
         metadatas=doc_metas,
+        state=state  # Add this parameter
     )
 
     if redis_client:
@@ -301,7 +323,7 @@ async def preprocess_images(uploaded_images: List[Dict[str, Any]], state: GraphS
                     collection_name=collection_name,
                     vectors_config=models.VectorParams(size=VECTOR_SIZE, distance=models.Distance.COSINE),
                 )
-            embs = await embed_chunks_parallel([analysis], batch_size=1)
+            embs = await embed_chunks_parallel([analysis], batch_size=1, state=state)
             payload = {
                 "text": analysis,
                 "filename": filename,
@@ -346,14 +368,24 @@ async def send_status_update(state: GraphState, message: str, progress: int = No
                 "progress": progress
             }
         })
-async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clear_existing: bool = False, is_kb: bool = False, is_user_doc: bool = False, session_id: str = "default", metadatas: Optional[List[Dict[str, Any]]] = None):
+async def retreive_docs(
+    doc: List[str], 
+    name: str, 
+    is_hybrid: bool = False, 
+    clear_existing: bool = False, 
+    is_kb: bool = False, 
+    is_user_doc: bool = False, 
+    session_id: str = "default", 
+    metadatas: Optional[List[Dict[str, Any]]] = None,
+    state: Optional[GraphState] = None  # Add this parameter
+):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     if metadatas and len(metadatas) == len(doc):
         chunked_docs = text_splitter.create_documents(doc, metadatas=metadatas)
     else:
         chunked_docs = text_splitter.create_documents(doc)
     chunk_texts = [doc.page_content for doc in chunked_docs]
-    embeddings = await embed_chunks_parallel(chunk_texts, batch_size=200)
+    embeddings = await embed_chunks_parallel(chunk_texts, batch_size=200, state=state)  # Now state is defined
     
     collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
     collections = [c.name for c in collections_response.collections]
@@ -369,6 +401,18 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
             collection_name=name,
             vectors_config=models.VectorParams(size=VECTOR_SIZE, distance=models.Distance.COSINE),
         )
+        if is_user_doc:
+            try:
+                await asyncio.to_thread(
+                    QDRANT_CLIENT.create_payload_index,
+                    collection_name=name,
+                    field_name="doc_id",
+                    field_schema=models.PayloadSchemaType.KEYWORD
+                )
+                print(f"[RAG] Created keyword index on 'doc_id' for collection {name}")
+            except Exception as e:
+                print(f"[RAG] WARNING: Failed to create payload index for 'doc_id' in {name}: {e}")
+
     async def extract_heading(txt):
         lines = txt.split("\n")
         for l in lines:
@@ -421,11 +465,11 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
 def tokenize(text: str):
     tokens = re.findall(r"\w+", text.lower())
     return [t for t in tokens if t not in ENGLISH_STOP_WORDS]
-async def _search_collection(collection_name: str, query: str, limit: int) -> List[str]:
+async def _search_collection(collection_name: str, query: str, limit: int, state: Optional[GraphState] = None) -> List[str]:
     """
     Helper function to perform a semantic search on a Qdrant collection and return the text of the top results.
     """
-    query_embedding = await embed_query(query)
+    query_embedding = await embed_query(query, state=state)
     
     search_results = await asyncio.to_thread(
         QDRANT_CLIENT.search,
@@ -474,7 +518,8 @@ async def _search_image_collection(
     query: str, 
     limit: int = 8,
     filter_image_ids: Optional[List[str]] = None,
-    filter_image_indices: Optional[List[int]] = None
+    filter_image_indices: Optional[List[int]] = None,
+    state: Optional[GraphState] = None
 ) -> List[str]:
     """
     Semantic search over embedded image analyses for this session.
@@ -488,7 +533,10 @@ async def _search_image_collection(
     """
     collection_name = f"user_images_{session_id}"
     try:
-        query_embedding = await embed_query(query)
+        collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
+        if collection_name not in [c.name for c in collections_response.collections]:
+            return []
+        query_embedding = await embed_query(query, state=state)
         query_filter = None
         if filter_image_ids:
             query_filter = models.Filter(
@@ -536,7 +584,7 @@ async def _search_image_collection(
     
     return blocks
 
-async def _hybrid_search_rrf(collection_name: str, query: str, limit: int, k: int = 60) -> List[str]:
+async def _hybrid_search_rrf(collection_name: str, query: str, limit: int, k: int = 60, state: Optional[GraphState] = None) -> List[str]:
     """
     Hybrid RAG with RRF: Combines vector search (semantic) and BM25 (keyword) using RRF.
     
@@ -560,7 +608,7 @@ async def _hybrid_search_rrf(collection_name: str, query: str, limit: int, k: in
     Returns:
         List of top documents based on RRF fusion
     """
-    query_embedding = await embed_query(query)
+    query_embedding = await embed_query(query, state=state)
     vector_results =await asyncio.to_thread(
         QDRANT_CLIENT.search,
         collection_name=collection_name,
@@ -607,7 +655,7 @@ async def _hybrid_search_rrf(collection_name: str, query: str, limit: int, k: in
     
     print(f"[HYBRID-RRF] Fused {len(vector_ranking)} vector + {len(bm25_ranking)} BM25 → {len(top_results)} results (k={k})")
     return top_results
-async def _hybrid_search_intersection(collection_name: str, query: str, limit: int = 5) -> List[str]:
+async def _hybrid_search_intersection(collection_name: str, query: str, limit: int = 5, state: Optional[GraphState] = None) -> List[str]:
     """
     Hybrid RAG with Intersection: returns only documents present in BOTH
     vector search and BM25 results.
@@ -616,7 +664,7 @@ async def _hybrid_search_intersection(collection_name: str, query: str, limit: i
     - High precision tasks
     - Queries where you want strict agreement between semantic and keyword retrieval
     """
-    query_embedding = await embed_query(query)
+    query_embedding = await embed_query(query, state=state)
     vector_results =await asyncio.to_thread(
         QDRANT_CLIENT.search,
         collection_name=collection_name,
@@ -681,7 +729,8 @@ async def intelligent_source_selection(
     has_user_docs: bool,
     has_kb: bool,
     custom_prompt: str = "",
-    llm_model: str = "gpt-4o-mini"
+    llm_model: str = "gpt-4o-mini",
+    state: Optional[GraphState] = None  # Add this parameter
 ) -> Dict[str, Any]:
     """
     Use LLM to intelligently decide which knowledge sources to use.
@@ -739,10 +788,17 @@ You **MUST** respond with a single, valid JSON object and nothing else.
     "reasoning": "Brief explanation of decision"
 }}
 """ 
+    # Extract API keys from state if available
+    api_keys = {}
+    if state:
+        api_keys = state.get("api_keys", {}) or {}
+    
+    groq_api_key = api_keys.get("groq") or os.getenv("GROQ_API_KEY")
+    
     llm = ChatGroq(
         model="openai/gpt-oss-120b",  
         temperature=0.2,
-        groq_api_key=os.getenv("GROQ_API_KEY")
+        groq_api_key=groq_api_key
     )
     response = await llm.ainvoke([HumanMessage(content=classification_prompt)])
 
@@ -779,7 +835,8 @@ async def intelligent_image_selection(
     session_id: str,
     uploaded_images: Optional[List[Dict[str, Any]]] = None,  
     conversation_history: Optional[List[Dict[str, Any]]] = None,  
-    llm_model: str = "gpt-4o-mini"
+    llm_model: str = "gpt-4o-mini",
+    state: Optional[GraphState] = None  # Add this parameter
 ) -> Dict[str, Any]:
     """
     Use LLM to intelligently decide which images to use based on:
@@ -808,23 +865,27 @@ async def intelligent_image_selection(
     all_images_info = []
     try:
         collection_name = f"user_images_{session_id}"
-        scroll_out, _ = await asyncio.to_thread(
-            QDRANT_CLIENT.scroll,
-            collection_name=collection_name,
-            limit=1000
-        )
-        for point in scroll_out:
-            payload = point.payload or {}
-            all_images_info.append({
-                "id": payload.get("id", ""),
-                "filename": payload.get("filename", "unknown"),
-                "image_index": payload.get("image_index", 0),
-                "is_newly_uploaded": payload.get("id") in new_image_ids if new_image_ids else False
-            })
-        all_images_info.sort(key=lambda x: x.get("image_index", 0))
+        collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
+        if collection_name in [c.name for c in collections_response.collections]:
+            scroll_out, _ = await asyncio.to_thread(
+                QDRANT_CLIENT.scroll,
+                collection_name=collection_name,
+                limit=1000
+            )
+            for point in scroll_out:
+                payload = point.payload or {}
+                all_images_info.append({
+                    "id": payload.get("id", ""),
+                    "filename": payload.get("filename", "unknown"),
+                    "image_index": payload.get("image_index", 0),
+                    "is_newly_uploaded": payload.get("id") in new_image_ids if new_image_ids else False
+                })
+            all_images_info.sort(key=lambda x: x.get("image_index", 0))
     except Exception as e:
-        print(f"[IMAGE-ORCHESTRATOR] Error getting all images from Qdrant: {e}")
+        if "not found" not in str(e).lower():
+            print(f"[IMAGE-ORCHESTRATOR] Error getting all images from Qdrant: {e}")
         all_images_info = []
+
     if not all_images_info:
         if new_images:
             all_images_info = [
@@ -977,10 +1038,17 @@ Respond with a JSON object:
 """
 
     try:
+        # Extract API keys from state if available
+        api_keys = {}
+        if state:
+            api_keys = state.get("api_keys", {}) or {}
+        
+        groq_api_key = api_keys.get("groq") or os.getenv("GROQ_API_KEY")
+        
         llm = ChatGroq(
             model="openai/gpt-oss-120b",
             temperature=0.2,
-            groq_api_key=os.getenv("GROQ_API_KEY")
+            groq_api_key=groq_api_key
         )
         response = await llm.ainvoke([HumanMessage(content=classification_prompt)])
         
@@ -1094,7 +1162,7 @@ async def extract_text_from_image(file_content: bytes, filename: str = "", state
                 }
             ]
         )
-        llm = get_llm(llm_model, temperature=0.5)
+        llm = get_llm(llm_model, temperature=0.5, state=state)
         response = await llm.ainvoke([message])
         if state is not None:
             token_usage = _extract_usage(response)
@@ -1155,8 +1223,8 @@ async def hierarchical_summarize(state, batch_size: int = 10):
     gpt_config = state.get("gpt_config", {})
     custom_prompt = gpt_config.get("instruction", "").strip()
 
-    map_llm = get_llm("google/gemini-2.5-flash-lite", 0.2)
-    reduce_llm = get_llm(llm_model, 0.3)
+    map_llm = get_llm("google/gemini-2.5-flash-lite", 0.2, state=state)
+    reduce_llm = get_llm(llm_model, 0.3, state=state)
     total_tokens = sum(len(c["text"].split()) for c in chunks)
     if total_tokens < 1200:
         mode = "brief"
@@ -1496,7 +1564,7 @@ async def _process_user_docs(state, docs, user_query, rag):
     
     # Diversified per-document retrieval to ensure coverage from each uploaded doc
     async def _search_per_doc(collection_name: str, query: str, per_doc: int = 3, max_candidates: int = 200, max_docs: int = 10) -> List[Dict[str, Any]]:
-        query_embedding = await embed_query(query)
+        query_embedding = await embed_query(query, state=state)
         candidates = await asyncio.to_thread(
             QDRANT_CLIENT.search,
             collection_name=collection_name,
@@ -1540,9 +1608,9 @@ async def _process_user_docs(state, docs, user_query, rag):
     if not per_doc_sets:
         # Fallback to previous behavior
         if is_hybrid:
-            res = await _hybrid_search_rrf(collection_name, user_query, limit=20, k=60)
+            res = await _hybrid_search_rrf(collection_name, user_query, limit=20, k=60, state=state)
         else:
-            res = await _search_collection(collection_name, user_query, limit=20)
+            res = await _search_collection(collection_name, user_query, limit=20, state=state)
         return ("user", res)
 
     # Build grouped blocks with filename/type headers
@@ -1577,9 +1645,9 @@ async def _process_kb_docs(state, kb_docs, user_query, rag):
     print(f"[RAG] Using pre-processed KB embeddings from collection: {collection_name}")
     
     if is_hybrid:
-        res = await _hybrid_search_intersection(collection_name, user_query, limit=5)
+        res = await _hybrid_search_intersection(collection_name, user_query, limit=5, state=state)
     else:
-        res = await _hybrid_search_rrf(collection_name, user_query, limit=5, k=60)
+        res = await _hybrid_search_rrf(collection_name, user_query, limit=5, k=60, state=state)
     
     print(f"[RAG] Retrieved {len(res)} chunks from KB")
     return ("kb", res)
@@ -1597,7 +1665,7 @@ async def Rag(state: GraphState) -> GraphState:
     custom_system_prompt = gpt_config.get("instruction", "")
     has_user_docs = bool(docs)
     has_kb = bool(kb_docs)
-    
+    print(f"past msg", messages)
     session_id = state.get("session_id", "default")
 
     if uploaded_images:
@@ -1617,13 +1685,12 @@ async def Rag(state: GraphState) -> GraphState:
             summary = f"⚠️ Unable to summarize document: {e}"
 
         state["response"] = summary
+        print(f"summary////", summary)
         state.setdefault("intermediate_results", []).append({
-            "node": "RAG",
-            "query": user_query,
-            "strategy": "hierarchical_summarizer",
-            "sources_used": {"user_docs": 1, "kb": 0},
-            "output": summary
-        })
+        "node": "rag",
+        "query": state.get("user_query"),
+        "output": state["response"]
+    })
 
         await send_status_update(state, "✅ Hierarchical summarization completed", 100)
         return state
@@ -1674,7 +1741,8 @@ async def Rag(state: GraphState) -> GraphState:
             has_user_docs=has_user_docs,
             has_kb=has_kb,
             custom_prompt=custom_system_prompt,
-            llm_model=llm_model
+            llm_model=llm_model,
+            state=state  # Add this
         )
     )
     parallel_tasks.append(("intelligence", intelligence_task))
@@ -1683,9 +1751,10 @@ async def Rag(state: GraphState) -> GraphState:
             user_query=user_query,
             newly_uploaded_docs_metadata=newly_uploaded_docs_metadata,
             session_id=session_id,
-            uploaded_images=uploaded_images,  # Pass previously uploaded images
-            conversation_history=conversation_history,  # Pass conversation history
-            llm_model=llm_model
+            uploaded_images=uploaded_images,
+            conversation_history=conversation_history,
+            llm_model=llm_model,
+            state=state  # Add this
         )
     )
     parallel_tasks.append(("image_selection", image_selection_task))
@@ -1782,11 +1851,12 @@ async def Rag(state: GraphState) -> GraphState:
             user_query, 
             limit=8,
             filter_image_ids=filter_ids if filter_ids else None,
-            filter_image_indices=actual_indices if actual_indices else (filter_indices if filter_indices else None)
+            filter_image_indices=actual_indices if actual_indices else (filter_indices if filter_indices else None),
+            state=state
         )
     else:
         # Fallback: search all images
-        images_result = await _search_image_collection(session_id, user_query, limit=8)
+        images_result = await _search_image_collection(session_id, user_query, limit=8, state=state)
 
     if not source_decision:
         print(f"[RAG] Intelligence failed, defaulting to all sources")
@@ -1916,7 +1986,7 @@ async def Rag(state: GraphState) -> GraphState:
         HumanMessage(content=dynamic_prompt)
     ]
 
-    llm=get_llm(llm_model,0.8)
+    llm=get_llm(llm_model,0.8, state=state)
     await send_status_update(state, "🤖 Generating response from retrieved information...", 90)
    
     print(f"model named used in rag.....", llm_model)
@@ -1932,7 +2002,7 @@ async def Rag(state: GraphState) -> GraphState:
         await chunk_callback("\n\n")
         full_response += "\n\n"
     ai_response_dict["content"] = full_response
-    # state["messages"] = state.get("messages", []) + [ai_response_dict]
+    state["messages"] = state.get("messages", [])
     state["response"] = full_response
     state.setdefault("intermediate_results", []).append({
         "node": "RAG",

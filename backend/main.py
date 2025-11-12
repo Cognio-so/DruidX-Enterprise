@@ -548,11 +548,13 @@ async def stream_chat(session_id: str, request: ChatRequest):
                         "size": doc.get("size", 0)
                     })
         newly_uploaded_docs_metadata = session.get("new_uploaded_docs", [])
-
+        messages_for_state = session["messages"]
+        if messages_for_state and messages_for_state[-1].get("role") == "user" and messages_for_state[-1].get("content") == request.message:
+            messages_for_state = messages_for_state[:-1]
         state = GraphState(
             user_query=request.message,
             llm_model=llm_model,
-            messages=session["messages"],
+            messages=messages_for_state,
             doc=uploaded_docs_content,
             new_uploaded_docs=newly_uploaded_docs_metadata,
             uploaded_images=session.get("uploaded_images", []),  
@@ -673,7 +675,8 @@ async def stream_chat(session_id: str, request: ChatRequest):
                 if state.get("context", {}).get("session", {}).get("last_route"):
                     session["last_route"] = state["context"]["session"]["last_route"]
 
-                
+                if full_response:
+                    session["messages"].append({"role": "assistant", "content": full_response})
                 if state.get("context", {}).get("session"):
                     await SessionManager.update_session(session_id, session)
                 
