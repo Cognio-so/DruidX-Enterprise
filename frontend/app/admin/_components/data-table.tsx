@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ColumnDef,
   flexRender,
@@ -260,9 +260,33 @@ export function StatusBadge({ status }: { status: string }) {
 
 export function RelativeTime({ date }: { date: Date | string }) {
   const dateObj = typeof date === "string" ? new Date(date) : date;
+  const [relativeTime, setRelativeTime] = useState<string>("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    setRelativeTime(formatDistanceToNow(dateObj, { addSuffix: true }));
+    
+    // Update every minute to keep the relative time current
+    const interval = setInterval(() => {
+      setRelativeTime(formatDistanceToNow(dateObj, { addSuffix: true }));
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [dateObj]);
+
+  // During SSR and initial hydration, show a static format to avoid mismatch
+  if (!mounted) {
+    return (
+      <span className="text-sm text-muted-foreground" suppressHydrationWarning>
+        {dateObj.toLocaleDateString()}
+      </span>
+    );
+  }
+
   return (
     <span className="text-sm text-muted-foreground">
-      {formatDistanceToNow(dateObj, { addSuffix: true })}
+      {relativeTime}
     </span>
   );
 }
