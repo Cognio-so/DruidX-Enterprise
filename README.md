@@ -1,4 +1,4 @@
-# DruidX Platform
+# DruidX Enterprise Platform
 
 A comprehensive AI-powered platform for creating, managing, and deploying custom GPTs with advanced capabilities including RAG, web search, deep research, and multi-modal interactions.
 

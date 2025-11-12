@@ -3,10 +3,11 @@ import prisma from "@/lib/prisma";
 import { requireUser } from "./requireUser";
 
 export async function getUserAssignedGpts(userId: string) {
-  await requireUser();
+  try {
+    await requireUser();
 
-  // Fetch both individual assignments and group-assigned GPTs in parallel
-  const [individualAssignments, groupAssignments] = await Promise.all([
+    // Fetch both individual assignments and group-assigned GPTs in parallel
+    const [individualAssignments, groupAssignments] = await Promise.all([
     // Individual assignments
     prisma.assignGpt.findMany({
       where: {
@@ -80,10 +81,21 @@ export async function getUserAssignedGpts(userId: string) {
     }
   });
   
-  // Convert map to array and sort by assignedAt
-  return Array.from(gptMap.values()).sort((a, b) => 
-    new Date(b.assignedAt).getTime() - new Date(a.assignedAt).getTime()
-  );
+    // Convert map to array and sort by assignedAt
+    return Array.from(gptMap.values()).sort((a, b) => 
+      new Date(b.assignedAt).getTime() - new Date(a.assignedAt).getTime()
+    );
+  } catch (error) {
+    // Handle database connection errors gracefully
+    if (error instanceof Error && 
+        (error.message.includes("Can't reach database server") ||
+         error.message.includes("P1001") ||
+         (error as any).code === "P1001")) {
+      console.error("Database connection error:", error);
+      return [];
+    }
+    throw error;
+  }
 }
 
 export type UserAssignedGpt = Awaited<ReturnType<typeof getUserAssignedGpts>>[0];

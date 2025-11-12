@@ -17,15 +17,27 @@ export interface ChartData {
   date?: string;
 }
 
+// Default metrics when database is unavailable
+const defaultUserMetrics: UserDashboardMetrics = {
+  totalAssignedGpts: 0,
+  totalConversations: 0,
+  totalMessages: 0,
+  recentConversations: 0,
+  conversationGrowth: 0,
+  mostUsedGpt: null,
+  averageMessagesPerConversation: 0,
+};
+
 export async function getUserDashboardMetrics(): Promise<UserDashboardMetrics> {
-  const { user } = await requireUser();
+  try {
+    const { user } = await requireUser();
 
-  const now = new Date();
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  // Get user's assigned GPTs (created by user + individually assigned + group-assigned)
-  const [createdGpts, individualAssignments, groupAssignments] = await Promise.all([
+    // Get user's assigned GPTs (created by user + individually assigned + group-assigned)
+    const [createdGpts, individualAssignments, groupAssignments] = await Promise.all([
     prisma.gpt.findMany({
       where: { userId: user.id },
       select: { id: true }
@@ -46,21 +58,21 @@ export async function getUserDashboardMetrics(): Promise<UserDashboardMetrics> {
       },
       select: { gptId: true }
     })
-  ]);
+    ]);
 
-  const createdGptIds = createdGpts.map(gpt => gpt.id);
-  const individualGptIds = individualAssignments.map(assign => assign.gptId);
-  const groupGptIds = groupAssignments.map(assign => assign.gptId);
-  const allGptIds = [...new Set([...createdGptIds, ...individualGptIds, ...groupGptIds])]; // Remove duplicates
+    const createdGptIds = createdGpts.map(gpt => gpt.id);
+    const individualGptIds = individualAssignments.map(assign => assign.gptId);
+    const groupGptIds = groupAssignments.map(assign => assign.gptId);
+    const allGptIds = [...new Set([...createdGptIds, ...individualGptIds, ...groupGptIds])]; // Remove duplicates
 
-  // Get basic counts for this user
-  const [
-    totalConversations,
-    totalMessages,
-    recentConversations,
-    conversationsLastMonth,
-    mostUsedGptData
-  ] = await Promise.all([
+    // Get basic counts for this user
+    const [
+      totalConversations,
+      totalMessages,
+      recentConversations,
+      conversationsLastMonth,
+      mostUsedGptData
+    ] = await Promise.all([
     prisma.conversation.count({
       where: { userId: user.id }
     }),
@@ -94,42 +106,55 @@ export async function getUserDashboardMetrics(): Promise<UserDashboardMetrics> {
       orderBy: { _count: { gptId: 'desc' } },
       take: 1
     })
-  ]);
+    ]);
 
-  // Get most used GPT name
-  let mostUsedGpt = null;
-  if (mostUsedGptData.length > 0) {
-    const gpt = await prisma.gpt.findUnique({
-      where: { id: mostUsedGptData[0].gptId },
-      select: { name: true }
-    });
-    mostUsedGpt = gpt?.name || null;
+    // Get most used GPT name
+    let mostUsedGpt = null;
+    if (mostUsedGptData.length > 0) {
+      const gpt = await prisma.gpt.findUnique({
+        where: { id: mostUsedGptData[0].gptId },
+        select: { name: true }
+      });
+      mostUsedGpt = gpt?.name || null;
+    }
+
+    // Calculate growth percentage
+    const conversationGrowth = totalConversations > 0 ? (conversationsLastMonth / totalConversations) * 100 : 0;
+
+    // Calculate average messages per conversation
+    const averageMessagesPerConversation = totalConversations > 0 ? totalMessages / totalConversations : 0;
+
+    return {
+      totalAssignedGpts: allGptIds.length,
+      totalConversations,
+      totalMessages,
+      recentConversations,
+      conversationGrowth: Math.round(conversationGrowth * 100) / 100,
+      mostUsedGpt,
+      averageMessagesPerConversation: Math.round(averageMessagesPerConversation * 100) / 100,
+    };
+  } catch (error) {
+    // Handle database connection errors gracefully
+    if (error instanceof Error && 
+        (error.message.includes("Can't reach database server") ||
+         error.message.includes("P1001") ||
+         (error as any).code === "P1001")) {
+      console.error("Database connection error:", error);
+      return defaultUserMetrics;
+    }
+    // Re-throw other errors
+    throw error;
   }
-
-  // Calculate growth percentage
-  const conversationGrowth = totalConversations > 0 ? (conversationsLastMonth / totalConversations) * 100 : 0;
-
-  // Calculate average messages per conversation
-  const averageMessagesPerConversation = totalConversations > 0 ? totalMessages / totalConversations : 0;
-
-  return {
-    totalAssignedGpts: allGptIds.length,
-    totalConversations,
-    totalMessages,
-    recentConversations,
-    conversationGrowth: Math.round(conversationGrowth * 100) / 100,
-    mostUsedGpt,
-    averageMessagesPerConversation: Math.round(averageMessagesPerConversation * 100) / 100,
-  };
 }
 
 export async function getUserConversationTrends(): Promise<ChartData[]> {
-  const { user } = await requireUser();
+  try {
+    const { user } = await requireUser();
 
-  const now = new Date();
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-  const conversationData = await prisma.conversation.findMany({
+    const conversationData = await prisma.conversation.findMany({
     where: {
       userId: user.id,
       createdAt: {
@@ -152,27 +177,47 @@ export async function getUserConversationTrends(): Promise<ChartData[]> {
     dailyData[day] = (dailyData[day] || 0) + 1;
   });
 
-  // Fill in missing days with 0
-  const result: ChartData[] = [];
-  for (let i = 29; i >= 0; i--) {
-    const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-    const day = date.toISOString().slice(0, 10);
-    const dayName = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    
-    result.push({
-      name: dayName,
-      value: dailyData[day] || 0,
-      date: day,
-    });
-  }
+    // Fill in missing days with 0
+    const result: ChartData[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const day = date.toISOString().slice(0, 10);
+      const dayName = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      
+      result.push({
+        name: dayName,
+        value: dailyData[day] || 0,
+        date: day,
+      });
+    }
 
-  return result;
+    return result;
+  } catch (error) {
+    // Handle database connection errors gracefully
+    if (error instanceof Error && 
+        (error.message.includes("Can't reach database server") ||
+         error.message.includes("P1001") ||
+         (error as any).code === "P1001")) {
+      console.error("Database connection error:", error);
+      // Return empty chart data
+      const now = new Date();
+      const result: ChartData[] = [];
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        const dayName = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        result.push({ name: dayName, value: 0 });
+      }
+      return result;
+    }
+    throw error;
+  }
 }
 
 export async function getUserGptUsageStats(): Promise<ChartData[]> {
-  const { user } = await requireUser();
+  try {
+    const { user } = await requireUser();
 
-  const gptStats = await prisma.conversation.groupBy({
+    const gptStats = await prisma.conversation.groupBy({
     by: ['gptId'],
     where: { userId: user.id },
     _count: { gptId: true },
@@ -189,16 +234,28 @@ export async function getUserGptUsageStats(): Promise<ChartData[]> {
 
   const gptMap = new Map(gpts.map(gpt => [gpt.id, gpt.name]));
 
-  return gptStats.map(stat => ({
-    name: gptMap.get(stat.gptId) || 'Unknown GPT',
-    value: stat._count.gptId,
-  }));
+    return gptStats.map(stat => ({
+      name: gptMap.get(stat.gptId) || 'Unknown GPT',
+      value: stat._count.gptId,
+    }));
+  } catch (error) {
+    // Handle database connection errors gracefully
+    if (error instanceof Error && 
+        (error.message.includes("Can't reach database server") ||
+         error.message.includes("P1001") ||
+         (error as any).code === "P1001")) {
+      console.error("Database connection error:", error);
+      return [];
+    }
+    throw error;
+  }
 }
 
 export async function getUserRecentActivity() {
-  const { user } = await requireUser();
+  try {
+    const { user } = await requireUser();
 
-  const [recentConversations, recentGpts] = await Promise.all([
+    const [recentConversations, recentGpts] = await Promise.all([
     prisma.conversation.findMany({
       where: { userId: user.id },
       take: 5,
@@ -259,8 +316,22 @@ export async function getUserRecentActivity() {
     }),
   ]);
 
-  return {
-    recentConversations,
-    recentGpts,
-  };
+    return {
+      recentConversations,
+      recentGpts,
+    };
+  } catch (error) {
+    // Handle database connection errors gracefully
+    if (error instanceof Error && 
+        (error.message.includes("Can't reach database server") ||
+         error.message.includes("P1001") ||
+         (error as any).code === "P1001")) {
+      console.error("Database connection error:", error);
+      return {
+        recentConversations: [],
+        recentGpts: [],
+      };
+    }
+    throw error;
+  }
 }

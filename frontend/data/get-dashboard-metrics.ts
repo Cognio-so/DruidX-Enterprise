@@ -18,27 +18,40 @@ export interface ChartData {
   date?: string;
 }
 
+// Default metrics when database is unavailable
+const defaultMetrics: DashboardMetrics = {
+  totalUsers: 0,
+  totalGpts: 0,
+  totalConversations: 0,
+  totalMessages: 0,
+  activeUsers: 0,
+  recentConversations: 0,
+  userGrowth: 0,
+  conversationGrowth: 0,
+};
+
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
-  const session = await requireAdmin();
-  
-  // Get current admin's user ID
-  const currentAdminId = session.user.id;
+  try {
+    const session = await requireAdmin();
+    
+    // Get current admin's user ID
+    const currentAdminId = session.user.id;
 
-  const now = new Date();
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  // Get basic counts - filter by current admin's GPTs and conversations
-  const [
-    totalUsers,
-    totalGpts,
-    totalConversations,
-    totalMessages,
-    activeUsers,
-    recentConversations,
-    usersLastMonth,
-    conversationsLastMonth,
-  ] = await Promise.all([
+    // Get basic counts - filter by current admin's GPTs and conversations
+    const [
+      totalUsers,
+      totalGpts,
+      totalConversations,
+      totalMessages,
+      activeUsers,
+      recentConversations,
+      usersLastMonth,
+      conversationsLastMonth,
+    ] = await Promise.all([
     // Count users who have conversations with admin's GPTs
     prisma.user.count({
       where: {
@@ -117,33 +130,46 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     }),
   ]);
 
-  // Calculate growth percentages
-  const userGrowth = totalUsers > 0 ? (usersLastMonth / totalUsers) * 100 : 0;
-  const conversationGrowth = totalConversations > 0 ? (conversationsLastMonth / totalConversations) * 100 : 0;
+    // Calculate growth percentages
+    const userGrowth = totalUsers > 0 ? (usersLastMonth / totalUsers) * 100 : 0;
+    const conversationGrowth = totalConversations > 0 ? (conversationsLastMonth / totalConversations) * 100 : 0;
 
-  return {
-    totalUsers,
-    totalGpts,
-    totalConversations,
-    totalMessages,
-    activeUsers,
-    recentConversations,
-    userGrowth: Math.round(userGrowth * 100) / 100,
-    conversationGrowth: Math.round(conversationGrowth * 100) / 100,
-  };
+    return {
+      totalUsers,
+      totalGpts,
+      totalConversations,
+      totalMessages,
+      activeUsers,
+      recentConversations,
+      userGrowth: Math.round(userGrowth * 100) / 100,
+      conversationGrowth: Math.round(conversationGrowth * 100) / 100,
+    };
+  } catch (error) {
+    // Handle database connection errors gracefully
+    if (error instanceof Error && 
+        (error.message.includes("Can't reach database server") ||
+         error.message.includes("P1001") ||
+         (error as any).code === "P1001")) {
+      console.error("Database connection error:", error);
+      return defaultMetrics;
+    }
+    // Re-throw other errors
+    throw error;
+  }
 }
 
 export async function getUserGrowthData(): Promise<ChartData[]> {
-  const session = await requireAdmin();
-  
-  // Get current admin's user ID
-  const currentAdminId = session.user.id;
+  try {
+    const session = await requireAdmin();
+    
+    // Get current admin's user ID
+    const currentAdminId = session.user.id;
 
-  const now = new Date();
-  const sixMonthsAgo = new Date(now.getTime() - 6 * 30 * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    const sixMonthsAgo = new Date(now.getTime() - 6 * 30 * 24 * 60 * 60 * 1000);
 
-  // Get users who have conversations with admin's GPTs
-  const userData = await prisma.user.findMany({
+    // Get users who have conversations with admin's GPTs
+    const userData = await prisma.user.findMany({
     where: {
       createdAt: {
         gte: sixMonthsAgo,
@@ -170,34 +196,54 @@ export async function getUserGrowthData(): Promise<ChartData[]> {
     monthlyData[month] = (monthlyData[month] || 0) + 1;
   });
 
-  // Fill in missing months with 0
-  const result: ChartData[] = [];
-  for (let i = 5; i >= 0; i--) {
-    const date = new Date(now.getTime() - i * 30 * 24 * 60 * 60 * 1000);
-    const month = date.toISOString().slice(0, 7);
-    const monthName = date.toLocaleDateString('en-US', { month: 'short' });
-    
-    result.push({
-      name: monthName,
-      value: monthlyData[month] || 0,
-      date: month,
-    });
-  }
+    // Fill in missing months with 0
+    const result: ChartData[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getTime() - i * 30 * 24 * 60 * 60 * 1000);
+      const month = date.toISOString().slice(0, 7);
+      const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+      
+      result.push({
+        name: monthName,
+        value: monthlyData[month] || 0,
+        date: month,
+      });
+    }
 
-  return result;
+    return result;
+  } catch (error) {
+    // Handle database connection errors gracefully
+    if (error instanceof Error && 
+        (error.message.includes("Can't reach database server") ||
+         error.message.includes("P1001") ||
+         (error as any).code === "P1001")) {
+      console.error("Database connection error:", error);
+      // Return empty chart data
+      const now = new Date();
+      const result: ChartData[] = [];
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date(now.getTime() - i * 30 * 24 * 60 * 60 * 1000);
+        const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+        result.push({ name: monthName, value: 0 });
+      }
+      return result;
+    }
+    throw error;
+  }
 }
 
 export async function getConversationTrends(): Promise<ChartData[]> {
-  const session = await requireAdmin();
-  
-  // Get current admin's user ID
-  const currentAdminId = session.user.id;
+  try {
+    const session = await requireAdmin();
+    
+    // Get current admin's user ID
+    const currentAdminId = session.user.id;
 
-  const now = new Date();
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-  // Get conversations using admin's GPTs
-  const conversationData = await prisma.conversation.findMany({
+    // Get conversations using admin's GPTs
+    const conversationData = await prisma.conversation.findMany({
     where: {
       createdAt: {
         gte: thirtyDaysAgo,
@@ -220,31 +266,51 @@ export async function getConversationTrends(): Promise<ChartData[]> {
     dailyData[day] = (dailyData[day] || 0) + 1;
   });
 
-  // Fill in missing days with 0
-  const result: ChartData[] = [];
-  for (let i = 29; i >= 0; i--) {
-    const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-    const day = date.toISOString().slice(0, 10);
-    const dayName = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    
-    result.push({
-      name: dayName,
-      value: dailyData[day] || 0,
-      date: day,
-    });
-  }
+    // Fill in missing days with 0
+    const result: ChartData[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const day = date.toISOString().slice(0, 10);
+      const dayName = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      
+      result.push({
+        name: dayName,
+        value: dailyData[day] || 0,
+        date: day,
+      });
+    }
 
-  return result;
+    return result;
+  } catch (error) {
+    // Handle database connection errors gracefully
+    if (error instanceof Error && 
+        (error.message.includes("Can't reach database server") ||
+         error.message.includes("P1001") ||
+         (error as any).code === "P1001")) {
+      console.error("Database connection error:", error);
+      // Return empty chart data
+      const now = new Date();
+      const result: ChartData[] = [];
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        const dayName = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        result.push({ name: dayName, value: 0 });
+      }
+      return result;
+    }
+    throw error;
+  }
 }
 
 export async function getGptUsageStats(): Promise<ChartData[]> {
-  const session = await requireAdmin();
-  
-  // Get current admin's user ID
-  const currentAdminId = session.user.id;
+  try {
+    const session = await requireAdmin();
+    
+    // Get current admin's user ID
+    const currentAdminId = session.user.id;
 
-  // Get GPTs created by current admin
-  const gptStats = await prisma.gpt.findMany({
+    // Get GPTs created by current admin
+    const gptStats = await prisma.gpt.findMany({
     where: { userId: currentAdminId },
     include: {
       _count: {
@@ -261,19 +327,31 @@ export async function getGptUsageStats(): Promise<ChartData[]> {
     take: 10,
   });
 
-  return gptStats.map(gpt => ({
-    name: gpt.name,
-    value: gpt._count.conversations,
-  }));
+    return gptStats.map(gpt => ({
+      name: gpt.name,
+      value: gpt._count.conversations,
+    }));
+  } catch (error) {
+    // Handle database connection errors gracefully
+    if (error instanceof Error && 
+        (error.message.includes("Can't reach database server") ||
+         error.message.includes("P1001") ||
+         (error as any).code === "P1001")) {
+      console.error("Database connection error:", error);
+      return [];
+    }
+    throw error;
+  }
 }
 
 export async function getRecentActivity() {
-  const session = await requireAdmin();
-  
-  // Get current admin's user ID
-  const currentAdminId = session.user.id;
+  try {
+    const session = await requireAdmin();
+    
+    // Get current admin's user ID
+    const currentAdminId = session.user.id;
 
-  const [recentConversations, recentUsers, recentGpts] = await Promise.all([
+    const [recentConversations, recentUsers, recentGpts] = await Promise.all([
     // Get recent conversations using admin's GPTs
     prisma.conversation.findMany({
       where: {
@@ -346,9 +424,24 @@ export async function getRecentActivity() {
     }),
   ]);
 
-  return {
-    recentConversations,
-    recentUsers,
-    recentGpts,
-  };
+    return {
+      recentConversations,
+      recentUsers,
+      recentGpts,
+    };
+  } catch (error) {
+    // Handle database connection errors gracefully
+    if (error instanceof Error && 
+        (error.message.includes("Can't reach database server") ||
+         error.message.includes("P1001") ||
+         (error as any).code === "P1001")) {
+      console.error("Database connection error:", error);
+      return {
+        recentConversations: [],
+        recentUsers: [],
+        recentGpts: [],
+      };
+    }
+    throw error;
+  }
 }
