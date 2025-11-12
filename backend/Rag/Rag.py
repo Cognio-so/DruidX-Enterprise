@@ -1162,7 +1162,7 @@ async def extract_text_from_image(file_content: bytes, filename: str = "", state
                 }
             ]
         )
-        llm = get_llm(llm_model, temperature=0.5, state=state)
+        llm = get_llm(llm_model, temperature=0.5)
         response = await llm.ainvoke([message])
         if state is not None:
             token_usage = _extract_usage(response)
@@ -1223,8 +1223,8 @@ async def hierarchical_summarize(state, batch_size: int = 10):
     gpt_config = state.get("gpt_config", {})
     custom_prompt = gpt_config.get("instruction", "").strip()
 
-    map_llm = get_llm("google/gemini-2.5-flash-lite", 0.2, state=state)
-    reduce_llm = get_llm(llm_model, 0.3, state=state)
+    map_llm = get_llm("google/gemini-2.5-flash-lite", 0.2)
+    reduce_llm = get_llm(llm_model, 0.3)
     total_tokens = sum(len(c["text"].split()) for c in chunks)
     if total_tokens < 1200:
         mode = "brief"
@@ -1986,7 +1986,7 @@ async def Rag(state: GraphState) -> GraphState:
         HumanMessage(content=dynamic_prompt)
     ]
 
-    llm=get_llm(llm_model,0.8, state=state)
+    llm=get_llm(llm_model,0.8)
     await send_status_update(state, "🤖 Generating response from retrieved information...", 90)
    
     print(f"model named used in rag.....", llm_model)
