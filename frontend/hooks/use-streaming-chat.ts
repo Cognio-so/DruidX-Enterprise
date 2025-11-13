@@ -66,6 +66,7 @@ interface StreamingChatHook {
     status?: "pending" | "active" | "completed";
   }>;
   webSearchStatus: WebSearchStatus;
+  thinkingState: string | null;
 }
 
 export function useStreamingChat(sessionId: string): StreamingChatHook {
@@ -85,6 +86,7 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
     isActive: false,
     message: "",
   });
+  const [thinkingState, setThinkingState] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const sendMessage = useCallback(async (request: ChatRequest) => {
@@ -100,6 +102,8 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
       isActive: false,
       message: "",
     });
+    // Reset thinking state when starting a new message
+    setThinkingState(null);
 
     // Add user message immediately
     const userMessage: Message = {
@@ -191,8 +195,19 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
                 // Handle status events for different phases
                 const phaseData = data.data;
                 
-                // Check if this is a WebSearch status update
-                if (phaseData.current_node === "WebSearch") {
+                // Check if this is a thinking state update from backend
+                if (phaseData.thinking_state === true && phaseData.message) {
+                  console.log('💭 Thinking state update received:', phaseData.message);
+                  setThinkingState(phaseData.message);
+                  // Don't process thinking states as research phases - skip to next line
+                } else {
+                  // Clear thinking state when we get non-thinking status updates
+                  if (!phaseData.thinking_state) {
+                    setThinkingState(null);
+                  }
+                  
+                  // Check if this is a WebSearch status update
+                  if (phaseData.current_node === "WebSearch") {
                   console.log('🌐 WebSearch status update received:', phaseData);
                   if (phaseData.status === "completed" || phaseData.message?.includes("completed")) {
                     // WebSearch completed - clear after a delay
@@ -264,7 +279,8 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
                   });
                 }
                 
-                  // Don't add status messages to content - they're for UI state only
+                // Don't add status messages to content - they're for UI state only
+                }
                 }
               } else if (data.type === 'content' && data.data) {
                 const { content, full_response, is_complete, img_urls, video_urls, token_usage } = data.data;
@@ -283,6 +299,11 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
                   }
                   return prevStatus;
                 });
+                
+                // Clear thinking state when content starts streaming
+                if (content) {
+                  setThinkingState(null);
+                }
                 
                 setMessages(prev => prev.map(msg => 
                   msg.id === assistantMessageId 
@@ -379,5 +400,6 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
     currentPhase,
     researchPhases,
     webSearchStatus,
+    thinkingState,
   };
 }

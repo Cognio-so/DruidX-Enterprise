@@ -52,7 +52,7 @@ export default function ChatHeader({ gptName, gptImage, onNewChat }: ChatHeaderP
             className="gap-2"
             title="New Chat"
           >
-            <MessageSquarePlus className="h-4 w-4" />
+            <MessageSquarePlus className="h-4 w-4 text-primary" />
             <span className="hidden sm:inline">New Chat</span>
           </Button>
         )}

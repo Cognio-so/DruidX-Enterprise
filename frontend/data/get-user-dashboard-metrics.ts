@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { requireUser } from "./requireUser";
+import { Prisma } from "@/app/generated/prisma";
 
 export interface UserDashboardMetrics {
   totalAssignedGpts: number;
@@ -135,11 +136,20 @@ export async function getUserDashboardMetrics(): Promise<UserDashboardMetrics> {
     };
   } catch (error) {
     // Handle database connection errors gracefully
-    if (error instanceof Error && 
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P1001"
+    ) {
+      console.error("Database connection error: Cannot reach database server");
+      return defaultUserMetrics;
+    }
+    if (
+      error instanceof Prisma.PrismaClientInitializationError ||
+      (error instanceof Error &&
         (error.message.includes("Can't reach database server") ||
-         error.message.includes("P1001") ||
-         (error as any).code === "P1001")) {
-      console.error("Database connection error:", error);
+         error.message.includes("P1001")))
+    ) {
+      console.error("Database connection error: Cannot reach database server");
       return defaultUserMetrics;
     }
     // Re-throw other errors
@@ -194,12 +204,28 @@ export async function getUserConversationTrends(): Promise<ChartData[]> {
     return result;
   } catch (error) {
     // Handle database connection errors gracefully
-    if (error instanceof Error && 
-        (error.message.includes("Can't reach database server") ||
-         error.message.includes("P1001") ||
-         (error as any).code === "P1001")) {
-      console.error("Database connection error:", error);
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P1001"
+    ) {
+      console.error("Database connection error: Cannot reach database server");
       // Return empty chart data
+      const now = new Date();
+      const result: ChartData[] = [];
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        const dayName = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        result.push({ name: dayName, value: 0 });
+      }
+      return result;
+    }
+    if (
+      error instanceof Prisma.PrismaClientInitializationError ||
+      (error instanceof Error &&
+        (error.message.includes("Can't reach database server") ||
+         error.message.includes("P1001")))
+    ) {
+      console.error("Database connection error: Cannot reach database server");
       const now = new Date();
       const result: ChartData[] = [];
       for (let i = 29; i >= 0; i--) {
@@ -240,11 +266,20 @@ export async function getUserGptUsageStats(): Promise<ChartData[]> {
     }));
   } catch (error) {
     // Handle database connection errors gracefully
-    if (error instanceof Error && 
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P1001"
+    ) {
+      console.error("Database connection error: Cannot reach database server");
+      return [];
+    }
+    if (
+      error instanceof Prisma.PrismaClientInitializationError ||
+      (error instanceof Error &&
         (error.message.includes("Can't reach database server") ||
-         error.message.includes("P1001") ||
-         (error as any).code === "P1001")) {
-      console.error("Database connection error:", error);
+         error.message.includes("P1001")))
+    ) {
+      console.error("Database connection error: Cannot reach database server");
       return [];
     }
     throw error;
@@ -322,11 +357,23 @@ export async function getUserRecentActivity() {
     };
   } catch (error) {
     // Handle database connection errors gracefully
-    if (error instanceof Error && 
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P1001"
+    ) {
+      console.error("Database connection error: Cannot reach database server");
+      return {
+        recentConversations: [],
+        recentGpts: [],
+      };
+    }
+    if (
+      error instanceof Prisma.PrismaClientInitializationError ||
+      (error instanceof Error &&
         (error.message.includes("Can't reach database server") ||
-         error.message.includes("P1001") ||
-         (error as any).code === "P1001")) {
-      console.error("Database connection error:", error);
+         error.message.includes("P1001")))
+    ) {
+      console.error("Database connection error: Cannot reach database server");
       return {
         recentConversations: [],
         recentGpts: [],

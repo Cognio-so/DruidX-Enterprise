@@ -49,10 +49,11 @@ interface ChatMessagesHook {
     status?: "pending" | "active" | "completed";
   }>;
   webSearchStatus: WebSearchStatus;
+  thinkingState: string | null;
 }
 
 export function useChatMessages(sessionId: string | null): ChatMessagesHook {
-  const { messages, isLoading, error, sendMessage, clearMessages, addMessage, approvalRequest, clearApprovalRequest, currentPhase, researchPhases, webSearchStatus } = useStreamingChat(sessionId || '');
+  const { messages, isLoading, error, sendMessage, clearMessages, addMessage, approvalRequest, clearApprovalRequest, currentPhase, researchPhases, webSearchStatus, thinkingState } = useStreamingChat(sessionId || '');
 
   const handleSendMessage = useCallback(async (message: string, options: {
     web_search?: boolean;
@@ -93,5 +94,6 @@ export function useChatMessages(sessionId: string | null): ChatMessagesHook {
     currentPhase,
     researchPhases,
     webSearchStatus,
+    thinkingState,
   };
 }

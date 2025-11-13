@@ -16,6 +16,7 @@ from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 from prompt_cache import normalize_prefix
 from redis_client import ensure_redis_client, ensure_redis_client_binary
 import dill
+from thinking_states import send_thinking_state, RAG_THINKING_STATES
 
 QDRANT_URL = os.getenv("QDRANT_URL", ":memory:")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
@@ -1734,265 +1735,280 @@ async def Rag(state: GraphState) -> GraphState:
     
     session_id = state.get("session_id", "default")
 
-    if uploaded_images:
-        await preprocess_images(uploaded_images, state)
+    # Start thinking states loop
+    thinking_result = await send_thinking_state(
+        state, "RAG", RAG_THINKING_STATES, interval=2.0
+    )
+    thinking_task, stop_flag = thinking_result if thinking_result else (None, None)
 
-    redis_client = await ensure_redis_client()
-    image_analysis_cache = await redis_client.hgetall(f"image_cache:{session_id}")
-    
-    if await is_summarization_query(user_query):
-        print("[RAG] Detected summarization intent — switching to Hierarchical Summarizer.")
-        await send_status_update(state, "🧠 Summarizing entire document...", 20)
+    try:
+        if uploaded_images:
+            await preprocess_images(uploaded_images, state)
 
-        try:
-            summary = await hierarchical_summarize(state)
-        except Exception as e:
-            print(f"[Summarizer] Error during summarization: {e}")
-            summary = f"⚠️ Unable to summarize document: {e}"
+        if await is_summarization_query(user_query):
+            print("[RAG] Detected summarization intent — switching to Hierarchical Summarizer.")
+            await send_status_update(state, "🧠 Summarizing entire document...", 20)
 
-        state["response"] = summary
-        state.setdefault("intermediate_results", []).append({
-            "node": "RAG",
-            "query": user_query,
-            "strategy": "hierarchical_summarizer",
-            "sources_used": {"user_docs": 1, "kb": 0},
-            "output": summary
-        })
+            try:
+                summary = await hierarchical_summarize(state)
+            except Exception as e:
+                print(f"[Summarizer] Error during summarization: {e}")
+                summary = f"⚠️ Unable to summarize document: {e}"
 
-        await send_status_update(state, "✅ Hierarchical summarization completed", 100)
-        return state
-    
+            state["response"] = summary
+            state.setdefault("intermediate_results", []).append({
+                "node": "RAG",
+                "query": user_query,
+                "strategy": "hierarchical_summarizer",
+                "sources_used": {"user_docs": 1, "kb": 0},
+                "output": summary
+            })
 
-    messages = state.get("messages", [])
-    websearch = state.get("web_search", False)    
-    kb_docs = state.get("kb", {})
-    docs = state.get("active_docs", [])
-    rag = state.get("rag", False)
-    gpt_config = state.get("gpt_config", {})
-    custom_system_prompt = gpt_config.get("instruction", "")
-    temperature = gpt_config.get("temperature", 0.0)
+            await send_status_update(state, "✅ Hierarchical summarization completed", 100)
+            
+            # Stop thinking states when summarization completes
+            if stop_flag:
+                stop_flag.set()
+            if thinking_task:
+                thinking_task.cancel()
+                try:
+                    await thinking_task
+                except asyncio.CancelledError:
+                    pass
+            
+            return state
+        
 
-    redis_client = await ensure_redis_client()
-    has_user_docs = False
-    if redis_client:
-        user_doc_cache_exists = await redis_client.exists(f"user_doc_cache:{session_id}")
-        has_user_docs = bool(user_doc_cache_exists)
+        messages = state.get("messages", [])
+        websearch = state.get("web_search", False)    
+        kb_docs = state.get("kb", {})
+        docs = state.get("active_docs", [])
+        rag = state.get("rag", False)
+        gpt_config = state.get("gpt_config", {})
+        custom_system_prompt = gpt_config.get("instruction", "")
+        temperature = gpt_config.get("temperature", 0.0)
+
+        redis_client = await ensure_redis_client()
+        has_user_docs = False
+        if redis_client:
+            user_doc_cache_exists = await redis_client.exists(f"user_doc_cache:{session_id}")
+            has_user_docs = bool(user_doc_cache_exists)
+            if has_user_docs:
+                print(f"[RAG] Found user document cache in Redis for session {session_id}")
+
+        if not has_user_docs:
+            has_user_docs = bool(docs)
+        has_kb = False
+        if redis_client:
+            kb_collection_name = f"kb_{session_id}"
+            kb_cache_exists = await redis_client.exists(f"kb_cache:{kb_collection_name}")
+            has_kb = bool(kb_cache_exists)
+            if has_kb:
+                print(f"[RAG] Found KB cache in Redis for session {session_id}")
+        if not has_kb:
+            has_kb = bool(kb_docs)
+        
+        print(f"[RAG] Document availability - User docs: {has_user_docs}, KB: {has_kb}")
+        parallel_tasks = []
+
+        # Get newly uploaded docs metadata
+        newly_uploaded_docs_metadata = state.get("new_uploaded_docs", [])
+        
+        # Get conversation history (last 1 turn = last 2 messages)
+        conversation_history = state.get("messages", [])
+        uploaded_images = state.get("uploaded_images", []) or []
+
+        intelligence_task = asyncio.create_task(
+            intelligent_source_selection(
+                user_query=user_query,
+                has_user_docs=has_user_docs,
+                has_kb=has_kb,
+                custom_prompt=custom_system_prompt,
+                llm_model=llm_model
+            )
+        )
+        parallel_tasks.append(("intelligence", intelligence_task))
+        image_selection_task = asyncio.create_task(
+            intelligent_image_selection(
+                user_query=user_query,
+                newly_uploaded_docs_metadata=newly_uploaded_docs_metadata,
+                session_id=session_id,
+                uploaded_images=uploaded_images,  # Pass previously uploaded images
+                conversation_history=conversation_history,  # Pass conversation history
+                llm_model=llm_model
+            )
+        )
+        parallel_tasks.append(("image_selection", image_selection_task))
+
         if has_user_docs:
-            print(f"[RAG] Found user document cache in Redis for session {session_id}")
+            user_search_task = asyncio.create_task(
+                _process_user_docs(state, docs, user_query, rag)
+            )
+            parallel_tasks.append(("user_search", user_search_task))
 
-    if not has_user_docs:
-        has_user_docs = bool(docs)
-    has_kb = False
-    if redis_client:
-        kb_collection_name = f"kb_{session_id}"
-        kb_cache_exists = await redis_client.exists(f"kb_cache:{kb_collection_name}")
-        has_kb = bool(kb_cache_exists)
         if has_kb:
-            print(f"[RAG] Found KB cache in Redis for session {session_id}")
-    if not has_kb:
-        has_kb = bool(kb_docs)
-    
-    print(f"[RAG] Document availability - User docs: {has_user_docs}, KB: {has_kb}")
-    parallel_tasks = []
+            kb_search_task = asyncio.create_task(
+                _process_kb_docs(state, kb_docs, user_query, rag)
+            )
+            parallel_tasks.append(("kb_search", kb_search_task))
 
-    # Get newly uploaded docs metadata
-    newly_uploaded_docs_metadata = state.get("new_uploaded_docs", [])
-    
-    # Get conversation history (last 1 turn = last 2 messages)
-    conversation_history = state.get("messages", [])
-    uploaded_images = state.get("uploaded_images", []) or []
+        print(f"[RAG] Running {len(parallel_tasks)} tasks in parallel...")
+        results = await asyncio.gather(*[task for _, task in parallel_tasks], return_exceptions=True)
 
-    intelligence_task = asyncio.create_task(
-        intelligent_source_selection(
-            user_query=user_query,
-            has_user_docs=has_user_docs,
-            has_kb=has_kb,
-            custom_prompt=custom_system_prompt,
-            llm_model=llm_model
-        )
-    )
-    parallel_tasks.append(("intelligence", intelligence_task))
-    image_selection_task = asyncio.create_task(
-        intelligent_image_selection(
-            user_query=user_query,
-            newly_uploaded_docs_metadata=newly_uploaded_docs_metadata,
-            session_id=session_id,
-            uploaded_images=uploaded_images,  # Pass previously uploaded images
-            conversation_history=conversation_history,  # Pass conversation history
-            llm_model=llm_model
-        )
-    )
-    parallel_tasks.append(("image_selection", image_selection_task))
-
-    if has_user_docs:
-        user_search_task = asyncio.create_task(
-            _process_user_docs(state, docs, user_query, rag)
-        )
-        parallel_tasks.append(("user_search", user_search_task))
-
-    if has_kb:
-        kb_search_task = asyncio.create_task(
-            _process_kb_docs(state, kb_docs, user_query, rag)
-        )
-        parallel_tasks.append(("kb_search", kb_search_task))
-
-    print(f"[RAG] Running {len(parallel_tasks)} tasks in parallel...")
-    results = await asyncio.gather(*[task for _, task in parallel_tasks], return_exceptions=True)
-
-    source_decision = None
-    image_selection_result = None
-    user_result = []
-    kb_result = []
-    images_result = []
-    
-    for i, (task_name, _) in enumerate(parallel_tasks):
-        result = results[i]
-        if isinstance(result, Exception):
-            print(f"[RAG] Task {task_name} failed: {result}")
-            continue
-            
-        if task_name == "intelligence":
-            source_decision = result
-        elif task_name == "image_selection":
-            image_selection_result = result
-        elif task_name == "user_search" and isinstance(result, tuple) and len(result) == 2:
-            user_result = result[1]
-        elif task_name == "kb_search" and isinstance(result, tuple) and len(result) == 2:
-            kb_result = result[1]
-
-    if image_selection_result:
-        filter_ids = image_selection_result.get("selected_image_ids", [])
-        filter_indices = image_selection_result.get("selected_image_indices", [])
-        print(f"[RAG] Image orchestrator decision: {image_selection_result.get('reasoning')}")
-        print(f"[RAG] Filtering images by IDs: {filter_ids}, Indices: {filter_indices}")
-        
-        if not filter_ids and filter_indices:
-            try:
-                collection_name = f"user_images_{session_id}"
-                scroll_out, _ = await asyncio.to_thread(
-                    QDRANT_CLIENT.scroll,
-                    collection_name=collection_name,
-                    limit=1000
-                )
-                index_to_id_map = {}
-                for point in scroll_out:
-                    payload = point.payload or {}
-                    img_id = payload.get("id")
-                    img_index = payload.get("image_index")
-                    if img_id and img_index:
-                        index_to_id_map[img_index] = img_id
-                
-                for idx in filter_indices:
-                    if idx in index_to_id_map:
-                        filter_ids.append(index_to_id_map[idx])
-                
-                print(f"[RAG] Mapped indices {filter_indices} to IDs from Qdrant: {filter_ids}")
-            except Exception as e:
-                print(f"[RAG] Error mapping indices to IDs from Qdrant: {e}")
-        
-        actual_indices = []
-        if filter_ids:
-            try:
-                collection_name = f"user_images_{session_id}"
-                scroll_out, _ = await asyncio.to_thread(
-                    QDRANT_CLIENT.scroll,
-                    collection_name=collection_name,
-                    limit=1000
-                )
-                for point in scroll_out:
-                    payload = point.payload or {}
-                    img_id = payload.get("id")
-                    if img_id in filter_ids:
-                        idx = payload.get("image_index")
-                        if idx:
-                            actual_indices.append(idx)
-                print(f"[RAG] Mapped IDs to actual indices from Qdrant: {actual_indices}")
-            except Exception as e:
-                print(f"[RAG] Error getting actual indices from Qdrant: {e}")
-                actual_indices = filter_indices if filter_indices else []
-        
-        images_result = await _search_image_collection(
-            session_id, 
-            user_query, 
-            limit=8,
-            filter_image_ids=filter_ids if filter_ids else None,
-            filter_image_indices=actual_indices if actual_indices else (filter_indices if filter_indices else None)
-        )
-    else:
-        # Fallback: search all images
-        images_result = await _search_image_collection(session_id, user_query, limit=8)
-
-    if not source_decision:
-        print(f"[RAG] Intelligence failed, defaulting to all sources")
-        source_decision = {
-            "use_user_docs": has_user_docs,
-            "use_kb": has_kb,
-            "search_strategy": "both" if has_user_docs and has_kb else ("user_docs_only" if has_user_docs else "kb_only"),
-            "reasoning": "Fallback due to intelligence failure"
-        }
-    
-    use_user_docs = source_decision["use_user_docs"]
-    use_kb = source_decision["use_kb"]
-    strategy = source_decision["search_strategy"]
-
-    if not use_user_docs:
+        source_decision = None
+        image_selection_result = None
         user_result = []
-        print(f"[RAG] Discarded user docs search (not needed)")
-    
-    if not use_kb:
         kb_result = []
-        print(f"[RAG] Discarded KB search (not needed)")
-    
-    print(f"[RAG] Parallel execution completed - using {len(user_result)} user chunks, {len(kb_result)} KB chunks")
+        images_result = []
+        
+        for i, (task_name, _) in enumerate(parallel_tasks):
+            result = results[i]
+            if isinstance(result, Exception):
+                print(f"[RAG] Task {task_name} failed: {result}")
+                continue
+                
+            if task_name == "intelligence":
+                source_decision = result
+            elif task_name == "image_selection":
+                image_selection_result = result
+            elif task_name == "user_search" and isinstance(result, tuple) and len(result) == 2:
+                user_result = result[1]
+            elif task_name == "kb_search" and isinstance(result, tuple) and len(result) == 2:
+                kb_result = result[1]
 
-    await send_status_update(state, "🔗 Combining information from sources...", 80)
-    ctx = state.get("context") or {}
-    sess = ctx.get("session") or {}
-    summary = sess.get("summary", "")
-    
-    last_turns = []
-    for m in (state.get("messages") or []):
-        role = (m.get("type") or m.get("role") or "").lower()
-        content = m.get("content") if isinstance(m, dict) else getattr(m, "content", "")
-        if content:
-            # Truncate long messages to avoid prompt bloat
-            if len(content.split()) > 1000:
-                content = " ".join(content.split()[:1000]) + "..."
+        if image_selection_result:
+            filter_ids = image_selection_result.get("selected_image_ids", [])
+            filter_indices = image_selection_result.get("selected_image_indices", [])
+            print(f"[RAG] Image orchestrator decision: {image_selection_result.get('reasoning')}")
+            print(f"[RAG] Filtering images by IDs: {filter_ids}, Indices: {filter_indices}")
             
-            speaker = "User" if role in ("human", "user") else "Assistant"
-            last_turns.append(f"{speaker}: {content}")
-    last_3_text = "\n".join(last_turns[-4:]) or "None"
-    context_parts=[f""]
-    
-    context_parts.append(f"\nUSER QUERY:\n{user_query}")
-    context_parts.append(f"\nSOURCE ROUTING DECISION:\nStrategy: {strategy}\nReasoning: {source_decision['reasoning']}")
-    
-    
-    if user_result and use_user_docs:
-        context_parts.append(f"\nUSER DOCUMENT CONTEXT:\n{chr(10).join(user_result)}")
-    
-    if kb_result and use_kb:
-        print(f"kb gwdsjqfifsdgilghsdfiushleroge.................")
-        context_parts.append(f"\nKNOWLEDGE BASE CONTEXT:\n{chr(10).join(kb_result)}")
-    # Add image embedding results
-    if images_result:
-        context_parts.append(f"\nIMAGE DOCUMENT CONTEXT:\n{chr(10).join(images_result)}")
-    # If we have cached image intent context and no embedding hits yet
-    img_intent_ctx = state.get("image_intent_context")
-    if img_intent_ctx and not images_result:
-        context_parts.append(f"\nIMAGE ANALYSIS CONTEXT (cached):\n{img_intent_ctx}")
-    
-    if not user_result and not kb_result:
-        context_parts.append("\nNO RETRIEVAL CONTEXT: No relevant documents were found. Provide a helpful response based on general knowledge and conversation history.")
-    elif not user_result and kb_result:
-        context_parts.append("\nPARTIAL CONTEXT: Only knowledge base information is available. The user may need to upload documents for analysis.")
+            if not filter_ids and filter_indices:
+                try:
+                    collection_name = f"user_images_{session_id}"
+                    scroll_out, _ = await asyncio.to_thread(
+                        QDRANT_CLIENT.scroll,
+                        collection_name=collection_name,
+                        limit=1000
+                    )
+                    index_to_id_map = {}
+                    for point in scroll_out:
+                        payload = point.payload or {}
+                        img_id = payload.get("id")
+                        img_index = payload.get("image_index")
+                        if img_id and img_index:
+                            index_to_id_map[img_index] = img_id
+                    
+                    for idx in filter_indices:
+                        if idx in index_to_id_map:
+                            filter_ids.append(index_to_id_map[idx])
+                    
+                    print(f"[RAG] Mapped indices {filter_indices} to IDs from Qdrant: {filter_ids}")
+                except Exception as e:
+                    print(f"[RAG] Error mapping indices to IDs from Qdrant: {e}")
+            
+            actual_indices = []
+            if filter_ids:
+                try:
+                    collection_name = f"user_images_{session_id}"
+                    scroll_out, _ = await asyncio.to_thread(
+                        QDRANT_CLIENT.scroll,
+                        collection_name=collection_name,
+                        limit=1000
+                    )
+                    for point in scroll_out:
+                        payload = point.payload or {}
+                        img_id = payload.get("id")
+                        if img_id in filter_ids:
+                            idx = payload.get("image_index")
+                            if idx:
+                                actual_indices.append(idx)
+                    print(f"[RAG] Mapped IDs to actual indices from Qdrant: {actual_indices}")
+                except Exception as e:
+                    print(f"[RAG] Error getting actual indices from Qdrant: {e}")
+                    actual_indices = filter_indices if filter_indices else []
+            
+            images_result = await _search_image_collection(
+                session_id, 
+                user_query, 
+                limit=8,
+                filter_image_ids=filter_ids if filter_ids else None,
+                filter_image_indices=actual_indices if actual_indices else (filter_indices if filter_indices else None)
+            )
+        else:
+            # Fallback: search all images
+            images_result = await _search_image_collection(session_id, user_query, limit=8)
 
-    context_parts.append(f"CONVERSATION CONTEXT:\nSummary: {summary if summary else 'None'}\nLast Turns:\n{last_3_text}")
-    final_context_message = HumanMessage(content="\n".join(context_parts))
-    # print(f"system promtp................", STATIC_SYS_RAG)
-    system_msg = SystemMessage(content=STATIC_SYS_RAG)
+        if not source_decision:
+            print(f"[RAG] Intelligence failed, defaulting to all sources")
+            source_decision = {
+                "use_user_docs": has_user_docs,
+                "use_kb": has_kb,
+                "search_strategy": "both" if has_user_docs and has_kb else ("user_docs_only" if has_user_docs else "kb_only"),
+                "reasoning": "Fallback due to intelligence failure"
+            }
+        
+        use_user_docs = source_decision["use_user_docs"]
+        use_kb = source_decision["use_kb"]
+        strategy = source_decision["search_strategy"]
 
-    dynamic_prompt = f"""
+        if not use_user_docs:
+            user_result = []
+            print(f"[RAG] Discarded user docs search (not needed)")
+        
+        if not use_kb:
+            kb_result = []
+            print(f"[RAG] Discarded KB search (not needed)")
+        
+        print(f"[RAG] Parallel execution completed - using {len(user_result)} user chunks, {len(kb_result)} KB chunks")
+
+        await send_status_update(state, "🔗 Combining information from sources...", 80)
+        ctx = state.get("context") or {}
+        sess = ctx.get("session") or {}
+        summary = sess.get("summary", "")
+        
+        last_turns = []
+        for m in (state.get("messages") or []):
+            role = (m.get("type") or m.get("role") or "").lower()
+            content = m.get("content") if isinstance(m, dict) else getattr(m, "content", "")
+            if content:
+                # Truncate long messages to avoid prompt bloat
+                if len(content.split()) > 1000:
+                    content = " ".join(content.split()[:1000]) + "..."
+                
+                speaker = "User" if role in ("human", "user") else "Assistant"
+                last_turns.append(f"{speaker}: {content}")
+        last_3_text = "\n".join(last_turns[-4:]) or "None"
+        context_parts=[f""]
+        
+        context_parts.append(f"\nUSER QUERY:\n{user_query}")
+        context_parts.append(f"\nSOURCE ROUTING DECISION:\nStrategy: {strategy}\nReasoning: {source_decision['reasoning']}")
+        
+        
+        if user_result and use_user_docs:
+            context_parts.append(f"\nUSER DOCUMENT CONTEXT:\n{chr(10).join(user_result)}")
+        
+        if kb_result and use_kb:
+            print(f"kb gwdsjqfifsdgilghsdfiushleroge.................")
+            context_parts.append(f"\nKNOWLEDGE BASE CONTEXT:\n{chr(10).join(kb_result)}")
+        # Add image embedding results
+        if images_result:
+            context_parts.append(f"\nIMAGE DOCUMENT CONTEXT:\n{chr(10).join(images_result)}")
+        # If we have cached image intent context and no embedding hits yet
+        img_intent_ctx = state.get("image_intent_context")
+        if img_intent_ctx and not images_result:
+            context_parts.append(f"\nIMAGE ANALYSIS CONTEXT (cached):\n{img_intent_ctx}")
+        
+        if not user_result and not kb_result:
+            context_parts.append("\nNO RETRIEVAL CONTEXT: No relevant documents were found. Provide a helpful response based on general knowledge and conversation history.")
+        elif not user_result and kb_result:
+            context_parts.append("\nPARTIAL CONTEXT: Only knowledge base information is available. The user may need to upload documents for analysis.")
+
+        context_parts.append(f"CONVERSATION CONTEXT:\nSummary: {summary if summary else 'None'}\nLast Turns:\n{last_3_text}")
+        final_context_message = HumanMessage(content="\n".join(context_parts))
+        # print(f"system promtp................", STATIC_SYS_RAG)
+        system_msg = SystemMessage(content=STATIC_SYS_RAG)
+
+        dynamic_prompt = f"""
     # CUSTOM GPT CONFIGURATION
     {custom_system_prompt if custom_system_prompt else 'No custom instructions provided.'}
 
@@ -2049,41 +2065,62 @@ async def Rag(state: GraphState) -> GraphState:
     {final_context_message.content}
     """
 
-    final_messages = [
-        system_msg,
-        HumanMessage(content=dynamic_prompt)
-    ]
+        final_messages = [
+            system_msg,
+            HumanMessage(content=dynamic_prompt)
+        ]
 
-    llm=get_llm(llm_model,0.8)
-    await send_status_update(state, "🤖 Generating response from retrieved information...", 90)
-   
-    print(f"model named used in rag.....", llm_model)
-    chunk_callback = state.get("_chunk_callback")
-    ai_response_dict = {"role": "assistant", "content": ""}
-    full_response, _ = await stream_with_token_tracking(
-        llm,
-        final_messages,
-        chunk_callback=chunk_callback,
-        state=state
-    )
-    if chunk_callback:
-        await chunk_callback("\n\n")
-        full_response += "\n\n"
-    ai_response_dict["content"] = full_response
-    # state["messages"] = state.get("messages", []) + [ai_response_dict]
-    state["response"] = full_response
-    state.setdefault("intermediate_results", []).append({
-        "node": "RAG",
-        "query": user_query,
-        "strategy": strategy,
-        "sources_used": {
-            "user_docs": len(user_result),
-            "kb": len(kb_result)
-        },
-        "output": state["response"]
-    })
-    
-    print(f"[RAG] Response generated using {len(user_result)} user docs, {len(kb_result)} KB chunks")
+        llm=get_llm(llm_model,0.8)
+        await send_status_update(state, "🤖 Generating response from retrieved information...", 90)
+       
+        print(f"model named used in rag.....", llm_model)
+        chunk_callback = state.get("_chunk_callback")
+        ai_response_dict = {"role": "assistant", "content": ""}
         
-    await send_status_update(state, "✅ RAG processing completed", 100)
-    return state
+        # Stop thinking states when response generation starts
+        if stop_flag:
+            stop_flag.set()
+        if thinking_task:
+            thinking_task.cancel()
+            try:
+                await thinking_task
+            except asyncio.CancelledError:
+                pass
+        
+        full_response, _ = await stream_with_token_tracking(
+            llm,
+            final_messages,
+            chunk_callback=chunk_callback,
+            state=state
+        )
+        if chunk_callback:
+            await chunk_callback("\n\n")
+            full_response += "\n\n"
+        ai_response_dict["content"] = full_response
+        # state["messages"] = state.get("messages", []) + [ai_response_dict]
+        state["response"] = full_response
+        state.setdefault("intermediate_results", []).append({
+            "node": "RAG",
+            "query": user_query,
+            "strategy": strategy,
+            "sources_used": {
+                "user_docs": len(user_result),
+                "kb": len(kb_result)
+            },
+            "output": state["response"]
+        })
+        
+        print(f"[RAG] Response generated using {len(user_result)} user docs, {len(kb_result)} KB chunks")
+            
+        await send_status_update(state, "✅ RAG processing completed", 100)
+        return state
+    finally:
+        # Ensure thinking states are stopped even if there's an error
+        if stop_flag:
+            stop_flag.set()
+        if thinking_task:
+            thinking_task.cancel()
+            try:
+                await thinking_task
+            except asyncio.CancelledError:
+                pass

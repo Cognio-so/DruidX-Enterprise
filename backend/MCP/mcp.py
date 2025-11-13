@@ -11,6 +11,7 @@ from llm import get_llm
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 import os
 from llm import get_llm
+from thinking_states import send_thinking_state, MCP_THINKING_STATES, send_mcp_tool_thinking
 SLACK_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_SLACK", "20251201_01")  
 CALENDAR_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_GOOGLECALENDAR", "20251024_00")
 GITHUB_VERSION = os.getenv("COMPOSIO_TOOLKIT_VERSION_GITHUB", "20251024_00")
@@ -440,6 +441,9 @@ TOOL_MAPPING = {
 
 async def mcp_node(state: GraphState) -> GraphState:
     """MCP Node for the graph workflow"""
+    thinking_task = None
+    stop_flag = None
+    
     try:
         print("=== MCP NODE EXECUTION ===")
         
@@ -563,6 +567,16 @@ Instructions:
             state["response"] = "No valid tools found for the enabled Composio tools."
             return state
         
+        # Start thinking states loop with tool name
+        tool_display_name = connected_tools[0] if connected_tools else "MCP Tool"
+        if len(connected_tools) > 1:
+            tool_display_name = f"{', '.join(connected_tools[:2])}" + (f" (+{len(connected_tools)-2} more)" if len(connected_tools) > 2 else "")
+        
+        thinking_result = await send_mcp_tool_thinking(
+            state, tool_display_name, interval=2.0
+        )
+        thinking_task, stop_flag = thinking_result if thinking_result else (None, None)
+        
         print(f"Executing MCP action with tools: {connected_tools}")
     
         result = await MCPNode.execute_mcp_action(
@@ -665,6 +679,16 @@ IMPORTANT: Look for any IDs, URLs, or identifiers in the output and create direc
             # Fallback: create a basic confirmation message
             # final_response = f"✅ Successfully {action_type} using {tool_name.upper()}.\n\nRaw result: {raw_result_str[:1000]}"
                 
+        # Stop thinking states when response is ready
+        if stop_flag:
+            stop_flag.set()
+        if thinking_task:
+            thinking_task.cancel()
+            try:
+                await thinking_task
+            except asyncio.CancelledError:
+                pass
+        
         if chunk_callback and hasattr(chunk_callback, '__call__'):
             await chunk_callback(str(final_response))
         
@@ -675,5 +699,15 @@ IMPORTANT: Look for any IDs, URLs, or identifiers in the output and create direc
         import traceback
         traceback.print_exc()
         state["response"] = f"Error executing MCP action: {str(e)}"
+    finally:
+        # Ensure thinking states are stopped even if there's an error
+        if stop_flag:
+            stop_flag.set()
+        if thinking_task:
+            thinking_task.cancel()
+            try:
+                await thinking_task
+            except asyncio.CancelledError:
+                pass
     
     return state

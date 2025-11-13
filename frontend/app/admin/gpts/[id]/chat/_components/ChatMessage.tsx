@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { ResearchTimeline } from "@/components/ResearchTimeline";
 import { ResearchPhaseShimmer } from "@/components/ResearchPhaseShimmer";
 import { Reasoning } from "@/components/ai-elements/reasoning";
+import { ShimmeringText } from "@/components/ui/shimmering-text";
+import { useState, useEffect } from "react";
 
 interface UploadedDoc {
   url: string;
@@ -62,6 +64,7 @@ interface ChatMessageProps {
   researchPhases?: ResearchPhase[];
   currentPhase?: StatusPhase | null;
   webSearchStatus?: WebSearchStatus;
+  thinkingState?: string | null;
 }
 
 export default function ChatMessage({
@@ -77,6 +80,7 @@ export default function ChatMessage({
   researchPhases = [],
   currentPhase = null,
   webSearchStatus,
+  thinkingState: backendThinkingState,
 }: ChatMessageProps) {
 
   // Handle download for images and videos
@@ -163,9 +167,6 @@ export default function ChatMessage({
                   </div>
                 )}
                 <Response sources={sources}>{message}</Response>
-                {isStreaming && !webSearchStatus?.isActive && (
-                  <span className="inline-block animate-pulse ml-1">⚪</span>
-                )}
                 <div className="text-xs mt-1 opacity-70 text-muted-foreground">
                   {timestamp}
                 </div>
@@ -286,9 +287,6 @@ export default function ChatMessage({
                 {message ? (
                   <div className="bg-muted/60 border border-border rounded-lg p-4 break-words">
                     <Response sources={sources}>{message}</Response>
-                    {isStreaming && !webSearchStatus?.isActive && (
-                      <span className="inline-block animate-pulse ml-1">⚪</span>
-                    )}
                     <div className="flex items-center justify-between mt-2">
                       <div className="text-xs opacity-70 text-muted-foreground">
                         {timestamp}
@@ -312,7 +310,13 @@ export default function ChatMessage({
                     </div>
                   </div>
                 ) : isStreaming && !webSearchStatus?.isActive ? (
-                  <span className="inline-block animate-pulse">⚪</span>
+                  backendThinkingState ? (
+                    <ShimmeringText className="text-muted-foreground text-lg">
+                      {backendThinkingState}
+                    </ShimmeringText>
+                  ) : (
+                    <span className="animate-pulse text-lg text-muted-foreground">⚪</span>
+                  )
                 ) : null}
               </div>
             </div>

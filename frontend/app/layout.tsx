@@ -39,6 +39,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${nunito.variable} antialiased`}
+        suppressHydrationWarning
       >
         <Script id="microsoft-clarity" strategy="afterInteractive">
           {`
