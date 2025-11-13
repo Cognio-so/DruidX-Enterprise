@@ -1,9 +1,12 @@
 import { buttonVariants } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
-import { DashboardOverview } from "./_components/dashboard-overview";
+import { DashboardOverviewSSR } from "./_components/dashboard-overview-ssr";
+import { getAdminDashboardSSR } from "@/data/get-admin-dashboard-ssr";
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  const data = await getAdminDashboardSSR();
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -29,7 +32,7 @@ export default function AdminPage() {
 
       {/* Main Dashboard Content */}
       <div className="px-6">
-        <DashboardOverview />
+        <DashboardOverviewSSR data={data} />
       </div>
     </div>
   );

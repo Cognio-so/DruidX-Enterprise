@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ChartData } from "@/data/get-dashboard-metrics";
+import { ChartData } from "@/data/get-admin-dashboard-ssr";
 
 interface ChartAreaInteractiveProps {
   data: ChartData[];
