@@ -177,6 +177,25 @@ async def run_web_search(state: GraphState) -> GraphState:
     
     await send_status_update(state, f"📄 Processing {len(results)} search results...", 40)
 
+    # Extract recent conversation context for better synthesis
+    past_messages = state.get("messages", [])
+    conversation_context = ""
+
+    if past_messages:
+        recent_turns = []
+        for m in past_messages[-4:]:  # Last 3 messages
+            role = (m.get("type") or m.get("role") or "").lower()
+            content = m.get("content") if isinstance(m, dict) else getattr(m, "content", "")
+            if content:
+                # Truncate to 200 words
+                if len(content.split()) > 200:
+                    content = " ".join(content.split()[:200]) + "..."
+                speaker = "User" if role in ("human", "user") else "Assistant"
+                recent_turns.append(f"{speaker}: {content}")
+        
+        if recent_turns:
+            conversation_context = "\n\n## Recent Conversation:\n" + "\n".join(recent_turns) + "\n"
+
     sources_text = "\n".join(
         [f"[Source {i+1}] ({doc.metadata.get('url')})\n"
          f"{doc.page_content[:400]}"
@@ -184,7 +203,7 @@ async def run_web_search(state: GraphState) -> GraphState:
     )
 
     user_prompt = f"""User Query: {query}
-
+{conversation_context}
 Search Results:
 {sources_text}
 
@@ -192,6 +211,8 @@ Now synthesize them into a clear, structured answer with:
 - Headings and subheadings
 - Numbered or bulleted lists
 - A final 'Sources Used' section with URLs(no titles or anything).
+
+Note: If the conversation context suggests this is a follow-up question, ensure your answer builds upon the previous discussion.
 """
     await send_status_update(state, "🤖 Generating response from search results...", 70)
     chunk_callback = state.get("_chunk_callback")
