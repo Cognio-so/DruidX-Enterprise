@@ -1,6 +1,9 @@
-import { UserDashboardOverview } from "./_components/user-dashboard-overview";
+import { UserDashboardOverviewSSR } from "./_components/user-dashboard-overview-ssr";
+import { getUserDashboardSSR } from "@/data/get-user-dashboard-ssr";
 
-export default function Dashboard() {
+export default async function Dashboard() {
+  const data = await getUserDashboardSSR();
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -15,7 +18,7 @@ export default function Dashboard() {
 
       {/* Main Dashboard Content */}
       <div className="px-6">
-        <UserDashboardOverview />
+        <UserDashboardOverviewSSR data={data} />
       </div>
     </div>
   );

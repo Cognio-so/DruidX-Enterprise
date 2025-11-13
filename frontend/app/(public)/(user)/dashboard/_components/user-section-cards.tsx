@@ -8,7 +8,7 @@ import {
   Star,
   BarChart3
 } from "lucide-react";
-import { UserDashboardMetrics } from "@/data/get-user-dashboard-metrics";
+import { UserDashboardMetrics } from "@/data/get-user-dashboard-ssr";
 
 interface SectionCardsProps {
   metrics: UserDashboardMetrics;

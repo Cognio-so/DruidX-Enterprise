@@ -8,7 +8,7 @@ import {
   TrendingDown,
   Clock
 } from "lucide-react";
-import { DashboardMetrics } from "@/data/get-dashboard-metrics";
+import { DashboardMetrics } from "@/data/get-admin-dashboard-ssr";
 
 interface SectionCardsProps {
   metrics: DashboardMetrics;
