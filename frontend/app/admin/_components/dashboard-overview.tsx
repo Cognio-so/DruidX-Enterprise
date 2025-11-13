@@ -1,16 +1,24 @@
-import { Suspense } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SectionCards } from "./section-cards";
 import { ChartAreaInteractive } from "./chart-area-interactive";
 import { RecentActivityTable } from "./recent-activity-table";
-import {
-  getDashboardMetrics,
-  getUserGrowthData,
-  getConversationTrends,
-  getGptUsageStats,
-  getRecentActivity,
-} from "@/data/get-dashboard-metrics";
+import { DashboardMetrics, ChartData } from "@/data/get-dashboard-metrics";
+
+interface DashboardData {
+  metrics: DashboardMetrics;
+  userGrowth: ChartData[];
+  conversationTrends: ChartData[];
+  gptUsage: ChartData[];
+  recentActivity: {
+    recentConversations: any[];
+    recentUsers: any[];
+    recentGpts: any[];
+  };
+}
 
 function MetricsSkeleton() {
   return (
@@ -69,77 +77,110 @@ function TableSkeleton() {
   );
 }
 
-async function MetricsCards() {
-  const metrics = await getDashboardMetrics();
-  return <SectionCards metrics={metrics} />;
-}
-
-async function UserGrowthChart() {
-  const data = await getUserGrowthData();
-  return (
-    <ChartAreaInteractive
-      data={data}
-      title="User Growth"
-      description="New user registrations over the last 6 months"
-      color="hsl(var(--primary))"
-    />
-  );
-}
-
-async function ConversationTrendsChart() {
-  const data = await getConversationTrends();
-  return (
-    <ChartAreaInteractive
-      data={data}
-      title="Conversation Trends"
-      description="Daily conversation volume over the last 30 days"
-      color="hsl(var(--chart-2))"
-    />
-  );
-}
-
-async function GptUsageChart() {
-  const data = await getGptUsageStats();
-  return (
-    <ChartAreaInteractive
-      data={data}
-      title="GPT Usage Statistics"
-      description="Most popular GPTs by conversation count"
-      color="hsl(var(--chart-3))"
-    />
-  );
-}
-
-async function RecentActivityData() {
-  const data = await getRecentActivity();
-
-  return <RecentActivityTable data={data} />;
-}
-
 export function DashboardOverview() {
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchDashboardData() {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch("/api/admin/dashboard/metrics");
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch dashboard data");
+        }
+        
+        const dashboardData = await response.json();
+        setData(dashboardData);
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+        setError("Failed to load dashboard data");
+        // Set default empty data to prevent crashes
+        setData({
+          metrics: {
+            totalUsers: 0,
+            totalGpts: 0,
+            totalConversations: 0,
+            totalMessages: 0,
+            activeUsers: 0,
+            recentConversations: 0,
+            userGrowth: 0,
+            conversationGrowth: 0,
+          },
+          userGrowth: [],
+          conversationTrends: [],
+          gptUsage: [],
+          recentActivity: {
+            recentConversations: [],
+            recentUsers: [],
+            recentGpts: [],
+          },
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <MetricsSkeleton />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <ChartSkeleton />
+          <ChartSkeleton />
+        </div>
+        <ChartSkeleton />
+        <TableSkeleton />
+      </div>
+    );
+  }
+
+  if (error && !data) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <p className="text-muted-foreground">{error}</p>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return null;
+  }
+
   return (
     <div className="space-y-6">
-      <Suspense fallback={<MetricsSkeleton />}>
-        <MetricsCards />
-      </Suspense>
+      <SectionCards metrics={data.metrics} />
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Suspense fallback={<ChartSkeleton />}>
-          <UserGrowthChart />
-        </Suspense>
+        <ChartAreaInteractive
+          data={data.userGrowth}
+          title="User Growth"
+          description="New user registrations over the last 6 months"
+          color="hsl(var(--primary))"
+        />
 
-        <Suspense fallback={<ChartSkeleton />}>
-          <ConversationTrendsChart />
-        </Suspense>
+        <ChartAreaInteractive
+          data={data.conversationTrends}
+          title="Conversation Trends"
+          description="Daily conversation volume over the last 30 days"
+          color="hsl(var(--chart-2))"
+        />
       </div>
 
-      <Suspense fallback={<ChartSkeleton />}>
-        <GptUsageChart />
-      </Suspense>
+      <ChartAreaInteractive
+        data={data.gptUsage}
+        title="GPT Usage Statistics"
+        description="Most popular GPTs by conversation count"
+        color="hsl(var(--chart-3))"
+      />
 
-      <Suspense fallback={<TableSkeleton />}>
-        <RecentActivityData />
-      </Suspense>
+      <RecentActivityTable data={data.recentActivity} />
     </div>
   );
 }
