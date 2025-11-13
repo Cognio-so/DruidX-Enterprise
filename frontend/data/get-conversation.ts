@@ -25,6 +25,9 @@ export async function getConversationById(conversationId: string, isAdmin: boole
             role: true,
             content: true,
             timestamp: true,
+            uploadedDocs: true,
+            imageUrls: true,
+            videoUrls: true,
           }
         },
         gpt: {
@@ -56,6 +59,9 @@ export async function getConversationById(conversationId: string, isAdmin: boole
             role: true,
             content: true,
             timestamp: true,
+            uploadedDocs: true,
+            imageUrls: true,
+            videoUrls: true,
           }
         },
         gpt: {

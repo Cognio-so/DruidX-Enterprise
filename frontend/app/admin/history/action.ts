@@ -13,6 +13,9 @@ export interface ConversationData {
     role: 'user' | 'assistant' | 'system';
     content: string;
     timestamp: Date;
+    uploadedDocs?: Array<{ url: string; filename: string; type: string }>;
+    imageUrls?: string[];
+    videoUrls?: string[];
   }>;
 }
 
@@ -37,6 +40,9 @@ export async function saveConversation(conversationData: ConversationData) {
               role: msg.role,
               content: msg.content,
               timestamp: msg.timestamp,
+              uploadedDocs: msg.uploadedDocs || null,
+              imageUrls: msg.imageUrls || null,
+              videoUrls: msg.videoUrls || null,
             }))
           }
         },
@@ -65,6 +71,9 @@ export async function saveConversation(conversationData: ConversationData) {
               role: msg.role,
               content: msg.content,
               timestamp: msg.timestamp,
+              uploadedDocs: msg.uploadedDocs || null,
+              imageUrls: msg.imageUrls || null,
+              videoUrls: msg.videoUrls || null,
             }))
           }
         },

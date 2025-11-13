@@ -39,6 +39,9 @@ export async function getAdminHistory() {
           content: true,
           role: true,
           timestamp: true,
+          uploadedDocs: true,
+          imageUrls: true,
+          videoUrls: true,
         }
       },
       _count: {

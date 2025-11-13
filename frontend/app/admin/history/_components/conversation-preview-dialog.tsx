@@ -20,6 +20,7 @@ import {
   Calendar,
   MessageCircle,
   Eye,
+  ExternalLink,
 } from "lucide-react";
 import Image from "next/image";
 import Markdown from "@/components/ui/markdown";
@@ -49,6 +50,30 @@ export function ConversationPreviewDialog({ history, children }: ConversationPre
       .join("")
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  const getFileIcon = (type: string) => {
+    if (type.startsWith("image/")) return "🖼️";
+    if (type === "application/pdf") return "📄";
+    if (type.includes("word") || type.includes("document")) return "📝";
+    if (type === "text/markdown") return "📋";
+    if (type === "application/json") return "📊";
+    return "📄";
+  };
+
+  const getFileTypeLabel = (type: string) => {
+    if (type.startsWith("image/")) return "Image";
+    if (type === "application/pdf") return "PDF";
+    if (type.includes("word") || type.includes("document")) return "Word";
+    if (type === "text/markdown") return "Markdown";
+    if (type === "application/json") return "JSON";
+    return "File";
+  };
+
+  const parseJsonField = (field: any) => {
+    if (!field) return null;
+    // Prisma Json type returns the parsed object directly
+    return Array.isArray(field) ? field : null;
   };
 
   return (
@@ -135,11 +160,95 @@ export function ConversationPreviewDialog({ history, children }: ConversationPre
                         {new Date(message.timestamp).toLocaleTimeString()}
                       </span>
                     </div>
-                    <div className="bg-muted/60 border border-border rounded-lg p-2 sm:p-3 md:p-4">
-                      <Markdown 
-                        content={message.content}
-                        className="text-xs sm:text-sm"
-                      />
+                    <div className="space-y-2">
+                      {/* Show uploaded files for user messages */}
+                      {message.role === 'user' && parseJsonField(message.uploadedDocs) && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {(parseJsonField(message.uploadedDocs) as Array<{ url: string; filename: string; type: string }>).map((doc, docIdx) => (
+                            <div
+                              key={docIdx}
+                              className="flex items-center gap-2 bg-muted/60 border border-border rounded-lg px-2 py-1 text-xs"
+                            >
+                              <span className="text-sm">{getFileIcon(doc.type)}</span>
+                              <div className="flex flex-col min-w-0">
+                                <span className="font-medium truncate max-w-[100px]" title={doc.filename}>
+                                  {doc.filename}
+                                </span>
+                                <span className="text-xs opacity-70">
+                                  {getFileTypeLabel(doc.type)}
+                                </span>
+                              </div>
+                              <a
+                                href={doc.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-muted-foreground hover:text-foreground"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Show generated images for assistant messages */}
+                      {message.role === 'assistant' && parseJsonField(message.imageUrls) && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+                          {(parseJsonField(message.imageUrls) as string[]).map((url, idx) => (
+                            <div key={idx} className="relative group">
+                              <img
+                                src={url}
+                                alt={`Generated image ${idx + 1}`}
+                                className="w-full h-auto rounded-lg border border-border"
+                                loading="lazy"
+                              />
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="absolute top-2 right-2 p-2 bg-background/80 rounded-md hover:bg-background/90 transition-colors opacity-0 group-hover:opacity-100"
+                                title="Open in new tab"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Show generated videos for assistant messages */}
+                      {message.role === 'assistant' && parseJsonField(message.videoUrls) && (
+                        <div className="grid grid-cols-1 gap-2 mb-2">
+                          {(parseJsonField(message.videoUrls) as string[]).map((url, idx) => (
+                            <div key={idx} className="relative group">
+                              <video
+                                src={url}
+                                controls
+                                className="w-full h-auto rounded-lg border border-border"
+                                preload="metadata"
+                              >
+                                Your browser does not support the video tag.
+                              </video>
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="absolute top-2 right-2 p-2 bg-background/80 rounded-md hover:bg-background/90 transition-colors opacity-0 group-hover:opacity-100"
+                                title="Open in new tab"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      <div className="bg-muted/60 border border-border rounded-lg p-2 sm:p-3 md:p-4">
+                        <Markdown 
+                          content={message.content}
+                          className="text-xs sm:text-sm"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

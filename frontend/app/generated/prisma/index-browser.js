@@ -239,7 +239,10 @@ exports.Prisma.MessageScalarFieldEnum = {
   conversationId: 'conversationId',
   role: 'role',
   content: 'content',
-  timestamp: 'timestamp'
+  timestamp: 'timestamp',
+  uploadedDocs: 'uploadedDocs',
+  imageUrls: 'imageUrls',
+  videoUrls: 'videoUrls'
 };
 
 exports.Prisma.KnowledgeBaseScalarFieldEnum = {
@@ -291,6 +294,11 @@ exports.Prisma.SortOrder = {
   desc: 'desc'
 };
 
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
 exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -299,6 +307,12 @@ exports.Prisma.QueryMode = {
 exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
 };
 exports.ModelEnum = exports.$Enums.ModelEnum = {
   gemini_2_5_flash: 'gemini_2_5_flash',

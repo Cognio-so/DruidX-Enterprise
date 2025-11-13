@@ -9,6 +9,9 @@ interface Message {
   content: string;
   timestamp: string;
   isStreaming?: boolean;
+  uploadedDocs?: Array<{ url: string; filename: string; type: string }>;
+  imageUrls?: string[];
+  videoUrls?: string[];
 }
 
 interface UseAutoSaveConversationProps {
@@ -60,7 +63,10 @@ export function useAutoSaveConversation({
         messages: messages.map(msg => ({
           role: msg.role,
           content: msg.content,
-          timestamp: new Date(msg.timestamp)
+          timestamp: new Date(msg.timestamp),
+          uploadedDocs: msg.uploadedDocs,
+          imageUrls: msg.imageUrls,
+          videoUrls: msg.videoUrls,
         }))
       };
 
