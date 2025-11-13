@@ -669,11 +669,10 @@ async def entrypoint(ctx: agents.JobContext):
         logger.info("=" * 70)
         logger.info(f"🎯 Agent entrypoint CALLED for room: {ctx.room.name}")
 
-        # Define default models and instructions
+        # Define default models
         openai_model = "gpt-4.1-nano"
         stt_model = "nova-3"
         tts_model = "aura-2-ophelia-en"
-        instructions = None  # Default to None, letting VoiceAssistant use its internal default
 
         # Try to extract session_id from room name
         session_id = None
@@ -694,7 +693,6 @@ async def entrypoint(ctx: agents.JobContext):
                         openai_model = config.get("openai_model") or openai_model
                         stt_model = config.get("stt_model") or stt_model
                         tts_model = config.get("tts_model") or tts_model
-                        instructions = config.get("instructions") or instructions
                     else:
                         logger.info(f"No voice config found in Redis for key '{config_key}'. Using default models.")
                 except Exception as e:
@@ -704,14 +702,12 @@ async def entrypoint(ctx: agents.JobContext):
         else:
             logger.warning("Could not determine session_id from room name. Using default models.")
 
-        logger.info("Initializing VoiceAssistant with the following config:")
+        logger.info("Initializing VoiceAssistant with the following models:")
         logger.info(f"  - OpenAI LLM Model: {openai_model}")
         logger.info(f"  - STT Model: {stt_model}")
         logger.info(f"  - TTS Model: {tts_model}")
-        logger.info(f"  - Instructions: {'Custom' if instructions else 'Default'}")
-
+        
         assistant = VoiceAssistant(
-            instructions=instructions,
             openai_model=openai_model,
             stt_model=stt_model,
             tts_model=tts_model,

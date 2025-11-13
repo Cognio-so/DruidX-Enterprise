@@ -1259,7 +1259,6 @@ async def voice_connect(request: dict):
     # openai_model = request.get("openai_model")
     # stt_model = request.get("stt_model")
     # tts_model = request.get("tts_model")
-    
     openai_model = "gpt-4.1-nano"
     stt_model = "nova-3"
     tts_model = "aura-2-ophelia-en"
@@ -1268,11 +1267,6 @@ async def voice_connect(request: dict):
         raise HTTPException(status_code=400, detail="Session ID is required")
     
     try:
-        # Get the full session to access gpt_config
-        session = await SessionManager.get_session(session_id)
-        gpt_config = session.get("gpt_config", {})
-        instructions = gpt_config.get("instruction")
-
         # Store voice config in Redis for the agent worker to pick up
         redis_client = await ensure_redis_client()
         if redis_client:
@@ -1280,13 +1274,12 @@ async def voice_connect(request: dict):
                 "openai_model": openai_model,
                 "stt_model": stt_model,
                 "tts_model": tts_model,
-                "instructions": instructions,
             }
             config_key = f"voice_config:{session_id}"
             await redis_client.set(config_key, json.dumps(voice_config), ex=3600) # 1-hour expiry
             print(f"Stored voice config for session {session_id} in Redis: {voice_config}")
         else:
-            print("[Warning] Redis not available. Agent will use default models and instructions.")
+            print("[Warning] Redis not available. Agent will use default models.")
 
         # Ensure agent worker is running
         await _ensure_agent_worker_running()
