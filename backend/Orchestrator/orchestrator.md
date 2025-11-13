@@ -25,15 +25,17 @@
     <node name="RAG">
       <description>Document and image analysis</description>
       <use_when>
-        <case>Query explicitly references uploaded documents: "in the document", "from the file", "analyze this PDF"</case>
+        <case>Newly uploaded documents are present (PDFs, text files, Word docs, spreadsheets, etc.) AND query is about analyzing/processing them</case>
+        <case>Query explicitly references uploaded documents: "in the document", "from the file", "analyze this PDF", "what does the document say", "summarize the file"</case>
         <case>Query explicitly references images for ANALYSIS: "in the image", "what's in the image", "second image", "analyze this image", "describe this image", "extract text from image"</case>
+        <case>New documents just uploaded (check new_uploaded_docs) AND query is about content extraction, analysis, or summary</case>
         <case>Follow-up when last_route=RAG AND continuing document/image discussion</case>
       </use_when>
       <do_not_use>
         <case>Image editing queries: "edit this image", "make it brighter", "change the color", "remove background", "modify", "adjust", "enhance" → Use Image node instead</case>
         <case>If user uploaded image AND query is about editing/modifying the image → Route to Image node, NOT RAG</case>
       </do_not_use>
-      <critical_note>RAG is for image ANALYSIS only (extracting text, describing content). Image EDITING queries must route to Image node, not RAG. If text content is pasted directly in query (not uploaded), use SimpleLLM instead</critical_note>
+      <critical_note>RAG is for document/image ANALYSIS only (extracting text, describing content, summarizing, answering questions about documents). Image EDITING queries must route to Image node, not RAG. If text content is pasted directly in query (not uploaded), use SimpleLLM instead. When new_uploaded_docs contains documents, strongly consider RAG unless query is clearly for image editing or other specialized tasks.</critical_note>
     </node>
 
     <node name="WebSearch">
@@ -100,12 +102,13 @@
     <step order="6">Query mentions images but asks for prompts/suggestions/descriptions WITHOUT explicit generation action? → SimpleLLM (NOT Image node)</step>
     <step order="7">Query is video generation related AND is_video flag is true? → Video (BOTH must be true, otherwise → SimpleLLM)</step>
     <step order="8">Composio tools enabled + action patterns? → MCP</step>
-    <step order="9">Text pasted directly in query for processing? → SimpleLLM</step>
-    <step order="10">Document/image reference for ANALYSIS OR last_route=RAG + follow-up? → RAG (NOT for image editing)</step>
-    <step order="11">last_route=WebSearch + follow-up (even vague)? → WebSearch</step>
-    <step order="12">Factual/informational query (no pasted text)? → WebSearch</step>
-    <step order="13">Pure casual conversation? → SimpleLLM</step>
-    <step order="14">Default fallback → SimpleLLM</step>
+    <step order="9">New documents uploaded (check new_uploaded_docs) AND query is about analyzing/processing them? → RAG (NOT for image editing, NOT for pasted text)</step>
+    <step order="10">Text pasted directly in query for processing? → SimpleLLM</step>
+    <step order="11">Document/image reference for ANALYSIS OR last_route=RAG + follow-up? → RAG (NOT for image editing)</step>
+    <step order="12">last_route=WebSearch + follow-up (even vague)? → WebSearch</step>
+    <step order="13">Factual/informational query (no pasted text)? → WebSearch</step>
+    <step order="14">Pure casual conversation? → SimpleLLM</step>
+    <step order="15">Default fallback → SimpleLLM</step>
   </routing_priority>
 
   <follow_up_rules>
@@ -172,6 +175,7 @@
   </multi_step_planning>
 
   <critical_rules>
+    <rule>NEW DOCUMENTS: If new_uploaded_docs is present and contains documents, strongly consider routing to RAG for document analysis UNLESS query is clearly for image editing (with explicit action verbs AND is_image=true) or other specialized tasks. Document types include pdf, docx, txt, xlsx, csv, image (for analysis only), etc.</rule>
     <rule>Follow-ups continue same route (WebSearch→WebSearch, RAG→RAG, Image→Image for editing, Video→Video for editing) ONLY if respective flags (is_image/is_video) are true</rule>
     <rule>Pronouns/vague queries after WebSearch → WebSearch (NOT SimpleLLM)</rule>
     <rule>Image node routing REQUIRES BOTH: (1) Query contains EXPLICIT generation/editing ACTION verbs (generate, create, make, draw, edit, modify, etc.) AND (2) is_image flag is true AND (3) Query is NOT asking for prompt generation/writing. If query asks FOR a prompt (e.g., "give a prompt for...", "create a prompt for...", "write a prompt for..."), route to SimpleLLM even if is_image is true and query contains action verbs.</rule>
@@ -182,8 +186,8 @@
     <rule>Video node routing for FOLLOW-UP editing: If last_route=Video AND query is about editing/modifying video AND is_video flag is true → Route to Video. is_video flag MUST be true for follow-up editing.</rule>
     <rule>Image ANALYSIS queries ("what's in the image", "analyze this image", "describe this image") → RAG (NOT SimpleLLM, NOT Image node)</rule>
     <rule>Image EDITING queries with explicit action verbs ("edit this image", "make it brighter", "change the color") when images are uploaded AND is_image flag is true → Image node (NOT RAG, NOT SimpleLLM). If is_image is false, route to SimpleLLM or RAG.</rule>
-    <rule>RAG handles image analysis only (extracting text, describing content). Image node handles image editing and generation, but ONLY when query contains explicit action verbs AND is_image flag is true.</rule>
-    <rule>Factual questions → WebSearch ONLY if no pasted text AND no image references</rule>
+    <rule>RAG handles document and image analysis only (extracting text, describing content, summarizing documents, answering questions about uploaded files). Image node handles image editing and generation, but ONLY when query contains explicit action verbs AND is_image flag is true.</rule>
+    <rule>Factual questions → WebSearch ONLY if no pasted text AND no document references AND no new_uploaded_docs</rule>
     <rule>SimpleLLM handles pasted text content by default</rule>
     <rule>SimpleLLM handles queries about images that don't request generation/editing (prompts, suggestions, descriptions, general questions)</rule>
     <rule>When uncertain: SimpleLLM over WebSearch</rule>
@@ -215,5 +219,6 @@
     <input name="is_image">Boolean flag - Route to Image node ONLY if BOTH: (1) this flag is true AND (2) query contains EXPLICIT generation/editing ACTION verbs (generate, create, make, draw, edit, modify, etc.) AND (3) query is NOT asking for prompt generation/writing. This flag is REQUIRED for BOTH generation AND editing. If query asks FOR a prompt (e.g., "give a prompt for...", "create a prompt for...", "write a prompt for..."), route to SimpleLLM even if this flag is true and query contains action verbs like "create" or "generate".</input>
     <input name="is_video">Boolean flag - Route to Video node ONLY if BOTH: (1) this flag is true AND (2) query is video generation/editing related. This flag is REQUIRED for BOTH generation AND editing. If false, route to SimpleLLM.</input>
     <input name="uploaded_images">List of uploaded images in session. If images are uploaded AND query contains explicit editing action verbs AND is_image flag is true → Route to Image node (NOT RAG). If is_image is false, route to RAG for analysis or SimpleLLM.</input>
+    <input name="new_uploaded_docs">List of newly uploaded documents with file types (e.g., [{"file_type": "pdf"}, {"file_type": "image"}]). When documents are present, strongly consider routing to RAG for analysis unless the query is clearly for image editing (with explicit action verbs AND is_image=true) or other specialized tasks. Document types include: pdf, docx, txt, xlsx, csv, image, etc.</input>
   </inputs_provided>
 </system_prompt>
