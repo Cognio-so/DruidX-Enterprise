@@ -192,6 +192,7 @@ async def analyze_query(
     is_image: bool = False,
     is_video: bool = False,
     uploaded_images: List[str] = None,  # List of image URLs from new_uploaded_docs
+    new_uploaded_docs: List[dict] = None,  # Full list of newly uploaded documents
 ) -> Optional[Dict[str, Any]]:
     """
     Analyze the user's message in context (conversation, summary, last route)
@@ -226,6 +227,21 @@ async def analyze_query(
         if uploaded_images and len(uploaded_images) > 0:
             uploaded_images_text = f"\nUploaded Images: {len(uploaded_images)} image URL(s) available in session"
         
+        # Build document context from new_uploaded_docs
+        doc_context_text = ""
+        if new_uploaded_docs and len(new_uploaded_docs) > 0:
+            doc_types = {}
+            for doc in new_uploaded_docs:
+                if isinstance(doc, dict):
+                    file_type = doc.get("file_type", "unknown")
+                    doc_types[file_type] = doc_types.get(file_type, 0) + 1
+            
+            doc_summary = []
+            for doc_type, count in doc_types.items():
+                doc_summary.append(f"{count} {doc_type}(s)")
+            
+            doc_context_text = f"\nNewly Uploaded Documents: {', '.join(doc_summary)}"
+        
         dynamic_context = f"""
         User Message:
         {user_message}
@@ -235,7 +251,7 @@ async def analyze_query(
 
         Last Route: {last_route or 'None'}{composio_tools_text}
         Image Intent Flag: {is_image}
-        Video Intent Flag: {is_video}{uploaded_images_text}
+        Video Intent Flag: {is_video}{uploaded_images_text}{doc_context_text}
         """
 
         messages = [system_msg, HumanMessage(content=dynamic_context)]
@@ -484,6 +500,7 @@ async def orchestrator(state: GraphState) -> GraphState:
             is_image=is_image,
             is_video=is_video,
             uploaded_images=edit_img_urls,
+            new_uploaded_docs=new_Doc,
         )
         
         tentative_rewrite_task = rewrite_query(state)

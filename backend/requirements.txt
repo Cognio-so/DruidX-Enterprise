@@ -70,3 +70,4 @@ typing-extensions==4.15.0
 livekit-agents[cartesia]~=1.2
 livekit-agents[elevenlabs]~=1.2
 livekit-agents[hume]~=1.2
+firecrawl-py
