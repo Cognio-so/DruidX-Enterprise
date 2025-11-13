@@ -263,7 +263,7 @@ export default function ChatGptById() {
         <div className="flex-1 min-h-0 overflow-hidden">
           {hasMessages && (
             <div ref={scrollAreaRef} className="h-full">
-              <ScrollArea className="h-full p-2">
+              <ScrollArea className="h-full px-2 pt-2 pb-0">
                 <div className="space-y-2">
                   {messages.map((msg, index) => {
                     // Hide ChatMessage loader when deep research is active (to avoid duplicate loaders)
@@ -310,7 +310,7 @@ export default function ChatGptById() {
           )}
         </div>
 
-        <div className="flex-shrink-0 p-2 bg-background">
+        <div className="flex-shrink-0 px-2 pt-0 pb-2 bg-background">
           <ChatInput
             onSendMessage={sendMessage}
             onDocumentUploaded={uploadDocument}

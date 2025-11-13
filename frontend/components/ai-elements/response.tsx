@@ -16,7 +16,7 @@ export const Response = memo(
       content={children}
       sources={sources}
       className={cn(
-        "max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 break-words",
+        "max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 break-words text-[0.9375rem] leading-7",
         className
       )}
       {...props}
