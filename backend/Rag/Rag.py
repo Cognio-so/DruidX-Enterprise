@@ -295,12 +295,53 @@ async def preprocess_images(uploaded_images: List[Dict[str, Any]], state: GraphS
             collection_name = f"user_images_{session_id}"
             collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
             collections = [c.name for c in collections_response.collections]
-            if collection_name not in collections:
+            collection_is_new = collection_name not in collections
+            
+            if collection_is_new:
                 await asyncio.to_thread(
                     QDRANT_CLIENT.recreate_collection,
                     collection_name=collection_name,
                     vectors_config=models.VectorParams(size=VECTOR_SIZE, distance=models.Distance.COSINE),
                 )
+            
+            # Always ensure indexes exist (for both new and existing collections)
+            # This handles cases where collection was created before index support was added
+            try:
+                await asyncio.to_thread(
+                    QDRANT_CLIENT.create_payload_index,
+                    collection_name=collection_name,
+                    field_name="id",
+                    field_schema=models.PayloadSchemaType.KEYWORD
+                )
+            except Exception as e:
+                if "already exists" not in str(e).lower():
+                    print(f"[ImagePreprocessor] Note: Could not create index for 'id': {e}")
+            
+            try:
+                await asyncio.to_thread(
+                    QDRANT_CLIENT.create_payload_index,
+                    collection_name=collection_name,
+                    field_name="image_index",
+                    field_schema=models.PayloadSchemaType.INTEGER
+                )
+            except Exception as e:
+                if "already exists" not in str(e).lower():
+                    print(f"[ImagePreprocessor] Note: Could not create index for 'image_index': {e}")
+            
+            try:
+                await asyncio.to_thread(
+                    QDRANT_CLIENT.create_payload_index,
+                    collection_name=collection_name,
+                    field_name="filename",
+                    field_schema=models.PayloadSchemaType.KEYWORD
+                )
+            except Exception as e:
+                if "already exists" not in str(e).lower():
+                    print(f"[ImagePreprocessor] Note: Could not create index for 'filename': {e}")
+            
+            if collection_is_new:
+                print(f"[ImagePreprocessor] Created new collection with payload indexes for id, image_index, and filename")
+            
             embs = await embed_chunks_parallel([analysis], batch_size=1)
             payload = {
                 "text": analysis,
@@ -369,6 +410,27 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
             collection_name=name,
             vectors_config=models.VectorParams(size=VECTOR_SIZE, distance=models.Distance.COSINE),
         )
+        # Create indexes for payload fields that will be filtered on
+        await asyncio.to_thread(
+            QDRANT_CLIENT.create_payload_index,
+            collection_name=name,
+            field_name="doc_id",
+            field_schema=models.PayloadSchemaType.KEYWORD
+        )
+        await asyncio.to_thread(
+            QDRANT_CLIENT.create_payload_index,
+            collection_name=name,
+            field_name="filename",
+            field_schema=models.PayloadSchemaType.KEYWORD
+        )
+        await asyncio.to_thread(
+            QDRANT_CLIENT.create_payload_index,
+            collection_name=name,
+            field_name="file_type",
+            field_schema=models.PayloadSchemaType.KEYWORD
+        )
+        print(f"[RAG] Created payload indexes for doc_id, filename, and file_type in collection {name}")
+    
     async def extract_heading(txt):
         lines = txt.split("\n")
         for l in lines:
@@ -425,17 +487,32 @@ async def _search_collection(collection_name: str, query: str, limit: int) -> Li
     """
     Helper function to perform a semantic search on a Qdrant collection and return the text of the top results.
     """
-    query_embedding = await embed_query(query)
+    # Check if collection exists before searching
+    try:
+        collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
+        collections = [c.name for c in collections_response.collections]
+        if collection_name not in collections:
+            print(f"[SEARCH] Collection '{collection_name}' doesn't exist")
+            return []
+    except Exception as e:
+        print(f"[SEARCH] Error checking collection existence: {e}")
+        return []
     
-    search_results = await asyncio.to_thread(
-        QDRANT_CLIENT.search,
-        collection_name=collection_name,
-        query_vector=query_embedding,
-        limit=limit
-    )
-    result = [result.payload["text"] for result in search_results]
-    
-    return result
+    try:
+        query_embedding = await embed_query(query)
+        
+        search_results = await asyncio.to_thread(
+            QDRANT_CLIENT.search,
+            collection_name=collection_name,
+            query_vector=query_embedding,
+            limit=limit
+        )
+        result = [result.payload["text"] for result in search_results]
+        
+        return result
+    except Exception as e:
+        print(f"[SEARCH] Error searching collection '{collection_name}': {e}")
+        return []
 async def _reciprocal_rank_fusion(rankings: List[List[str]], k: int = 60) -> List[str]:
     """
     Reciprocal Rank Fusion (RRF) algorithm to combine multiple ranked lists.
@@ -487,6 +564,18 @@ async def _search_image_collection(
         filter_image_indices: Optional list of image indices (1-based) to filter by
     """
     collection_name = f"user_images_{session_id}"
+    
+    # Check if collection exists before searching
+    try:
+        collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
+        collections = [c.name for c in collections_response.collections]
+        if collection_name not in collections:
+            print(f"[IMAGE-SEARCH] Collection '{collection_name}' doesn't exist yet (no images uploaded)")
+            return []
+    except Exception as e:
+        print(f"[IMAGE-SEARCH] Error checking collection existence: {e}")
+        return []
+    
     try:
         query_embedding = await embed_query(query)
         query_filter = None
@@ -560,53 +649,68 @@ async def _hybrid_search_rrf(collection_name: str, query: str, limit: int, k: in
     Returns:
         List of top documents based on RRF fusion
     """
-    query_embedding = await embed_query(query)
-    vector_results =await asyncio.to_thread(
-        QDRANT_CLIENT.search,
-        collection_name=collection_name,
-        query_vector=query_embedding,
-        limit=limit * 3
-    )
-    vector_ranking = [result.payload["text"] for result in vector_results]
-
-    bm25_data = None
-    redis_client_binary = await ensure_redis_client_binary()
-    if redis_client_binary:
-        try:
-            serialized_data = await redis_client_binary.get(f"bm25_index:{collection_name}")
-            if serialized_data:
-                bm25_data = dill.loads(serialized_data)
-                print(f"[HYBRID-RRF] Loaded BM25 index from Redis for {collection_name}")
-        except Exception as e:
-            print(f"[HYBRID-RRF] ERROR: Failed to load BM25 index from Redis: {e}")
-
-    if not bm25_data:
-        print(f"[HYBRID-RRF] No BM25 index for {collection_name}, falling back to vector only")
-        return vector_ranking[:limit]
+    # Check if collection exists before searching
+    try:
+        collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
+        collections = [c.name for c in collections_response.collections]
+        if collection_name not in collections:
+            print(f"[HYBRID-RRF] Collection '{collection_name}' doesn't exist")
+            return []
+    except Exception as e:
+        print(f"[HYBRID-RRF] Error checking collection existence: {e}")
+        return []
     
-    bm25 = bm25_data["bm25"]
-    docs = bm25_data["docs"]
-    
-    tokenized_query = tokenize(query)
-    bm25_scores = await _bm25_scores(bm25, tokenized_query)
-    scored_docs = [(score, docs[str(idx)]) for idx, score in enumerate(bm25_scores)]
+    try:
+        query_embedding = await embed_query(query)
+        vector_results = await asyncio.to_thread(
+            QDRANT_CLIENT.search,
+            collection_name=collection_name,
+            query_vector=query_embedding,
+            limit=limit * 3
+        )
+        vector_ranking = [result.payload["text"] for result in vector_results]
 
-   
-    if len(bm25_scores) > 0:
-        max_score = max(bm25_scores)
-        mean_score = sum(bm25_scores) / len(bm25_scores)
-        bm25_threshold = max(max_score * 0.2, mean_score * 0.5, 0.1)
-    else:
-        bm25_threshold = 0.1
-    bm25_ranking = [doc for score, doc in scored_docs if score > bm25_threshold]
+        bm25_data = None
+        redis_client_binary = await ensure_redis_client_binary()
+        if redis_client_binary:
+            try:
+                serialized_data = await redis_client_binary.get(f"bm25_index:{collection_name}")
+                if serialized_data:
+                    bm25_data = dill.loads(serialized_data)
+                    print(f"[HYBRID-RRF] Loaded BM25 index from Redis for {collection_name}")
+            except Exception as e:
+                print(f"[HYBRID-RRF] ERROR: Failed to load BM25 index from Redis: {e}")
 
-    bm25_ranking = bm25_ranking[:limit * 3]
-    
-    fused_ranking = await _reciprocal_rank_fusion([vector_ranking[:limit*3], bm25_ranking[:limit*3]], k=k)
-    top_results = fused_ranking[:limit]
-    
-    print(f"[HYBRID-RRF] Fused {len(vector_ranking)} vector + {len(bm25_ranking)} BM25 → {len(top_results)} results (k={k})")
-    return top_results
+        if not bm25_data:
+            print(f"[HYBRID-RRF] No BM25 index for {collection_name}, falling back to vector only")
+            return vector_ranking[:limit]
+        
+        bm25 = bm25_data["bm25"]
+        docs = bm25_data["docs"]
+        
+        tokenized_query = tokenize(query)
+        bm25_scores = await _bm25_scores(bm25, tokenized_query)
+        scored_docs = [(score, docs[str(idx)]) for idx, score in enumerate(bm25_scores)]
+
+       
+        if len(bm25_scores) > 0:
+            max_score = max(bm25_scores)
+            mean_score = sum(bm25_scores) / len(bm25_scores)
+            bm25_threshold = max(max_score * 0.2, mean_score * 0.5, 0.1)
+        else:
+            bm25_threshold = 0.1
+        bm25_ranking = [doc for score, doc in scored_docs if score > bm25_threshold]
+
+        bm25_ranking = bm25_ranking[:limit * 3]
+        
+        fused_ranking = await _reciprocal_rank_fusion([vector_ranking[:limit*3], bm25_ranking[:limit*3]], k=k)
+        top_results = fused_ranking[:limit]
+        
+        print(f"[HYBRID-RRF] Fused {len(vector_ranking)} vector + {len(bm25_ranking)} BM25 → {len(top_results)} results (k={k})")
+        return top_results
+    except Exception as e:
+        print(f"[HYBRID-RRF] Error during hybrid search: {e}")
+        return []
 async def _hybrid_search_intersection(collection_name: str, query: str, limit: int = 5) -> List[str]:
     """
     Hybrid RAG with Intersection: returns only documents present in BOTH
@@ -616,48 +720,63 @@ async def _hybrid_search_intersection(collection_name: str, query: str, limit: i
     - High precision tasks
     - Queries where you want strict agreement between semantic and keyword retrieval
     """
-    query_embedding = await embed_query(query)
-    vector_results =await asyncio.to_thread(
-        QDRANT_CLIENT.search,
-        collection_name=collection_name,
-        query_vector=query_embedding,
-        limit=limit * 5
-    )
-    vector_docs = {result.payload["text"] for result in vector_results}
+    # Check if collection exists before searching
+    try:
+        collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
+        collections = [c.name for c in collections_response.collections]
+        if collection_name not in collections:
+            print(f"[HYBRID-INTERSECTION] Collection '{collection_name}' doesn't exist")
+            return []
+    except Exception as e:
+        print(f"[HYBRID-INTERSECTION] Error checking collection existence: {e}")
+        return []
+    
+    try:
+        query_embedding = await embed_query(query)
+        vector_results = await asyncio.to_thread(
+            QDRANT_CLIENT.search,
+            collection_name=collection_name,
+            query_vector=query_embedding,
+            limit=limit * 5
+        )
+        vector_docs = {result.payload["text"] for result in vector_results}
 
-    bm25_data = None
-    redis_client_binary = await ensure_redis_client_binary()
-    if redis_client_binary:
-        try:
-            serialized_data = await redis_client_binary.get(f"bm25_index:{collection_name}")
-            if serialized_data:
-                bm25_data = dill.loads(serialized_data)
-                print(f"[HYBRID-INTERSECTION] Loaded BM25 index from Redis for {collection_name}")
-        except Exception as e:
-            print(f"[HYBRID-INTERSECTION] ERROR: Failed to load BM25 index from Redis: {e}")
+        bm25_data = None
+        redis_client_binary = await ensure_redis_client_binary()
+        if redis_client_binary:
+            try:
+                serialized_data = await redis_client_binary.get(f"bm25_index:{collection_name}")
+                if serialized_data:
+                    bm25_data = dill.loads(serialized_data)
+                    print(f"[HYBRID-INTERSECTION] Loaded BM25 index from Redis for {collection_name}")
+            except Exception as e:
+                print(f"[HYBRID-INTERSECTION] ERROR: Failed to load BM25 index from Redis: {e}")
 
 
-    if not bm25_data:
-        print(f"[HYBRID-INTERSECTION] No BM25 index for {collection_name}, falling back to vector only")
-        return list(vector_docs)[:limit]
+        if not bm25_data:
+            print(f"[HYBRID-INTERSECTION] No BM25 index for {collection_name}, falling back to vector only")
+            return list(vector_docs)[:limit]
 
-    bm25 = bm25_data["bm25"]
-    docs = bm25_data["docs"]
+        bm25 = bm25_data["bm25"]
+        docs = bm25_data["docs"]
 
-    tokenized_query = tokenize(query)
-    bm25_scores = await _bm25_scores(bm25, tokenized_query)
-    bm25_ranked = [docs[str(idx)] for idx in sorted(
-        range(len(bm25_scores)), key=lambda x: bm25_scores[x], reverse=True
-    )[:limit * 5]]
-    bm25_docs = set(bm25_ranked)
-    common_docs = list(vector_docs.intersection(bm25_docs))
-    if len(common_docs) < limit:
-        print(f"[HYBRID-INTERSECTION] Too few common docs, falling back to union")
-        common_docs = list(vector_docs.union(bm25_docs))
+        tokenized_query = tokenize(query)
+        bm25_scores = await _bm25_scores(bm25, tokenized_query)
+        bm25_ranked = [docs[str(idx)] for idx in sorted(
+            range(len(bm25_scores)), key=lambda x: bm25_scores[x], reverse=True
+        )[:limit * 5]]
+        bm25_docs = set(bm25_ranked)
+        common_docs = list(vector_docs.intersection(bm25_docs))
+        if len(common_docs) < limit:
+            print(f"[HYBRID-INTERSECTION] Too few common docs, falling back to union")
+            common_docs = list(vector_docs.union(bm25_docs))
 
-    top_results = common_docs[:limit]
-    print(f"[HYBRID-INTERSECTION] Found {len(top_results)} common results")
-    return top_results
+        top_results = common_docs[:limit]
+        print(f"[HYBRID-INTERSECTION] Found {len(top_results)} common results")
+        return top_results
+    except Exception as e:
+        print(f"[HYBRID-INTERSECTION] Error during hybrid search: {e}")
+        return []
 
 def create_combined_system_prompt(custom_prompt: str, base_prompt: str) -> str:
     """
@@ -1496,13 +1615,28 @@ async def _process_user_docs(state, docs, user_query, rag):
     
     # Diversified per-document retrieval to ensure coverage from each uploaded doc
     async def _search_per_doc(collection_name: str, query: str, per_doc: int = 3, max_candidates: int = 200, max_docs: int = 10) -> List[Dict[str, Any]]:
-        query_embedding = await embed_query(query)
-        candidates = await asyncio.to_thread(
-            QDRANT_CLIENT.search,
-            collection_name=collection_name,
-            query_vector=query_embedding,
-            limit=max_candidates
-        )
+        # Check if collection exists before searching
+        try:
+            collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
+            collections = [c.name for c in collections_response.collections]
+            if collection_name not in collections:
+                print(f"[PER-DOC-SEARCH] Collection '{collection_name}' doesn't exist")
+                return []
+        except Exception as e:
+            print(f"[PER-DOC-SEARCH] Error checking collection existence: {e}")
+            return []
+        
+        try:
+            query_embedding = await embed_query(query)
+            candidates = await asyncio.to_thread(
+                QDRANT_CLIENT.search,
+                collection_name=collection_name,
+                query_vector=query_embedding,
+                limit=max_candidates
+            )
+        except Exception as e:
+            print(f"[PER-DOC-SEARCH] Error searching collection: {e}")
+            return []
         # Pick distinct docs in candidate order
         doc_keys = []  # list of (doc_id, filename, file_type)
         seen = set()
@@ -1821,9 +1955,13 @@ async def Rag(state: GraphState) -> GraphState:
         role = (m.get("type") or m.get("role") or "").lower()
         content = m.get("content") if isinstance(m, dict) else getattr(m, "content", "")
         if content:
+            # Truncate long messages to avoid prompt bloat
+            if len(content.split()) > 1000:
+                content = " ".join(content.split()[:1000]) + "..."
+            
             speaker = "User" if role in ("human", "user") else "Assistant"
             last_turns.append(f"{speaker}: {content}")
-    last_3_text = "\n".join(last_turns[-2:]) or "None"
+    last_3_text = "\n".join(last_turns[-4:]) or "None"
     context_parts=[f""]
     
     context_parts.append(f"\nUSER QUERY:\n{user_query}")

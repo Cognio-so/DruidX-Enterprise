@@ -109,7 +109,7 @@ async def SimpleLLm(state: GraphState) -> GraphState:
 ## Recent Messages
 """))
             
-            for i, m in enumerate(past_messages[-2:], 1):  
+            for i, m in enumerate(past_messages[-4:], 1):  
                 role = (m.get("type") or m.get("role") or "").lower()
                 content = m.get("content") if isinstance(m, dict) else getattr(m, "content", "")
                 
