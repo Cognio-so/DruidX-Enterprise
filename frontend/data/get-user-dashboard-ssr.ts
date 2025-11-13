@@ -33,78 +33,76 @@ async function getUserDashboardMetricsInternal(userId: string): Promise<UserDash
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  const [createdGpts, individualAssignments, groupAssignments] = await Promise.all([
-    prisma.gpt.findMany({
-      where: { userId },
-      select: { id: true }
-    }),
-    prisma.assignGpt.findMany({
-      where: { userId },
-      select: { gptId: true }
-    }),
-    prisma.groupGptAssignment.findMany({
-      where: {
-        group: {
-          members: {
-            some: {
-              userId
-            }
+  // Fetch GPT assignments sequentially to reduce connection pressure
+  const createdGpts = await prisma.gpt.findMany({
+    where: { userId },
+    select: { id: true }
+  });
+  
+  const individualAssignments = await prisma.assignGpt.findMany({
+    where: { userId },
+    select: { gptId: true }
+  });
+  
+  const groupAssignments = await prisma.groupGptAssignment.findMany({
+    where: {
+      group: {
+        members: {
+          some: {
+            userId
           }
         }
-      },
-      select: { gptId: true }
-    })
-  ]);
+      }
+    },
+    select: { gptId: true }
+  });
 
   const createdGptIds = createdGpts.map(gpt => gpt.id);
   const individualGptIds = individualAssignments.map(assign => assign.gptId);
   const groupGptIds = groupAssignments.map(assign => assign.gptId);
   const allGptIds = [...new Set([...createdGptIds, ...individualGptIds, ...groupGptIds])];
 
-  const [
-    totalConversations,
-    totalMessages,
-    recentConversations,
-    conversationsLastMonth,
-    mostUsedGptData
-  ] = await Promise.all([
-    prisma.conversation.count({
-      where: { userId }
-    }),
-    prisma.message.count({
-      where: {
-        conversation: {
-          userId
-        }
+  // Fetch counts and most used GPT sequentially
+  const totalConversations = await prisma.conversation.count({
+    where: { userId }
+  });
+  
+  const totalMessages = await prisma.message.count({
+    where: {
+      conversation: {
+        userId
       }
-    }),
-    prisma.conversation.count({
-      where: {
-        userId,
-        createdAt: {
-          gte: sevenDaysAgo,
-        },
+    }
+  });
+  
+  const recentConversations = await prisma.conversation.count({
+    where: {
+      userId,
+      createdAt: {
+        gte: sevenDaysAgo,
       },
-    }),
-    prisma.conversation.count({
-      where: {
-        userId,
-        createdAt: {
-          gte: thirtyDaysAgo,
-        },
+    },
+  });
+  
+  const conversationsLastMonth = await prisma.conversation.count({
+    where: {
+      userId,
+      createdAt: {
+        gte: thirtyDaysAgo,
       },
-    }),
-    prisma.conversation.groupBy({
-      by: ['gptId'],
-      where: { userId },
-      _count: { gptId: true },
-      orderBy: { _count: { gptId: 'desc' } },
-      take: 1
-    })
-  ]);
+    },
+  });
+  
+  const mostUsedGptData = await prisma.conversation.groupBy({
+    by: ['gptId'],
+    where: { userId },
+    _count: { gptId: true },
+    orderBy: { _count: { gptId: 'desc' } },
+    take: 1
+  });
 
   let mostUsedGpt = null;
-  if (mostUsedGptData.length > 0) {
+  if (mostUsedGptData.length > 0 && mostUsedGptData[0].gptId) {
     const gpt = await prisma.gpt.findUnique({
       where: { id: mostUsedGptData[0].gptId },
       select: { name: true }
@@ -177,7 +175,21 @@ async function getUserGptUsageStatsInternal(userId: string): Promise<ChartData[]
     take: 10,
   });
 
-  const gptIds = gptStats.map(stat => stat.gptId);
+  // Only fetch GPT names if we have stats
+  if (gptStats.length === 0) {
+    return [];
+  }
+
+  const gptIds = gptStats.map(stat => stat.gptId).filter(id => id !== null);
+  
+  // Fetch GPT names sequentially if needed
+  if (gptIds.length === 0) {
+    return gptStats.map(stat => ({
+      name: 'Unknown GPT',
+      value: stat._count.gptId,
+    }));
+  }
+
   const gpts = await prisma.gpt.findMany({
     where: { id: { in: gptIds } },
     select: { id: true, name: true }
@@ -192,66 +204,66 @@ async function getUserGptUsageStatsInternal(userId: string): Promise<ChartData[]
 }
 
 async function getUserRecentActivityInternal(userId: string) {
-  const [recentConversations, recentGpts] = await Promise.all([
-    prisma.conversation.findMany({
-      where: { userId },
-      take: 5,
-      orderBy: {
-        updatedAt: 'desc',
-      },
-      select: {
-        id: true,
-        title: true,
-        gptId: true,
-        updatedAt: true,
-        gpt: {
-          select: {
-            name: true,
-            image: true,
-          },
-        },
-        _count: {
-          select: {
-            messages: true,
-          },
+  // Fetch sequentially to avoid connection pool exhaustion
+  const recentConversations = await prisma.conversation.findMany({
+    where: { userId },
+    take: 5,
+    orderBy: {
+      updatedAt: 'desc',
+    },
+    select: {
+      id: true,
+      title: true,
+      gptId: true,
+      updatedAt: true,
+      gpt: {
+        select: {
+          name: true,
+          image: true,
         },
       },
-    }),
-    prisma.gpt.findMany({
-      where: {
-        OR: [
-          { userId },
-          { assignedToUsers: { some: { userId } } },
-          {
-            groupAssignments: {
-              some: {
-                group: {
-                  members: {
-                    some: {
-                      userId
-                    }
+      _count: {
+        select: {
+          messages: true,
+        },
+      },
+    },
+  });
+  
+  const recentGpts = await prisma.gpt.findMany({
+    where: {
+      OR: [
+        { userId },
+        { assignedToUsers: { some: { userId } } },
+        {
+          groupAssignments: {
+            some: {
+              group: {
+                members: {
+                  some: {
+                    userId
                   }
                 }
               }
             }
           }
-        ]
-      },
-      take: 5,
-      orderBy: {
-        updatedAt: 'desc',
-      },
-      include: {
-        _count: {
-          select: {
-            conversations: {
-              where: { userId }
-            },
+        }
+      ]
+    },
+    take: 5,
+    orderBy: {
+      updatedAt: 'desc',
+    },
+    include: {
+      _count: {
+        select: {
+          conversations: {
+            where: { userId }
           },
         },
       },
-    }),
-  ]);
+    },
+  });
 
   return {
     recentConversations,

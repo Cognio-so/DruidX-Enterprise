@@ -19,6 +19,10 @@ interface GptData {
   image: string;
   description: string;
   model: string;
+  imageEnabled?: boolean;
+  videoEnabled?: boolean;
+  imageModel?: string;
+  videoModel?: string;
 }
 
 export default function ChatGptById() {
@@ -38,13 +42,36 @@ export default function ChatGptById() {
     currentPhase,
     researchPhases,
     webSearchStatus,
+    thinkingState,
     clearMessages,
   } = useChatMessages(sessionId);
   const [gptData, setGptData] = useState<GptData | null>(null);
   const [isLoadingConversation, setIsLoadingConversation] = useState(false);
 
   const hasMessages = messages.length > 0;
+  const [voiceConnected, setVoiceConnected] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  // Handle voice messages and add them to the chat
+  const handleVoiceMessage = useCallback(
+    (voiceMessage: {
+      id: string;
+      role: "user" | "assistant";
+      content: string;
+      timestamp: string;
+    }) => {
+      // Add voice messages to the chat messages array
+      if (voiceMessage.content && voiceMessage.content.trim()) {
+        addMessage({
+          role: voiceMessage.role,
+          content: voiceMessage.content,
+          timestamp: voiceMessage.timestamp,
+          isStreaming: false,
+        });
+      }
+    },
+    [addMessage]
+  );
   
   // Set up scroll management
   const { shouldAutoScroll, scrollToBottom, scrollContainerRef } = useChatScroll({
@@ -180,6 +207,10 @@ export default function ChatGptById() {
               image: gpt.image,
               description: gpt.description,
               model: gpt.model,
+              imageEnabled: gpt.imageEnabled,
+              videoEnabled: gpt.videoEnabled,
+              imageModel: gpt.imageModel,
+              videoModel: gpt.videoModel,
             });
           } else {
             console.error("Failed to fetch GPT data:", response.status);
@@ -219,10 +250,10 @@ export default function ChatGptById() {
           />
         </div>
 
-        {hasMessages && (
-          <div className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 overflow-hidden">
+          {hasMessages && (
             <div ref={scrollAreaRef} className="h-full">
-              <ScrollArea className="h-full p-2">
+              <ScrollArea className="h-full px-2 pt-2 pb-0">
                 <div className="space-y-2">
                   {messages.map((msg, index) => {
                     // Hide ChatMessage loader when deep research is active (to avoid duplicate loaders)
@@ -243,35 +274,33 @@ export default function ChatGptById() {
                         isStreaming={
                           isDeepResearchActive ? false : msg.isStreaming
                         }
+                        uploadedDocs={msg.uploadedDocs}
                         imageUrls={msg.imageUrls}
                         videoUrls={msg.videoUrls}
                         tokenUsage={msg.tokenUsage}
                         researchPhases={researchPhases}
                         currentPhase={currentPhase}
                         webSearchStatus={isLastAssistantMessage ? webSearchStatus : undefined}
+                        thinkingState={isLastAssistantMessage ? thinkingState : undefined}
                       />
                     );
                   })}
                 </div>
               </ScrollArea>
             </div>
-          </div>
-        )}
-
-        <div
-          className={`${
-            hasMessages
-              ? "flex-shrink-0 p-2 bg-background"
-              : "flex-1 flex flex-col items-center justify-center p-4"
-          }`}
-        >
-          {!hasMessages && (
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-semibold text-primary">
-                What can I help with?
-              </h1>
+          )}
+          {!hasMessages && !voiceConnected && (
+            <div className="h-full flex flex-col items-center justify-center p-4">
+              <div className="text-center mb-8">
+                <h1 className="text-4xl font-semibold text-primary">
+                  What can I help with?
+                </h1>
+              </div>
             </div>
           )}
+        </div>
+
+        <div className="flex-shrink-0 px-2 pt-0 pb-2 bg-background">
           <ChatInput
             onSendMessage={sendMessage}
             onDocumentUploaded={uploadDocument}
@@ -279,6 +308,14 @@ export default function ChatGptById() {
             isLoading={isLoading}
             hybridRag={hybridRag}
             defaultModel={gptData?.model}
+            gptId={gptId}
+            sessionId={sessionId}
+            onVoiceMessage={handleVoiceMessage}
+            onVoiceConnectionChange={setVoiceConnected}
+            imageEnabled={gptData?.imageEnabled}
+            videoEnabled={gptData?.videoEnabled}
+            imageModel={gptData?.imageModel}
+            videoModel={gptData?.videoModel}
             onModelChange={updateGPTConfig}
           />
         </div>
