@@ -186,6 +186,9 @@ export default function ChatGptById() {
               content: msg.content,
               timestamp: new Date(msg.timestamp).toISOString(),
               isStreaming: false,
+              uploadedDocs: msg.uploadedDocs ? (Array.isArray(msg.uploadedDocs) ? msg.uploadedDocs : []) : undefined,
+              imageUrls: msg.imageUrls ? (Array.isArray(msg.imageUrls) ? msg.imageUrls : []) : undefined,
+              videoUrls: msg.videoUrls ? (Array.isArray(msg.videoUrls) ? msg.videoUrls : []) : undefined,
             });
           });
         }
@@ -281,6 +284,7 @@ export default function ChatGptById() {
                         isStreaming={
                           isDeepResearchActive ? false : msg.isStreaming
                         }
+                        uploadedDocs={msg.uploadedDocs}
                         imageUrls={msg.imageUrls}
                         videoUrls={msg.videoUrls}
                         tokenUsage={msg.tokenUsage}

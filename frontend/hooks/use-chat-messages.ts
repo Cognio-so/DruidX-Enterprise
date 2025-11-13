@@ -37,7 +37,7 @@ interface ChatMessagesHook {
     videoModel?: string;
   }) => Promise<void>;
   clearMessages: () => void;
-  addMessage: (message: { role: 'user' | 'assistant'; content: string; timestamp: string; isStreaming?: boolean; imageUrls?: string[]; videoUrls?: string[] }) => void;
+  addMessage: (message: { role: 'user' | 'assistant'; content: string; timestamp: string; isStreaming?: boolean; imageUrls?: string[]; videoUrls?: string[]; uploadedDocs?: Array<{ url: string; filename: string; type: string }> }) => void;
   approvalRequest: ApprovalRequest | null;
   clearApprovalRequest: () => void;
   currentPhase: StatusPhase | null;

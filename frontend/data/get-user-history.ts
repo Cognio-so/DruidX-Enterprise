@@ -25,6 +25,9 @@ export async function getUserHistory() {
           content: true,
           role: true,
           timestamp: true,
+          uploadedDocs: true,
+          imageUrls: true,
+          videoUrls: true,
         }
       },
       _count: {

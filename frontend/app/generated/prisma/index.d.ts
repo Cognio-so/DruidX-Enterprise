@@ -12693,6 +12693,9 @@ export namespace Prisma {
     role: number
     content: number
     timestamp: number
+    uploadedDocs: number
+    imageUrls: number
+    videoUrls: number
     _all: number
   }
 
@@ -12719,6 +12722,9 @@ export namespace Prisma {
     role?: true
     content?: true
     timestamp?: true
+    uploadedDocs?: true
+    imageUrls?: true
+    videoUrls?: true
     _all?: true
   }
 
@@ -12800,6 +12806,9 @@ export namespace Prisma {
     role: $Enums.MessageRole
     content: string
     timestamp: Date
+    uploadedDocs: JsonValue | null
+    imageUrls: JsonValue | null
+    videoUrls: JsonValue | null
     _count: MessageCountAggregateOutputType | null
     _min: MessageMinAggregateOutputType | null
     _max: MessageMaxAggregateOutputType | null
@@ -12825,6 +12834,9 @@ export namespace Prisma {
     role?: boolean
     content?: boolean
     timestamp?: boolean
+    uploadedDocs?: boolean
+    imageUrls?: boolean
+    videoUrls?: boolean
     conversation?: boolean | ConversationDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["message"]>
 
@@ -12834,6 +12846,9 @@ export namespace Prisma {
     role?: boolean
     content?: boolean
     timestamp?: boolean
+    uploadedDocs?: boolean
+    imageUrls?: boolean
+    videoUrls?: boolean
     conversation?: boolean | ConversationDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["message"]>
 
@@ -12843,6 +12858,9 @@ export namespace Prisma {
     role?: boolean
     content?: boolean
     timestamp?: boolean
+    uploadedDocs?: boolean
+    imageUrls?: boolean
+    videoUrls?: boolean
     conversation?: boolean | ConversationDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["message"]>
 
@@ -12852,9 +12870,12 @@ export namespace Prisma {
     role?: boolean
     content?: boolean
     timestamp?: boolean
+    uploadedDocs?: boolean
+    imageUrls?: boolean
+    videoUrls?: boolean
   }
 
-  export type MessageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "conversationId" | "role" | "content" | "timestamp", ExtArgs["result"]["message"]>
+  export type MessageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "conversationId" | "role" | "content" | "timestamp" | "uploadedDocs" | "imageUrls" | "videoUrls", ExtArgs["result"]["message"]>
   export type MessageInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     conversation?: boolean | ConversationDefaultArgs<ExtArgs>
   }
@@ -12876,6 +12897,9 @@ export namespace Prisma {
       role: $Enums.MessageRole
       content: string
       timestamp: Date
+      uploadedDocs: Prisma.JsonValue | null
+      imageUrls: Prisma.JsonValue | null
+      videoUrls: Prisma.JsonValue | null
     }, ExtArgs["result"]["message"]>
     composites: {}
   }
@@ -13305,6 +13329,9 @@ export namespace Prisma {
     readonly role: FieldRef<"Message", 'MessageRole'>
     readonly content: FieldRef<"Message", 'String'>
     readonly timestamp: FieldRef<"Message", 'DateTime'>
+    readonly uploadedDocs: FieldRef<"Message", 'Json'>
+    readonly imageUrls: FieldRef<"Message", 'Json'>
+    readonly videoUrls: FieldRef<"Message", 'Json'>
   }
     
 
@@ -19168,7 +19195,10 @@ export namespace Prisma {
     conversationId: 'conversationId',
     role: 'role',
     content: 'content',
-    timestamp: 'timestamp'
+    timestamp: 'timestamp',
+    uploadedDocs: 'uploadedDocs',
+    imageUrls: 'imageUrls',
+    videoUrls: 'videoUrls'
   };
 
   export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]
@@ -19241,6 +19271,14 @@ export namespace Prisma {
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+  export const NullableJsonNullValueInput: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull
+  };
+
+  export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
   export const QueryMode: {
     default: 'default',
     insensitive: 'insensitive'
@@ -19255,6 +19293,15 @@ export namespace Prisma {
   };
 
   export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+  export const JsonNullValueFilter: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
+  };
+
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
   /**
@@ -19322,6 +19369,20 @@ export namespace Prisma {
    * Reference to a field of type 'MessageRole[]'
    */
   export type ListEnumMessageRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MessageRole[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -20086,6 +20147,9 @@ export namespace Prisma {
     role?: EnumMessageRoleFilter<"Message"> | $Enums.MessageRole
     content?: StringFilter<"Message"> | string
     timestamp?: DateTimeFilter<"Message"> | Date | string
+    uploadedDocs?: JsonNullableFilter<"Message">
+    imageUrls?: JsonNullableFilter<"Message">
+    videoUrls?: JsonNullableFilter<"Message">
     conversation?: XOR<ConversationScalarRelationFilter, ConversationWhereInput>
   }
 
@@ -20095,6 +20159,9 @@ export namespace Prisma {
     role?: SortOrder
     content?: SortOrder
     timestamp?: SortOrder
+    uploadedDocs?: SortOrderInput | SortOrder
+    imageUrls?: SortOrderInput | SortOrder
+    videoUrls?: SortOrderInput | SortOrder
     conversation?: ConversationOrderByWithRelationInput
   }
 
@@ -20107,6 +20174,9 @@ export namespace Prisma {
     role?: EnumMessageRoleFilter<"Message"> | $Enums.MessageRole
     content?: StringFilter<"Message"> | string
     timestamp?: DateTimeFilter<"Message"> | Date | string
+    uploadedDocs?: JsonNullableFilter<"Message">
+    imageUrls?: JsonNullableFilter<"Message">
+    videoUrls?: JsonNullableFilter<"Message">
     conversation?: XOR<ConversationScalarRelationFilter, ConversationWhereInput>
   }, "id">
 
@@ -20116,6 +20186,9 @@ export namespace Prisma {
     role?: SortOrder
     content?: SortOrder
     timestamp?: SortOrder
+    uploadedDocs?: SortOrderInput | SortOrder
+    imageUrls?: SortOrderInput | SortOrder
+    videoUrls?: SortOrderInput | SortOrder
     _count?: MessageCountOrderByAggregateInput
     _max?: MessageMaxOrderByAggregateInput
     _min?: MessageMinOrderByAggregateInput
@@ -20130,6 +20203,9 @@ export namespace Prisma {
     role?: EnumMessageRoleWithAggregatesFilter<"Message"> | $Enums.MessageRole
     content?: StringWithAggregatesFilter<"Message"> | string
     timestamp?: DateTimeWithAggregatesFilter<"Message"> | Date | string
+    uploadedDocs?: JsonNullableWithAggregatesFilter<"Message">
+    imageUrls?: JsonNullableWithAggregatesFilter<"Message">
+    videoUrls?: JsonNullableWithAggregatesFilter<"Message">
   }
 
   export type KnowledgeBaseWhereInput = {
@@ -21271,6 +21347,9 @@ export namespace Prisma {
     role: $Enums.MessageRole
     content: string
     timestamp?: Date | string
+    uploadedDocs?: NullableJsonNullValueInput | InputJsonValue
+    imageUrls?: NullableJsonNullValueInput | InputJsonValue
+    videoUrls?: NullableJsonNullValueInput | InputJsonValue
     conversation: ConversationCreateNestedOneWithoutMessagesInput
   }
 
@@ -21280,6 +21359,9 @@ export namespace Prisma {
     role: $Enums.MessageRole
     content: string
     timestamp?: Date | string
+    uploadedDocs?: NullableJsonNullValueInput | InputJsonValue
+    imageUrls?: NullableJsonNullValueInput | InputJsonValue
+    videoUrls?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type MessageUpdateInput = {
@@ -21287,6 +21369,9 @@ export namespace Prisma {
     role?: EnumMessageRoleFieldUpdateOperationsInput | $Enums.MessageRole
     content?: StringFieldUpdateOperationsInput | string
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    uploadedDocs?: NullableJsonNullValueInput | InputJsonValue
+    imageUrls?: NullableJsonNullValueInput | InputJsonValue
+    videoUrls?: NullableJsonNullValueInput | InputJsonValue
     conversation?: ConversationUpdateOneRequiredWithoutMessagesNestedInput
   }
 
@@ -21296,6 +21381,9 @@ export namespace Prisma {
     role?: EnumMessageRoleFieldUpdateOperationsInput | $Enums.MessageRole
     content?: StringFieldUpdateOperationsInput | string
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    uploadedDocs?: NullableJsonNullValueInput | InputJsonValue
+    imageUrls?: NullableJsonNullValueInput | InputJsonValue
+    videoUrls?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type MessageCreateManyInput = {
@@ -21304,6 +21392,9 @@ export namespace Prisma {
     role: $Enums.MessageRole
     content: string
     timestamp?: Date | string
+    uploadedDocs?: NullableJsonNullValueInput | InputJsonValue
+    imageUrls?: NullableJsonNullValueInput | InputJsonValue
+    videoUrls?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type MessageUpdateManyMutationInput = {
@@ -21311,6 +21402,9 @@ export namespace Prisma {
     role?: EnumMessageRoleFieldUpdateOperationsInput | $Enums.MessageRole
     content?: StringFieldUpdateOperationsInput | string
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    uploadedDocs?: NullableJsonNullValueInput | InputJsonValue
+    imageUrls?: NullableJsonNullValueInput | InputJsonValue
+    videoUrls?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type MessageUncheckedUpdateManyInput = {
@@ -21319,6 +21413,9 @@ export namespace Prisma {
     role?: EnumMessageRoleFieldUpdateOperationsInput | $Enums.MessageRole
     content?: StringFieldUpdateOperationsInput | string
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    uploadedDocs?: NullableJsonNullValueInput | InputJsonValue
+    imageUrls?: NullableJsonNullValueInput | InputJsonValue
+    videoUrls?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type KnowledgeBaseCreateInput = {
@@ -22248,6 +22345,29 @@ export namespace Prisma {
     notIn?: $Enums.MessageRole[] | ListEnumMessageRoleFieldRefInput<$PrismaModel>
     not?: NestedEnumMessageRoleFilter<$PrismaModel> | $Enums.MessageRole
   }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type ConversationScalarRelationFilter = {
     is?: ConversationWhereInput
@@ -22260,6 +22380,9 @@ export namespace Prisma {
     role?: SortOrder
     content?: SortOrder
     timestamp?: SortOrder
+    uploadedDocs?: SortOrder
+    imageUrls?: SortOrder
+    videoUrls?: SortOrder
   }
 
   export type MessageMaxOrderByAggregateInput = {
@@ -22286,6 +22409,32 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumMessageRoleFilter<$PrismaModel>
     _max?: NestedEnumMessageRoleFilter<$PrismaModel>
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type KnowledgeBaseCountOrderByAggregateInput = {
@@ -23426,6 +23575,29 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumMessageRoleFilter<$PrismaModel>
     _max?: NestedEnumMessageRoleFilter<$PrismaModel>
+  }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type SessionCreateWithoutUserInput = {
@@ -24765,6 +24937,9 @@ export namespace Prisma {
     role: $Enums.MessageRole
     content: string
     timestamp?: Date | string
+    uploadedDocs?: NullableJsonNullValueInput | InputJsonValue
+    imageUrls?: NullableJsonNullValueInput | InputJsonValue
+    videoUrls?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type MessageUncheckedCreateWithoutConversationInput = {
@@ -24772,6 +24947,9 @@ export namespace Prisma {
     role: $Enums.MessageRole
     content: string
     timestamp?: Date | string
+    uploadedDocs?: NullableJsonNullValueInput | InputJsonValue
+    imageUrls?: NullableJsonNullValueInput | InputJsonValue
+    videoUrls?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type MessageCreateOrConnectWithoutConversationInput = {
@@ -24915,6 +25093,9 @@ export namespace Prisma {
     role?: EnumMessageRoleFilter<"Message"> | $Enums.MessageRole
     content?: StringFilter<"Message"> | string
     timestamp?: DateTimeFilter<"Message"> | Date | string
+    uploadedDocs?: JsonNullableFilter<"Message">
+    imageUrls?: JsonNullableFilter<"Message">
+    videoUrls?: JsonNullableFilter<"Message">
   }
 
   export type ConversationCreateWithoutMessagesInput = {
@@ -25922,6 +26103,9 @@ export namespace Prisma {
     role: $Enums.MessageRole
     content: string
     timestamp?: Date | string
+    uploadedDocs?: NullableJsonNullValueInput | InputJsonValue
+    imageUrls?: NullableJsonNullValueInput | InputJsonValue
+    videoUrls?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type MessageUpdateWithoutConversationInput = {
@@ -25929,6 +26113,9 @@ export namespace Prisma {
     role?: EnumMessageRoleFieldUpdateOperationsInput | $Enums.MessageRole
     content?: StringFieldUpdateOperationsInput | string
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    uploadedDocs?: NullableJsonNullValueInput | InputJsonValue
+    imageUrls?: NullableJsonNullValueInput | InputJsonValue
+    videoUrls?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type MessageUncheckedUpdateWithoutConversationInput = {
@@ -25936,6 +26123,9 @@ export namespace Prisma {
     role?: EnumMessageRoleFieldUpdateOperationsInput | $Enums.MessageRole
     content?: StringFieldUpdateOperationsInput | string
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    uploadedDocs?: NullableJsonNullValueInput | InputJsonValue
+    imageUrls?: NullableJsonNullValueInput | InputJsonValue
+    videoUrls?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type MessageUncheckedUpdateManyWithoutConversationInput = {
@@ -25943,6 +26133,9 @@ export namespace Prisma {
     role?: EnumMessageRoleFieldUpdateOperationsInput | $Enums.MessageRole
     content?: StringFieldUpdateOperationsInput | string
     timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    uploadedDocs?: NullableJsonNullValueInput | InputJsonValue
+    imageUrls?: NullableJsonNullValueInput | InputJsonValue
+    videoUrls?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type GroupMemberCreateManyGroupInput = {

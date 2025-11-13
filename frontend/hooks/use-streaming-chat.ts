@@ -6,6 +6,12 @@ interface TokenUsage {
   total_tokens: number;
 }
 
+interface UploadedDoc {
+  url: string;
+  filename: string;
+  type: string;
+}
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -15,6 +21,7 @@ interface Message {
   imageUrls?: string[];
   videoUrls?: string[];
   tokenUsage?: TokenUsage;
+  uploadedDocs?: UploadedDoc[];
 }
 
 interface ChatRequest {
@@ -23,6 +30,7 @@ interface ChatRequest {
   rag?: boolean;
   deep_search?: boolean;
   uploaded_doc?: boolean;
+  uploaded_docs?: UploadedDoc[];
   model?: string;
   composio_tools?: string[];
   image?: boolean;
@@ -111,6 +119,7 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
       role: 'user',
       content: request.message,
       timestamp: new Date().toISOString(),
+      uploadedDocs: request.uploaded_docs || [],
     };
 
     setMessages(prev => [...prev, userMessage]);

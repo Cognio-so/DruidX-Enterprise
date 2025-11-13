@@ -81,6 +81,12 @@ export default function ChatInput({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedDocs, setUploadedDocs] = useState<UploadedDoc[]>([]);
   const [composioTools, setComposioTools] = useState<string[]>([]);
+  const [uploadingFiles, setUploadingFiles] = useState<Array<{
+    id: string;
+    file: File;
+    progress: number;
+    status: 'uploading' | 'completed' | 'error';
+  }>>([]);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -123,7 +129,7 @@ export default function ChatInput({
   };
 
   const handleSend = () => {
-    if (message.trim() && !isLoading) {
+    if ((message.trim() || uploadedDocs.length > 0) && !isLoading && !isUploading && uploadingFiles.length === 0) {
       const backendModelName = frontendToBackend(selectedModel);
       
       const sendOptions = {
@@ -140,7 +146,7 @@ export default function ChatInput({
         videoModel: videoModel,
       };
 
-      onSendMessage(message.trim(), sendOptions);
+      onSendMessage(message.trim() || "Files attached", sendOptions);
       setMessage("");
       setUploadedDocs([]);
     }
@@ -153,7 +159,7 @@ export default function ChatInput({
     }
   };
 
-  const uploadToS3 = async (file: File): Promise<string> => {
+  const uploadToS3 = async (file: File, onProgress?: (progress: number) => void): Promise<string> => {
     const response = await fetch("/api/s3/upload", {
       method: "POST",
       headers: {
@@ -172,12 +178,34 @@ export default function ChatInput({
 
     const { uploadUrl, fileUrl } = await response.json();
 
-    await fetch(uploadUrl, {
-      method: "PUT",
-      body: file,
-    });
+    // Use XMLHttpRequest for progress tracking
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
 
-    return fileUrl;
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable && onProgress) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          onProgress(progress);
+        }
+      });
+
+      xhr.addEventListener("load", () => {
+        if (xhr.status === 200) {
+          if (onProgress) onProgress(100);
+          resolve(fileUrl);
+        } else {
+          reject(new Error("Upload failed"));
+        }
+      });
+
+      xhr.addEventListener("error", () => {
+        reject(new Error("Upload failed"));
+      });
+
+      xhr.open("PUT", uploadUrl);
+      xhr.setRequestHeader("Content-Type", file.type);
+      xhr.send(file);
+    });
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -228,20 +256,61 @@ export default function ChatInput({
     const uploadedDocsList: UploadedDoc[] = [];
     const errors: string[] = [];
 
+    // Create uploading files state with unique IDs
+    const newUploadingFiles = validFiles.map((file) => ({
+      id: `${file.name}-${Date.now()}-${Math.random()}`,
+      file,
+      progress: 0,
+      status: 'uploading' as const,
+    }));
+
+    setUploadingFiles(prev => [...prev, ...newUploadingFiles]);
+
     try {
       // Upload files sequentially to avoid overwhelming the server
-      for (const file of validFiles) {
+      for (const uploadingFile of newUploadingFiles) {
         try {
-          const fileUrl = await uploadToS3(file);
+          const fileUrl = await uploadToS3(uploadingFile.file, (progress) => {
+            setUploadingFiles(prev =>
+              prev.map(f =>
+                f.id === uploadingFile.id ? { ...f, progress } : f
+              )
+            );
+          });
+
           const newDoc: UploadedDoc = {
             url: fileUrl,
-            filename: file.name,
-            type: file.type
+            filename: uploadingFile.file.name,
+            type: uploadingFile.file.type
           };
           uploadedDocsList.push(newDoc);
+
+          // Mark as completed
+          setUploadingFiles(prev =>
+            prev.map(f =>
+              f.id === uploadingFile.id ? { ...f, status: 'completed' as const, progress: 100 } : f
+            )
+          );
+
+          // Remove from uploading after a short delay
+          setTimeout(() => {
+            setUploadingFiles(prev => prev.filter(f => f.id !== uploadingFile.id));
+          }, 500);
         } catch (error) {
-          errors.push(file.name);
-          console.error(`Failed to upload ${file.name}:`, error);
+          errors.push(uploadingFile.file.name);
+          console.error(`Failed to upload ${uploadingFile.file.name}:`, error);
+          
+          // Mark as error
+          setUploadingFiles(prev =>
+            prev.map(f =>
+              f.id === uploadingFile.id ? { ...f, status: 'error' as const } : f
+            )
+          );
+
+          // Remove error files after a delay
+          setTimeout(() => {
+            setUploadingFiles(prev => prev.filter(f => f.id !== uploadingFile.id));
+          }, 2000);
         }
       }
 
@@ -294,6 +363,47 @@ export default function ChatInput({
 
   return (
     <div className={`w-full max-w-4xl mx-auto ${hasMessages ? "" : "px-4"}`}>
+      {/* Show uploading files with progress */}
+      {uploadingFiles.length > 0 && (
+        <div className="mb-3 flex flex-wrap gap-2">
+          {uploadingFiles.map((uploadingFile) => (
+            <div
+              key={uploadingFile.id}
+              className="flex items-center gap-2 bg-muted/50 border border-border rounded-lg px-3 py-2 text-sm min-w-[200px]"
+            >
+              <span className="text-lg">{getFileIcon(uploadingFile.file.type)}</span>
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="font-medium truncate max-w-[120px]" title={uploadingFile.file.name}>
+                  {uploadingFile.file.name}
+                </span>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        uploadingFile.status === 'error' 
+                          ? 'bg-destructive' 
+                          : uploadingFile.status === 'completed'
+                          ? 'bg-green-500'
+                          : 'bg-primary'
+                      }`}
+                      style={{ width: `${uploadingFile.progress}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-muted-foreground min-w-[35px]">
+                    {uploadingFile.status === 'error' 
+                      ? 'Error' 
+                      : uploadingFile.status === 'completed'
+                      ? 'Done'
+                      : `${uploadingFile.progress}%`}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Show uploaded files */}
       {uploadedDocs.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-2">
           {uploadedDocs.map((doc, index) => (
@@ -441,7 +551,7 @@ export default function ChatInput({
 
             <Button
               onClick={handleSend}
-              disabled={!message.trim() || isLoading || connected || isUploading}
+              disabled={(!message.trim() && uploadedDocs.length === 0) || isLoading || connected || isUploading || uploadingFiles.length > 0}
               size="icon"
               className="h-7 w-7 rounded-full"
             >
