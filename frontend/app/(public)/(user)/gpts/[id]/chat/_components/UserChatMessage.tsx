@@ -1,12 +1,14 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sparkles, User, ExternalLink, Download } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import Image from "next/image";
+import { User, ExternalLink, Download } from "lucide-react";
 import { Message, MessageContent } from "@/components/ai-elements/message";
 import { Response } from "@/components/ai-elements/response";
 import { ResearchTimeline } from "@/components/ResearchTimeline";
 import { ResearchPhaseShimmer } from "@/components/ResearchPhaseShimmer";
 import { Reasoning } from "@/components/ai-elements/reasoning";
+import { ShimmeringText } from "@/components/ui/shimmering-text";
 
 interface UploadedDoc {
   url: string;
@@ -60,6 +62,7 @@ interface ChatMessageProps {
   researchPhases?: ResearchPhase[];
   currentPhase?: StatusPhase | null;
   webSearchStatus?: WebSearchStatus;
+  thinkingState?: string | null;
 }
 
 export default function ChatMessage({
@@ -75,6 +78,7 @@ export default function ChatMessage({
   researchPhases = [],
   currentPhase = null,
   webSearchStatus,
+  thinkingState: backendThinkingState,
 }: ChatMessageProps) {
 
   // Handle download for images and videos
@@ -123,7 +127,7 @@ export default function ChatMessage({
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 break-words">
+    <div className="w-full max-w-5xl mx-auto break-words">
       <Message from={isUser ? "user" : "assistant"}>
         {isUser ? (
           <>
@@ -177,13 +181,18 @@ export default function ChatMessage({
           </>
         ) : (
           <MessageContent variant="flat">
-            <div className="flex items-start gap-3">
-              <Avatar className="h-8 w-8 flex-shrink-0">
-                <AvatarImage src="/api/placeholder/32/32" />
-                <AvatarFallback>
-                  <Sparkles className="size-4 text-primary" />
-                </AvatarFallback>
-              </Avatar>
+            <div className="flex items-start gap-3 pl-2">
+              <div className="bg-transparent relative size-8 flex-shrink-0 rounded-full p-0.5 ">
+                <div className="bg-transparent h-full w-full overflow-hidden rounded-full  flex items-center justify-center">
+                  <Image
+                    src="/DruidX logo.png"
+                    alt="DruidX logo"
+                    width={32}
+                    height={32}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+              </div>
               <div className="flex-1 space-y-2">
                 {/* WebSearch Reasoning - show for assistant messages when websearch is active */}
                 {!isUser && webSearchStatus?.isActive && (
@@ -281,12 +290,9 @@ export default function ChatMessage({
                     ))}
                   </div>
                 )}
-                {message && (
+                {message ? (
                   <div className="bg-muted/60 border border-border rounded-lg p-4 break-words">
                     <Response sources={sources}>{message}</Response>
-                    {isStreaming && !webSearchStatus?.isActive && (
-                      <span className="inline-block animate-pulse ml-1">⚪</span>
-                    )}
                     <div className="flex items-center justify-between mt-2">
                       <div className="text-xs opacity-70 text-muted-foreground">
                         {timestamp}
@@ -309,7 +315,15 @@ export default function ChatMessage({
                       )}
                     </div>
                   </div>
-                )}
+                ) : isStreaming && !webSearchStatus?.isActive ? (
+                  backendThinkingState ? (
+                    <ShimmeringText className="text-muted-foreground text-[15px]">
+                      {backendThinkingState}
+                    </ShimmeringText>
+                  ) : (
+                    <span className="animate-pulse text-[15px] text-muted-foreground">⚪</span>
+                  )
+                ) : null}
               </div>
             </div>
           </MessageContent>
