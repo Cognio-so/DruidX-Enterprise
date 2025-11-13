@@ -8,6 +8,7 @@ from langchain_groq import ChatGroq
 import uuid  
 from typing import List, Optional, Dict, Any
 import os
+import asyncio
 from qdrant_client import QdrantClient, models
 from WebSearch.websearch import web_search
 from rank_bm25 import BM25Okapi
@@ -126,33 +127,93 @@ async def clear_image_cache(session_id: str = None):
             await redis_client.delete(*keys_to_delete)
         print("[RAG] Cleared all image analysis cache")
 
-async def preprocess_kb_documents(kb_docs: List[dict], session_id: str, is_hybrid: bool = False):
+async def get_existing_kb_file_urls(gpt_id: str, userId: str) -> set:
+    """
+    Get set of file_urls that are already embedded in the KB collection.
+    Returns empty set if collection doesn't exist or on error.
+    """
+    if not gpt_id or not userId:
+        return set()
+    
+    collection_name = f"kb_{gpt_id}_{userId}"
+    existing_file_urls = set()
+    
+    try:
+        collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
+        collections = [c.name for c in collections_response.collections]
+        if collection_name in collections:
+            scroll_out, _ = await asyncio.to_thread(
+                QDRANT_CLIENT.scroll,
+                collection_name=collection_name,
+                limit=10000,  
+                with_payload=True,
+                with_vectors=False
+            )
+            for point in scroll_out:
+                payload = point.payload or {}
+                file_url = payload.get("file_url")
+                if file_url:
+                    existing_file_urls.add(file_url)
+    except Exception as e:
+        print(f"[RAG] Error checking existing KB files: {e}")
+    
+    return existing_file_urls
+
+async def preprocess_kb_documents(kb_docs: List[dict], gpt_id: str, userId: str, is_hybrid: bool = False):
     """
     Pre-process KB documents when custom GPT is loaded.
-    Generate embeddings once and cache for the session.
+    Generate embeddings once per gpt_id+userId combination.
+    Only embeds files that haven't been embedded yet (checked by file_url).
     """
     if not kb_docs:
         return
     
-    collection_name = f"kb_{session_id}"
+    collection_name = f"kb_{gpt_id}_{userId}"
     cache_key = f"kb_cache:{collection_name}"
-
-    redis_client = await ensure_redis_client()
-    if redis_client and await redis_client.exists(cache_key):
-        print(f"[RAG] KB already processed for session {session_id}")
+    existing_file_urls = await get_existing_kb_file_urls(gpt_id, userId)
+    new_kb_docs = []
+    for doc in kb_docs:
+        if isinstance(doc, dict):
+            file_url = doc.get("file_url")
+            if file_url and file_url not in existing_file_urls:
+                new_kb_docs.append(doc)
+            elif not file_url:
+                new_kb_docs.append(doc)
+        else:
+            new_kb_docs.append(doc)
+    
+    if not new_kb_docs:
+        print(f"[RAG] All KB documents already embedded for gpt_id={gpt_id}, userId={userId}")
         return
     
-    # print(f"[RAG] Pre-processing {len(kb_docs)} KB documents for session {session_id}")
+    print(f"[RAG] Pre-processing {len(new_kb_docs)} new KB documents (out of {len(kb_docs)} total) for gpt_id={gpt_id}, userId={userId}")
 
     kb_texts = []
-    for doc in kb_docs:
+    kb_metadatas = []
+    for doc in new_kb_docs:
         if isinstance(doc, dict) and "content" in doc:
             kb_texts.append(doc["content"])
+            kb_metadatas.append({
+                "doc_id": doc.get("id"),
+                "filename": doc.get("filename"),
+                "file_type": doc.get("file_type"),
+                "file_url": doc.get("file_url", ""),  
+            })
         else:
             kb_texts.append(str(doc))
+            kb_metadatas.append({})
 
-    await retreive_docs(kb_texts, collection_name, is_hybrid=is_hybrid, clear_existing=False, is_kb=True, session_id=session_id)
+    await retreive_docs(
+        kb_texts, 
+        collection_name, 
+        is_hybrid=is_hybrid, 
+        clear_existing=False, 
+        is_kb=True, 
+        session_id=None, 
+        metadatas=kb_metadatas
+    )
     
+    redis_client = await ensure_redis_client()
     if redis_client:
         await redis_client.hset(cache_key, mapping={
             "collection_name": collection_name,
@@ -160,9 +221,9 @@ async def preprocess_kb_documents(kb_docs: List[dict], session_id: str, is_hybri
             "processed_at": str(asyncio.get_event_loop().time()),
             "document_count": len(kb_texts)
         })
-        await redis_client.expire(cache_key, 86400) # Expire after 24 hours
+        await redis_client.expire(cache_key, 86400)
     
-    print(f"[RAG] Pre-processed and cached {len(kb_texts)} KB documents for session {session_id}")
+    print(f"[RAG] Pre-processed and cached {len(kb_texts)} new KB documents for gpt_id={gpt_id}, userId={userId}")
 
 async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid: bool = False, is_new_upload: bool = False):
     """
@@ -212,7 +273,6 @@ async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid
             doc_texts.append(doc["content"])
         else:
             doc_texts.append(str(doc))
-        # Attach provenance metadata for each document
         if isinstance(doc, dict):
             doc_metas.append({
                 "doc_id": doc.get("id"),
@@ -239,7 +299,7 @@ async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid
             "processed_at": str(asyncio.get_event_loop().time()),
             "document_count": len(doc_texts)
         })
-        await redis_client.expire(cache_key, 86400) # Expire after 24 hours
+        await redis_client.expire(cache_key, 86400) 
     
     print(f"[RAG] Pre-processed and cached {len(doc_texts)} NEW user documents for session {session_id}")
 
@@ -305,8 +365,6 @@ async def preprocess_images(uploaded_images: List[Dict[str, Any]], state: GraphS
                     vectors_config=models.VectorParams(size=VECTOR_SIZE, distance=models.Distance.COSINE),
                 )
             
-            # Always ensure indexes exist (for both new and existing collections)
-            # This handles cases where collection was created before index support was added
             try:
                 await asyncio.to_thread(
                     QDRANT_CLIENT.create_payload_index,
@@ -411,7 +469,6 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
             collection_name=name,
             vectors_config=models.VectorParams(size=VECTOR_SIZE, distance=models.Distance.COSINE),
         )
-        # Create indexes for payload fields that will be filtered on
         await asyncio.to_thread(
             QDRANT_CLIENT.create_payload_index,
             collection_name=name,
@@ -430,7 +487,32 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
             field_name="file_type",
             field_schema=models.PayloadSchemaType.KEYWORD
         )
-        print(f"[RAG] Created payload indexes for doc_id, filename, and file_type in collection {name}")
+        if is_kb:
+            try:
+                await asyncio.to_thread(
+                    QDRANT_CLIENT.create_payload_index,
+                    collection_name=name,
+                    field_name="file_url",
+                    field_schema=models.PayloadSchemaType.KEYWORD
+                )
+                print(f"[RAG] Created payload indexes for doc_id, filename, file_type, and file_url in KB collection {name}")
+            except Exception as e:
+                if "already exists" not in str(e).lower():
+                    print(f"[RAG] Note: Could not create index for 'file_url': {e}")
+        else:
+            print(f"[RAG] Created payload indexes for doc_id, filename, and file_type in collection {name}")
+    elif is_kb:
+        try:
+            await asyncio.to_thread(
+                QDRANT_CLIENT.create_payload_index,
+                collection_name=name,
+                field_name="file_url",
+                field_schema=models.PayloadSchemaType.KEYWORD
+            )
+            print(f"[RAG] Created file_url index for existing KB collection {name}")
+        except Exception as e:
+            if "already exists" not in str(e).lower():
+                print(f"[RAG] Note: Could not create index for 'file_url': {e}")
     
     async def extract_heading(txt):
         lines = txt.split("\n")
@@ -439,26 +521,31 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
             if re.match(r"^(UNIT[\s–-]*[IVXLC0-9]+|CHAPTER[\s–-]*\d+|^\d+(\.\d+)+|[A-Z][A-Za-z\s]{4,})", l):
                 return re.sub(r"^[\d.:\s–-]+", "", l).strip(":–- ")
         return None
-
-    await asyncio.to_thread(
-        QDRANT_CLIENT.upsert,
-        collection_name=name,
-        points=[
+    points = []
+    for i, (d, embedding) in enumerate(zip(chunked_docs, embeddings)):
+        payload = {
+            "text": d.page_content,
+            "page": d.metadata.get("page", 0),
+            "chunk_index": i,
+            "heading": await extract_heading(d.page_content),
+            "doc_id": d.metadata.get("doc_id"),
+            "filename": d.metadata.get("filename"),
+            "file_type": d.metadata.get("file_type"),
+        }
+        if is_kb:
+            payload["file_url"] = d.metadata.get("file_url", "")
+        points.append(
             models.PointStruct(
                 id=str(uuid.uuid4()),
                 vector=embedding,
-                payload={
-                    "text": d.page_content,
-                    "page": d.metadata.get("page", 0),
-                    "chunk_index": i,
-                    "heading": await extract_heading(d.page_content),
-                    "doc_id": d.metadata.get("doc_id"),
-                    "filename": d.metadata.get("filename"),
-                    "file_type": d.metadata.get("file_type"),
-                },
+                payload=payload,
             )
-            for i, (d, embedding) in enumerate(zip(chunked_docs, embeddings))
-        ]
+        )
+    
+    await asyncio.to_thread(
+        QDRANT_CLIENT.upsert,
+        collection_name=name,
+        points=points
     )
     if is_hybrid:
         tokenized_docs = [tokenize(doc.page_content) for doc in chunked_docs]
@@ -488,7 +575,6 @@ async def _search_collection(collection_name: str, query: str, limit: int) -> Li
     """
     Helper function to perform a semantic search on a Qdrant collection and return the text of the top results.
     """
-    # Check if collection exists before searching
     try:
         collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
         collections = [c.name for c in collections_response.collections]
@@ -565,8 +651,6 @@ async def _search_image_collection(
         filter_image_indices: Optional list of image indices (1-based) to filter by
     """
     collection_name = f"user_images_{session_id}"
-    
-    # Check if collection exists before searching
     try:
         collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
         collections = [c.name for c in collections_response.collections]
@@ -617,8 +701,6 @@ async def _search_image_collection(
         idx = p.get("image_index")
         txt = p.get("text", "")
         img_id = p.get("id", "")
-        
-        # Mark if this is a newly uploaded image
         is_new = " (NEWLY UPLOADED)" if filter_image_ids and img_id in filter_image_ids else ""
         header = f"=== Image {idx if idx else ''}: {fname}{is_new} ===".strip()
         if txt:
@@ -650,7 +732,6 @@ async def _hybrid_search_rrf(collection_name: str, query: str, limit: int, k: in
     Returns:
         List of top documents based on RRF fusion
     """
-    # Check if collection exists before searching
     try:
         collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
         collections = [c.name for c in collections_response.collections]
@@ -721,7 +802,6 @@ async def _hybrid_search_intersection(collection_name: str, query: str, limit: i
     - High precision tasks
     - Queries where you want strict agreement between semantic and keyword retrieval
     """
-    # Check if collection exists before searching
     try:
         collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
         collections = [c.name for c in collections_response.collections]
@@ -1691,11 +1771,18 @@ async def _process_user_docs(state, docs, user_query, rag):
 async def _process_kb_docs(state, kb_docs, user_query, rag):
     """
     Process KB documents - ONLY vector search (embeddings pre-processed on GPT load)
+    Uses gpt_id and userId from gpt_config to identify the collection
     """
-    session_id = state.get("session_id", "default")
+    gpt_config = state.get("gpt_config", {})
+    gpt_id = gpt_config.get("gpt_id")
+    userId = gpt_config.get("userId")
+    
+    if not gpt_id or not userId:
+        print(f"[RAG] ERROR: Missing gpt_id or userId in gpt_config")
+        raise Exception("KB not pre-processed. Please load custom GPT first.")
     
     await send_status_update(state, "🔍 Searching knowledge base...", 70)
-    collection_name = f"kb_{session_id}"
+    collection_name = f"kb_{gpt_id}_{userId}"
     cache_key = f"kb_cache:{collection_name}"
     
     redis_client = await ensure_redis_client()
@@ -1704,8 +1791,8 @@ async def _process_kb_docs(state, kb_docs, user_query, rag):
         cache_data = await redis_client.hgetall(cache_key)
 
     if not cache_data:
-        print(f"[RAG] ERROR: KB not pre-processed for session {session_id}")
-        raise Exception(f"KB not pre-processed for session {session_id}. Please load custom GPT first.")
+        print(f"[RAG] ERROR: KB not pre-processed for gpt_id={gpt_id}, userId={userId}")
+        raise Exception(f"KB not pre-processed for this GPT. Please load custom GPT first.")
     
     is_hybrid = cache_data.get("is_hybrid", "False").lower() == "true"
     
