@@ -1270,7 +1270,10 @@ async def voice_connect(request: dict):
     try:
         # Get the full session to access gpt_config
         session = await SessionManager.get_session(session_id)
-        gpt_config = session.get("gpt_config", {})
+        
+        # FIX: Ensure gpt_config is a dictionary, even if it's None in the session
+        gpt_config = session.get("gpt_config") or {}
+        
         instructions = gpt_config.get("instruction")
 
         # Store voice config in Redis for the agent worker to pick up
