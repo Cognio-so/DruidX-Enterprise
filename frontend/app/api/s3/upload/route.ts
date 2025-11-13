@@ -17,23 +17,64 @@ export async function POST(req: NextRequest) {
 
     const { fileName, fileType } = await req.json();
 
-    if (!fileName || !fileType) {
+    if (!fileName) {
       return NextResponse.json(
-        { error: "fileName and fileType are required" },
+        { error: "fileName is required" },
         { status: 400 }
       );
     }
 
-    if (!fileType.startsWith("image/") && 
-        !fileType.startsWith("application/pdf") && 
-        !fileType.startsWith("application/msword") && 
-        !fileType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document") && 
-        !fileType.startsWith("text/markdown") && 
-        !fileType.startsWith("application/json")) {
+    // Check MIME type if provided
+    const hasValidMimeType = fileType && (
+      fileType.startsWith("image/") || 
+      fileType.startsWith("application/pdf") || 
+      fileType.startsWith("application/msword") || 
+      fileType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document") || 
+      fileType.startsWith("text/markdown") || 
+      fileType.startsWith("application/json")
+    );
+
+    // Check file extension as fallback (for files with empty or unrecognized MIME types)
+    const fileNameLower = fileName.toLowerCase();
+    const hasValidExtension = fileNameLower.endsWith(".md") ||
+      fileNameLower.endsWith(".markdown") ||
+      fileNameLower.endsWith(".pdf") ||
+      fileNameLower.endsWith(".doc") ||
+      fileNameLower.endsWith(".docx") ||
+      fileNameLower.endsWith(".json") ||
+      /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(fileName);
+
+    if (!hasValidMimeType && !hasValidExtension) {
       return NextResponse.json(
         { error: "Only images, PDFs, Word docs, Markdown, and JSON files allowed" },
         { status: 400 }
       );
+    }
+
+    // Use provided fileType or infer from extension
+    let contentType = fileType || "application/octet-stream";
+    if (!fileType || fileType === "" || fileType === "application/octet-stream") {
+      if (fileNameLower.endsWith(".md") || fileNameLower.endsWith(".markdown")) {
+        contentType = "text/markdown";
+      } else if (fileNameLower.endsWith(".pdf")) {
+        contentType = "application/pdf";
+      } else if (fileNameLower.endsWith(".doc")) {
+        contentType = "application/msword";
+      } else if (fileNameLower.endsWith(".docx")) {
+        contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+      } else if (fileNameLower.endsWith(".json")) {
+        contentType = "application/json";
+      } else if (/\.(jpg|jpeg)$/i.test(fileName)) {
+        contentType = "image/jpeg";
+      } else if (fileNameLower.endsWith(".png")) {
+        contentType = "image/png";
+      } else if (fileNameLower.endsWith(".gif")) {
+        contentType = "image/gif";
+      } else if (fileNameLower.endsWith(".webp")) {
+        contentType = "image/webp";
+      } else if (fileNameLower.endsWith(".svg")) {
+        contentType = "image/svg+xml";
+      }
     }
 
     const key = `${Date.now()}-${fileName}`;
@@ -41,7 +82,7 @@ export async function POST(req: NextRequest) {
     const command = new PutObjectCommand({
       Bucket: BUCKET,
       Key: key,
-      ContentType: fileType,
+      ContentType: contentType,
     });
 
     const signedUrl = await getSignedUrl(r2, command, { expiresIn: 60 });

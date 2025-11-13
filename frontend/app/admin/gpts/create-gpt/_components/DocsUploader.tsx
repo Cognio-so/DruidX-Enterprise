@@ -12,19 +12,28 @@ import {
   VideoIcon,
   XIcon,
   Loader2,
+  ChevronsUpDown,
+  CheckIcon as Check,
 } from "lucide-react";
 
 import { formatBytes } from "@/hooks/use-file-upload";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandList,
+  CommandItem,
+} from "@/components/ui/command";
+import { Badge } from "@/components/ui/badge";
 
 interface KnowledgeBaseEntry {
   id: string;
@@ -98,6 +107,7 @@ export default function DocsUploader({ value, onChange, knowledgeBases = [] }: D
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [knowledgeBaseOpen, setKnowledgeBaseOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const groupKnowledgeBases = (kbEntries: KnowledgeBaseEntry[]): KnowledgeBaseGroup[] => {
@@ -128,24 +138,71 @@ export default function DocsUploader({ value, onChange, knowledgeBases = [] }: D
     return Array.from(groups.values());
   };
 
-  const handleKnowledgeBaseSelect = (baseName: string) => {
-    const grouped = groupKnowledgeBases(knowledgeBases);
-    const selectedGroup = grouped.find((kb) => kb.baseName === baseName);
+  const groupedKnowledgeBases = useMemo(
+    () => groupKnowledgeBases(knowledgeBases),
+    [knowledgeBases]
+  );
+
+  // Track all knowledge base URLs to distinguish from user-uploaded files
+  const knowledgeBaseUrls = useMemo(() => {
+    const urls = new Set<string>();
+    groupedKnowledgeBases.forEach((group) => {
+      group.files.forEach((file) => {
+        urls.add(file.url);
+      });
+    });
+    return urls;
+  }, [groupedKnowledgeBases]);
+
+  const selectedKnowledgeBases = useMemo(() => {
+    return groupedKnowledgeBases
+      .filter((group) =>
+        group.files.every((file) => value.includes(file.url))
+      )
+      .map((group) => group.baseName);
+  }, [groupedKnowledgeBases, value]);
+
+  const toggleKnowledgeBase = (baseName: string) => {
+    const selectedGroup = groupedKnowledgeBases.find(
+      (kb) => kb.baseName === baseName
+    );
     if (!selectedGroup) return;
 
-    const newUrls = selectedGroup.files.map((file) => file.url);
-    const combinedUrls = [...value, ...newUrls];
-    
-    if (combinedUrls.length > maxFiles) {
-      setErrors([`Adding this knowledge base would exceed the maximum of ${maxFiles} files.`]);
+    const groupUrls = selectedGroup.files.map((file) => file.url);
+    const isAlreadySelected = groupUrls.every((url) => value.includes(url));
+
+    if (isAlreadySelected) {
+      const remaining = value.filter((url) => !groupUrls.includes(url));
+      onChange(remaining);
+      setErrors([]);
       return;
     }
 
-    onChange(combinedUrls);
+    const uniqueNewUrls = groupUrls.filter((url) => !value.includes(url));
+    const combinedCount = value.length + uniqueNewUrls.length;
+
+    if (combinedCount > maxFiles) {
+      setErrors([
+        `Adding this knowledge base would exceed the maximum of ${maxFiles} files.`,
+      ]);
+      return;
+    }
+
+    onChange([...value, ...uniqueNewUrls]);
     setErrors([]);
   };
 
-  const groupedKnowledgeBases = groupKnowledgeBases(knowledgeBases);
+  const handleRemoveKnowledgeBase = (baseName: string) => {
+    const selectedGroup = groupedKnowledgeBases.find(
+      (kb) => kb.baseName === baseName
+    );
+    if (!selectedGroup) return;
+
+    const groupUrls = selectedGroup.files.map((file) => file.url);
+    const remaining = value.filter((url) => !groupUrls.includes(url));
+    onChange(remaining);
+    setErrors([]);
+  };
 
   const uploadToS3 = async (file: File, onProgress: (progress: number) => void): Promise<string> => {
     // Step 1: Get presigned URL from your API
@@ -230,8 +287,15 @@ export default function DocsUploader({ value, onChange, knowledgeBases = [] }: D
       "application/json",
     ];
 
-    const isAllowed = allowedTypes.some(type => file.type.startsWith(type));
-    if (!isAllowed) {
+    // Check MIME type
+    const isAllowedByMime = allowedTypes.some(type => file.type.startsWith(type));
+    
+    // Also check file extension as fallback (some browsers don't detect .md as text/markdown)
+    const fileName = file.name.toLowerCase();
+    const allowedExtensions = [".md", ".markdown"];
+    const isAllowedByExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+
+    if (!isAllowedByMime && !isAllowedByExtension) {
       return `File "${file.name}" is not an accepted file type.`;
     }
 
@@ -365,19 +429,26 @@ export default function DocsUploader({ value, onChange, knowledgeBases = [] }: D
   };
 
   const removeFile = async (url: string) => {
-    try {
-      await deleteFromS3(url);
-      onChange(value.filter(u => u !== url));
-    } catch (error) {
-      console.error("Delete error:", error);
-      // Still remove from UI even if delete fails
-      onChange(value.filter(u => u !== url));
+    // Only delete from S3 if it's a user-uploaded file (not from knowledge base)
+    const isKnowledgeBaseFile = knowledgeBaseUrls.has(url);
+    
+    if (!isKnowledgeBaseFile) {
+      try {
+        await deleteFromS3(url);
+      } catch (error) {
+        console.error("Delete error:", error);
+        // Continue to remove from UI even if S3 delete fails
+      }
     }
+    
+    // Always remove from the value array (UI update)
+    onChange(value.filter(u => u !== url));
   };
 
   const clearFiles = async () => {
-    // Delete all files from S3
-    const deletePromises = value.map(url => deleteFromS3(url));
+    // Only delete user-uploaded files from S3 (not knowledge base files)
+    const userUploadedUrls = value.filter(url => !knowledgeBaseUrls.has(url));
+    const deletePromises = userUploadedUrls.map(url => deleteFromS3(url));
     try {
       await Promise.all(deletePromises);
     } catch (error) {
@@ -414,20 +485,79 @@ export default function DocsUploader({ value, onChange, knowledgeBases = [] }: D
       {groupedKnowledgeBases.length > 0 && (
         <div className="flex flex-col gap-2">
           <Label htmlFor="knowledge-base-select">Select from Knowledge Base</Label>
-          <Select
-            onValueChange={handleKnowledgeBaseSelect}
-          >
-            <SelectTrigger id="knowledge-base-select" className="w-full">
-              <SelectValue placeholder="Choose a knowledge base" />
-            </SelectTrigger>
-            <SelectContent>
-              {groupedKnowledgeBases.map((kb) => (
-                <SelectItem key={kb.baseName} value={kb.baseName}>
-                  {kb.baseName} ({kb.files.length} file{kb.files.length !== 1 ? "s" : ""})
-                </SelectItem>
+          <Popover open={knowledgeBaseOpen} onOpenChange={setKnowledgeBaseOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                role="combobox"
+                aria-expanded={knowledgeBaseOpen}
+                className="w-full justify-between"
+                id="knowledge-base-select"
+              >
+                {selectedKnowledgeBases.length > 0
+                  ? `${selectedKnowledgeBases.length} selected`
+                  : "Choose knowledge bases"}
+                <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-72 max-w-full p-0" align="start">
+              <Command>
+                <CommandInput placeholder="Search knowledge bases..." />
+                <CommandList>
+                  <CommandEmpty>No knowledge bases found.</CommandEmpty>
+                  <CommandGroup>
+                    {groupedKnowledgeBases.map((kb) => {
+                      const isSelected = selectedKnowledgeBases.includes(kb.baseName);
+                      return (
+                        <CommandItem
+                          key={kb.baseName}
+                          value={kb.baseName}
+                          onSelect={() => toggleKnowledgeBase(kb.baseName)}
+                          className="flex items-center justify-between gap-3"
+                        >
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">{kb.baseName}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {kb.files.length} file{kb.files.length !== 1 ? "s" : ""}
+                            </span>
+                          </div>
+                          <Check
+                            className={`size-4 transition-opacity duration-150 ${isSelected ? "opacity-100" : "opacity-0"}`}
+                          />
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          {selectedKnowledgeBases.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {selectedKnowledgeBases.map((baseName) => (
+                <Badge
+                  key={baseName}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
+                  {baseName}
+                  <button
+                    type="button"
+                    className="rounded-full p-0.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleRemoveKnowledgeBase(baseName);
+                    }}
+                    aria-label={`Remove ${baseName}`}
+                  >
+                    <XIcon className="size-3" />
+                  </button>
+                </Badge>
               ))}
-            </SelectContent>
-          </Select>
+            </div>
+          )}
         </div>
       )}
 
@@ -446,7 +576,7 @@ export default function DocsUploader({ value, onChange, knowledgeBases = [] }: D
           ref={inputRef}
           type="file"
           multiple
-          accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,application/json"
+          accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,.md,.markdown,application/json"
           onChange={handleFileChange}
           className="sr-only"
           aria-label="Upload files"
@@ -521,10 +651,13 @@ export default function DocsUploader({ value, onChange, knowledgeBases = [] }: D
                   <AlertCircleIcon className="size-4 text-red-600" />
                 )}
                 <Button
+                  type="button"
                   size="icon"
                   variant="ghost"
                   className="text-muted-foreground/80 hover:text-foreground -me-2 size-8 hover:bg-transparent"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     if (file.type === "uploading") {
                       removeUploadingFile(file.id);
                     } else if (file.url) {
@@ -542,7 +675,16 @@ export default function DocsUploader({ value, onChange, knowledgeBases = [] }: D
           {/* Remove all files button */}
           {value.length > 1 && (
             <div>
-              <Button size="sm" variant="outline" onClick={clearFiles}>
+              <Button 
+                type="button"
+                size="sm" 
+                variant="outline" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  clearFiles();
+                }}
+              >
                 Remove all files
               </Button>
             </div>
