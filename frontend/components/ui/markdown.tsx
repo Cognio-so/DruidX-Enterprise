@@ -91,7 +91,7 @@ const Markdown: React.FC<MarkdownProps> = ({ content, className, sources = [] })
   console.log('Markdown processed content:', cleanContent);
 
   return (
-    <div className={cn("prose prose-sm dark:prose-invert max-w-none break-words", className)}>
+    <div className={cn("prose dark:prose-invert max-w-none break-words", className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex]}
@@ -155,7 +155,7 @@ const Markdown: React.FC<MarkdownProps> = ({ content, className, sources = [] })
           p({ children, ...props }) {
             return (
               <p
-                className="leading-7 break-words [&:not(:first-child)]:mt-5 mb-4 last:mb-0"
+                className="leading-7 break-words text-[0.9375rem] [&:not(:first-child)]:mt-5 mb-4 last:mb-0"
                 {...props}
               >
                 {children}
@@ -180,7 +180,7 @@ const Markdown: React.FC<MarkdownProps> = ({ content, className, sources = [] })
           // Custom list item styling
           li({ children, ...props }) {
             return (
-              <li className="break-words leading-relaxed" {...props}>
+              <li className="break-words leading-relaxed text-[1.02rem]" {...props}>
                 {children}
               </li>
             );

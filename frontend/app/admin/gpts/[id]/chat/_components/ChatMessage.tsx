@@ -1,16 +1,14 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sparkles, User, ExternalLink, Download } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import Image from "next/image";
+import { User, ExternalLink, Download } from "lucide-react";
 import { Message, MessageContent } from "@/components/ai-elements/message";
 import { Response } from "@/components/ai-elements/response";
-import { Orb } from "@/components/ui/orb";
-import { cn } from "@/lib/utils";
 import { ResearchTimeline } from "@/components/ResearchTimeline";
 import { ResearchPhaseShimmer } from "@/components/ResearchPhaseShimmer";
 import { Reasoning } from "@/components/ai-elements/reasoning";
 import { ShimmeringText } from "@/components/ui/shimmering-text";
-import { useState, useEffect } from "react";
 
 interface UploadedDoc {
   url: string;
@@ -129,7 +127,7 @@ export default function ChatMessage({
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 break-words">
+    <div className="w-full max-w-5xl mx-auto break-words">
       <Message from={isUser ? "user" : "assistant"}>
         {isUser ? (
           <>
@@ -180,12 +178,17 @@ export default function ChatMessage({
           </>
         ) : (
           <MessageContent variant="flat">
-            <div className="flex items-start gap-3">
-              <div className={cn(
-                "ring-border size-8 flex-shrink-0 overflow-hidden rounded-full ring-1",
-                "flex items-center justify-center"
-              )}>
-                <Orb className="h-full w-full" />
+            <div className="flex items-start gap-3 pl-2">
+              <div className="bg-transparent relative size-8 flex-shrink-0 rounded-full p-0.5 ">
+                <div className="bg-transparent h-full w-full overflow-hidden rounded-full  flex items-center justify-center">
+                  <Image
+                    src="/DruidX logo.png"
+                    alt="DruidX logo"
+                    width={32}
+                    height={32}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
               </div>
               <div className="flex-1 space-y-2">
                 {/* WebSearch Reasoning - show for assistant messages when websearch is active */}
@@ -311,11 +314,11 @@ export default function ChatMessage({
                   </div>
                 ) : isStreaming && !webSearchStatus?.isActive ? (
                   backendThinkingState ? (
-                    <ShimmeringText className="text-muted-foreground text-lg">
+                    <ShimmeringText className="text-muted-foreground text-[15px]">
                       {backendThinkingState}
                     </ShimmeringText>
                   ) : (
-                    <span className="animate-pulse text-lg text-muted-foreground">⚪</span>
+                    <span className="animate-pulse text-[15px] text-muted-foreground">⚪</span>
                   )
                 ) : null}
               </div>

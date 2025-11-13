@@ -89,6 +89,7 @@ export default function ChatInput({
   }>>([]);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Voice chat integration
   const { connected, connecting, error, connect, disconnect, audioStream } = useVoiceChat({
@@ -101,6 +102,15 @@ export default function ChatInput({
   useEffect(() => {
     onVoiceConnectionChange?.(connected);
   }, [connected, onVoiceConnectionChange]);
+
+  // Auto-expand textarea based on content
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
+    }
+  }, [message]);
 
   const handleVoiceToggle = async () => {
     if (connected) {
@@ -285,32 +295,18 @@ export default function ChatInput({
           };
           uploadedDocsList.push(newDoc);
 
-          // Mark as completed
+          // Mark as completed and immediately remove from uploading list
           setUploadingFiles(prev =>
-            prev.map(f =>
-              f.id === uploadingFile.id ? { ...f, status: 'completed' as const, progress: 100 } : f
-            )
+            prev.filter(f => f.id !== uploadingFile.id)
           );
-
-          // Remove from uploading after a short delay
-          setTimeout(() => {
-            setUploadingFiles(prev => prev.filter(f => f.id !== uploadingFile.id));
-          }, 500);
         } catch (error) {
           errors.push(uploadingFile.file.name);
           console.error(`Failed to upload ${uploadingFile.file.name}:`, error);
           
-          // Mark as error
+          // Remove errored file from uploading list
           setUploadingFiles(prev =>
-            prev.map(f =>
-              f.id === uploadingFile.id ? { ...f, status: 'error' as const } : f
-            )
+            prev.filter(f => f.id !== uploadingFile.id)
           );
-
-          // Remove error files after a delay
-          setTimeout(() => {
-            setUploadingFiles(prev => prev.filter(f => f.id !== uploadingFile.id));
-          }, 2000);
         }
       }
 
@@ -452,12 +448,13 @@ export default function ChatInput({
             </div>
           ) : (
             <textarea
+              ref={textareaRef}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder={isUploading ? "Uploading documents..." : "Ask anything..."}
               disabled={isLoading || connecting || isUploading}
-              className="w-full min-h-[50px] resize-none outline-none text-lg leading-snug bg-transparent placeholder:text-muted-foreground disabled:opacity-50"
+              className="w-full min-h-[50px] max-h-[200px] resize-none outline-none text-lg leading-snug bg-transparent placeholder:text-muted-foreground disabled:opacity-50 overflow-y-auto [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-clip-padding"
               rows={2}
             />
           )}

@@ -50,6 +50,7 @@ export default function ChatInput({
   const [uploadedDocs, setUploadedDocs] = useState<UploadedDoc[]>([]);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (defaultModel) {
@@ -59,6 +60,15 @@ export default function ChatInput({
       }
     }
   }, [defaultModel]);
+
+  // Auto-expand textarea based on content
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
+    }
+  }, [message]);
 
   const handleModelChange = async (value: string) => {
     setSelectedModel(value);
@@ -265,12 +275,13 @@ export default function ChatInput({
       <div className="relative bg-muted/20 rounded-3xl shadow-sm border border-border overflow-hidden">
         <div className="p-3">
           <textarea
+            ref={textareaRef}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Ask anything..."
             disabled={isLoading}
-            className="w-full min-h-[50px] resize-none outline-none text-lg leading-snug bg-transparent placeholder:text-muted-foreground disabled:opacity-50"
+            className="w-full min-h-[50px] max-h-[200px] resize-none outline-none text-lg leading-snug bg-transparent placeholder:text-muted-foreground disabled:opacity-50 overflow-y-auto"
             rows={2}
           />
         </div>
