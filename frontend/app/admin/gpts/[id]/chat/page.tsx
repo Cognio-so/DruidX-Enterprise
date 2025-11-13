@@ -42,6 +42,7 @@ export default function ChatGptById() {
     currentPhase,
     researchPhases,
     webSearchStatus,
+    thinkingState,
     clearMessages,
   } = useChatMessages(sessionId);
   const [gptData, setGptData] = useState<GptData | null>(null);
@@ -286,6 +287,7 @@ export default function ChatGptById() {
                         researchPhases={researchPhases}
                         currentPhase={currentPhase}
                         webSearchStatus={isLastAssistantMessage ? webSearchStatus : undefined}
+                        thinkingState={isLastAssistantMessage ? thinkingState : undefined}
                       />
                     );
                   })}

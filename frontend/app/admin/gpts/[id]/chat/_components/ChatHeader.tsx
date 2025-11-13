@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { Bot, MessageSquarePlus } from "lucide-react";
 import Image from "next/image";
+import { useState, useEffect } from "react";
 
 interface ChatHeaderProps {
   gptName?: string;
@@ -15,6 +16,23 @@ interface ChatHeaderProps {
 
 export default function ChatHeader({ gptName, gptImage, onNewChat }: ChatHeaderProps) {
   const { data: session } = authClient.useSession();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Compute fallback text consistently
+  const getFallbackText = () => {
+    if (!mounted || !session?.user) return "";
+    if (session.user.name && session.user.name.length > 0) {
+      return session.user.name.charAt(0).toUpperCase();
+    }
+    if (session.user.email) {
+      return session.user.email.charAt(0).toUpperCase();
+    }
+    return "";
+  };
 
   return (
     <div className="flex items-center justify-between w-full">
@@ -52,7 +70,7 @@ export default function ChatHeader({ gptName, gptImage, onNewChat }: ChatHeaderP
             className="gap-2"
             title="New Chat"
           >
-            <MessageSquarePlus className="h-4 w-4" />
+            <MessageSquarePlus className="h-4 w-4 text-primary" />
             <span className="hidden sm:inline">New Chat</span>
           </Button>
         )}
@@ -60,15 +78,13 @@ export default function ChatHeader({ gptName, gptImage, onNewChat }: ChatHeaderP
         <Avatar className="h-8 w-8">
           <AvatarImage
             src={
-              session?.user.image ??
-              `https://avatar.vercel.sh/${session?.user.email}`
+              session?.user?.image ??
+              (session?.user?.email ? `https://avatar.vercel.sh/${session.user.email}` : undefined)
             }
-            alt={session?.user.name}
+            alt={session?.user?.name || "User"}
           />
-          <AvatarFallback>
-            {session?.user.name && session.user.name.length > 0
-              ? session.user.name.charAt(0).toUpperCase()
-              : session?.user.email?.charAt(0).toUpperCase()}
+          <AvatarFallback suppressHydrationWarning>
+            {getFallbackText()}
           </AvatarFallback>
         </Avatar>
       </div>

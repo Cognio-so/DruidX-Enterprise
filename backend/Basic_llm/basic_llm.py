@@ -8,6 +8,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 import os
 from prompt_cache import normalize_prefix
 import asyncio
+from thinking_states import send_thinking_state, BASIC_LLM_THINKING_STATES
 
 # Remove this line - don't set it at module level
 # google_api_key=os.getenv("GOOGLE_API_KEY", "")
@@ -171,12 +172,29 @@ Remember: Only use context sources when they genuinely help answer the user's qu
         system_msg = SystemMessage(content=enhanced_prompt)
         messages = [system_msg] + formatted_history + [HumanMessage(content=f"CURRENT USER INPUT: {user_query}")]
 
-        full_response, _ = await stream_with_token_tracking(
-            chat,
-            messages,
-            chunk_callback=chunk_callback,
-            state=state
+        # Start thinking states loop
+        thinking_result = await send_thinking_state(
+            state, "SimpleLLM", BASIC_LLM_THINKING_STATES, interval=2.0
         )
+        thinking_task, stop_flag = thinking_result if thinking_result else (None, None)
+
+        try:
+            full_response, _ = await stream_with_token_tracking(
+                chat,
+                messages,
+                chunk_callback=chunk_callback,
+                state=state
+            )
+        finally:
+            # Stop thinking states when response starts
+            if stop_flag:
+                stop_flag.set()
+            if thinking_task:
+                thinking_task.cancel()
+                try:
+                    await thinking_task
+                except asyncio.CancelledError:
+                    pass
         
         if chunk_callback:
             await chunk_callback("\n\n")
