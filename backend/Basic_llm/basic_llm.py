@@ -36,21 +36,34 @@ except FileNotFoundError:
 # Combine into one normalized static system prefix (identical every call)
 STATIC_SYS = normalize_prefix([CORE_PREFIX, BASIC_RULES])
 
-async def _quick_kb_search(session_id: str, query: str, limit: int = 4) -> list:
+async def _quick_kb_search(gpt_id: str, userId: str, query: str, limit: int = 4) -> list:
     """
     Quick KB search using pre-cached embeddings for SimpleLLM.
     Returns top 3-5 most relevant KB chunks for fast context injection.
+    Uses gpt_id and userId to identify the collection.
     """
     try:
-        from Rag.Rag import KB_EMBEDDING_CACHE, _search_collection, _hybrid_search_rrf
+        from Rag.Rag import _search_collection, _hybrid_search_rrf
+        from redis_client import ensure_redis_client
         
-        if session_id not in KB_EMBEDDING_CACHE:
-            print(f"[SimpleLLM-KB] No KB cache found for session {session_id}")
+        if not gpt_id or not userId:
+            print(f"[SimpleLLM-KB] Missing gpt_id or userId")
             return []
         
-        cache_data = KB_EMBEDDING_CACHE[session_id]
-        collection_name = cache_data["collection_name"]
-        is_hybrid = cache_data["is_hybrid"]
+        collection_name = f"kb_{gpt_id}_{userId}"
+        cache_key = f"kb_cache:{collection_name}"
+        
+        # Get cache data from Redis
+        redis_client = await ensure_redis_client()
+        cache_data = {}
+        if redis_client:
+            cache_data = await redis_client.hgetall(cache_key)
+        
+        if not cache_data:
+            print(f"[SimpleLLM-KB] No KB cache found for gpt_id={gpt_id}, userId={userId}")
+            return []
+        
+        is_hybrid = cache_data.get("is_hybrid", "False").lower() == "true"
         
         print(f"[SimpleLLM-KB] Searching KB collection: {collection_name} (hybrid: {is_hybrid})")
         
@@ -76,14 +89,15 @@ async def SimpleLLm(state: GraphState) -> GraphState:
     gpt_config = state.get("gpt_config", {})
     custom_system_prompt = gpt_config.get("instruction", "")
     kb_docs = state.get("kb", {})
-    session_id = state.get("session_id", "default")
+    gpt_id = gpt_config.get("gpt_id")
+    userId = gpt_config.get("userId")
     
     try:
        
         kb_chunks = []
-        if kb_docs and session_id:
+        if kb_docs and gpt_id and userId:
             print(f"[SimpleLLM-KB] Checking for KB availability...")
-            kb_chunks = await _quick_kb_search(session_id, user_query, limit=2)
+            kb_chunks = await _quick_kb_search(gpt_id, userId, user_query, limit=2)
             print(f"[SimpleLLM-KB] Retrieved {len(kb_chunks)} KB chunks")
         from langchain_groq import ChatGroq
         from llm import get_llm, stream_with_token_tracking
