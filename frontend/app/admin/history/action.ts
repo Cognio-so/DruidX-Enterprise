@@ -40,9 +40,9 @@ export async function saveConversation(conversationData: ConversationData) {
               role: msg.role,
               content: msg.content,
               timestamp: msg.timestamp,
-              uploadedDocs: msg.uploadedDocs || null,
-              imageUrls: msg.imageUrls || null,
-              videoUrls: msg.videoUrls || null,
+              uploadedDocs: msg.uploadedDocs ?? undefined,
+              imageUrls: msg.imageUrls ?? undefined,
+              videoUrls: msg.videoUrls ?? undefined,
             }))
           }
         },
@@ -71,9 +71,9 @@ export async function saveConversation(conversationData: ConversationData) {
               role: msg.role,
               content: msg.content,
               timestamp: msg.timestamp,
-              uploadedDocs: msg.uploadedDocs || null,
-              imageUrls: msg.imageUrls || null,
-              videoUrls: msg.videoUrls || null,
+              uploadedDocs: msg.uploadedDocs ?? undefined,
+              imageUrls: msg.imageUrls ?? undefined,
+              videoUrls: msg.videoUrls ?? undefined,
             }))
           }
         },
