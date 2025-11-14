@@ -184,19 +184,26 @@ async def set_gpt_config(session_id: str, gpt_config: dict):
     session["gpt_config"] = gpt_config
     mcp_connections = gpt_config.get("mcpConnections", [])
     session["mcp_connections"] = mcp_connections
-    # print(f"gpt_config-----------------//: {gpt_config}")
+    print(f"gpt_config-----------------//: {gpt_config}")
 
     if session.get("kb"):
         try:
             from Rag.Rag import preprocess_kb_documents
             hybrid_rag = gpt_config.get("hybridRag", False)
-            print(f"[MAIN] Pre-processing KB with {len(session['kb'])} documents for session {session_id}")
-            await preprocess_kb_documents(
-                session["kb"], 
-                session_id, 
-                is_hybrid=hybrid_rag
-            )
-            print(f"✅ [MAIN] Pre-processed KB documents with embeddings")
+            gpt_id = gpt_config.get("gpt_id")
+            userId = gpt_config.get("userId")
+            
+            if gpt_id and userId:
+                print(f"[MAIN] Pre-processing KB with {len(session['kb'])} documents for gpt_id={gpt_id}, userId={userId}")
+                await preprocess_kb_documents(
+                    session["kb"], 
+                    gpt_id, 
+                    userId,
+                    is_hybrid=hybrid_rag
+                )
+                print(f"✅ [MAIN] Pre-processed KB documents with embeddings")
+            else:
+                print(f"⚠️ [MAIN] Warning: Missing gpt_id or userId in gpt_config, skipping KB preprocessing")
         except Exception as e:
             print(f"⚠️ [MAIN] Warning: Failed to pre-process KB documents: {e}")
             import traceback
@@ -234,6 +241,45 @@ async def add_documents_by_url(session_id: str, request: dict):
     
     print(f"Documents to process: {len(documents)}")
     print(f"Document type: {doc_type}")
+    
+    # For KB documents, check which files are already embedded BEFORE processing
+    if doc_type == "kb":
+        gpt_config = session.get("gpt_config", {})
+        gpt_id = gpt_config.get("gpt_id")
+        userId = gpt_config.get("userId")
+        
+        if gpt_id and userId:
+            try:
+                from Rag.Rag import get_existing_kb_file_urls
+                existing_file_urls = await get_existing_kb_file_urls(gpt_id, userId)
+                if existing_file_urls:
+                    print(f"[MAIN] Found {len(existing_file_urls)} already-embedded KB files, filtering before processing...")
+                    # Separate already-embedded and new documents
+                    already_embedded_docs = [doc for doc in documents if doc.get("file_url") in existing_file_urls]
+                    documents = [doc for doc in documents if doc.get("file_url") not in existing_file_urls]
+                    
+                    # Add already-embedded docs to session KB without processing (just metadata)
+                    if already_embedded_docs:
+                        for doc in already_embedded_docs:
+                            session.setdefault("kb", []).append({
+                                "id": doc.get("id"),
+                                "filename": doc.get("filename"),
+                                "file_url": doc.get("file_url"),
+                                "file_type": doc.get("file_type"),
+                                "size": doc.get("size"),
+                                "content": ""  # No content needed, already embedded
+                            })
+                        print(f"[MAIN] Added {len(already_embedded_docs)} already-embedded KB documents to session (skipped processing)")
+                    
+                    if not documents:
+                        print(f"[MAIN] All KB documents already embedded, skipping processing")
+                        await SessionManager.update_session(session_id, session)
+                        return {"message": "All documents already embedded", "documents": already_embedded_docs}
+                    print(f"[MAIN] Processing {len(documents)} new KB documents (skipped {len(already_embedded_docs)} already embedded)")
+            except Exception as e:
+                print(f"⚠️ [MAIN] Warning: Failed to check existing KB files: {e}")
+                # Continue with processing all documents if check fails
+    
     processed_docs = []
     uploaded_images = []  
     
@@ -405,14 +451,22 @@ async def add_documents_by_url(session_id: str, request: dict):
         print(f"Added {len(processed_docs)} documents to kb")
         try:
             from Rag.Rag import preprocess_kb_documents
-            hybrid_rag = session.get("gpt_config", {}).get("hybridRag", False)
-            print(f"[MAIN] Pre-processing KB with {len(session['kb'])} documents for session {session_id}")
-            await preprocess_kb_documents(
-                session["kb"], 
-                session_id, 
-                is_hybrid=hybrid_rag
-            )
-            print(f"✅ [MAIN] Pre-processed KB documents with embeddings")
+            gpt_config = session.get("gpt_config", {})
+            hybrid_rag = gpt_config.get("hybridRag", False)
+            gpt_id = gpt_config.get("gpt_id")
+            userId = gpt_config.get("userId")
+            
+            if gpt_id and userId:
+                print(f"[MAIN] Pre-processing KB with {len(session['kb'])} documents for gpt_id={gpt_id}, userId={userId}")
+                await preprocess_kb_documents(
+                    session["kb"], 
+                    gpt_id, 
+                    userId,
+                    is_hybrid=hybrid_rag
+                )
+                print(f"✅ [MAIN] Pre-processed KB documents with embeddings")
+            else:
+                print(f"⚠️ [MAIN] Warning: Missing gpt_id or userId in gpt_config, skipping KB preprocessing")
         except Exception as e:
             print(f"⚠️ [MAIN] Warning: Failed to pre-process KB documents: {e}")
             import traceback
@@ -1273,8 +1327,9 @@ async def voice_connect(request: dict):
         
         # FIX: Ensure gpt_config is a dictionary, even if it's None in the session
         gpt_config = session.get("gpt_config")
-        
-        instructions = gpt_config.get("instruction")[:]
+        session["gpt_config"] = gpt_config
+        instructions = gpt_config.get("instruction")
+        session["instruction"] = instructions
 
         # Store voice config in Redis for the agent worker to pick up
         redis_client = await ensure_redis_client()
