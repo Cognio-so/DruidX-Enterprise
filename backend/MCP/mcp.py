@@ -215,11 +215,27 @@ class MCPNode:
         """Get list of available Composio tools/apps"""
         available_tools = []
         for app_name, config in TOOL_CONFIGS.items():
+            logo_app_name = app_name
+            if app_name == "google_meet":
+                logo_app_name = "googlemeet"
+            elif app_name == "google_calendar":
+                logo_app_name = "googlecalendar"
+            elif app_name == "google_sheets":
+                logo_app_name = "googlesheets"
+            elif app_name == "google_drive":
+                logo_app_name = "googledrive"
+            elif app_name == "google_docs":
+                logo_app_name = "googledocs"
+            elif app_name == "google_ads":
+                logo_app_name = "googleads"
+            elif app_name == "google_analytics":
+                logo_app_name = "googleanalytics"
+            
             available_tools.append({
                 "name": app_name.upper(),
                 "slug": app_name,
                 "auth_config_id": config["auth_config_id"],
-                "logo": f"https://logos.composio.dev/api/{app_name.lower()}",
+                "logo": f"https://logos.composio.dev/api/{logo_app_name.lower()}",
                 "description": f"Connect your {app_name.upper()} account",
                 "tools": config["tools"]
             })
