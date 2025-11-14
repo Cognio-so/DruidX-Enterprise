@@ -7,6 +7,8 @@ import {
   Library,
   LogOutIcon,
   Users2,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -27,13 +29,23 @@ import {
 import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import { UseSignOut } from "@/hooks/use-signout";
-import { ThemeToggle } from "@/components/ui/themeToggle";
+import { useTheme } from "next-themes";
 
 export function NavUser() {
   const { data: session, isPending } = authClient.useSession();
   const { isMobile } = useSidebar();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
 
   const handleSignout = UseSignOut();
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme(theme === "light" ? "dark" : "light");
+  };
 
   if (isPending) {
     return null;
@@ -125,8 +137,29 @@ export function NavUser() {
                 </>
               )}
             </DropdownMenuGroup>
-              <ThemeToggle />
-              theme toggle
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={toggleTheme} className="cursor-pointer">
+              {mounted ? (
+                <>
+                  {theme === "light" ? (
+                    <>
+                      <Moon className="h-4 w-4" />
+                      Dark mode
+                    </>
+                  ) : (
+                    <>
+                      <Sun className="h-4 w-4" />
+                      Light mode
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Sun className="h-4 w-4" />
+                  Toggle theme
+                </>
+              )}
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignout}>
               <LogOutIcon />

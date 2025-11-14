@@ -30,7 +30,39 @@ export function useAutoSaveConversation({
   const lastSavedCountRef = useRef(0);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const generateTitle = useCallback((gptName: string) => {
+  const generateTitle = useCallback((gptName: string, messages: Message[]) => {
+    // Try to get the first user message to create a meaningful title
+    const firstUserMessage = messages.find(msg => msg.role === 'user');
+    
+    if (firstUserMessage && firstUserMessage.content.trim()) {
+      // Extract a title from the first user message (max 50 chars)
+      let title = firstUserMessage.content.trim();
+      
+      // Remove markdown formatting if present
+      title = title.replace(/^#+\s*/, ''); // Remove markdown headers
+      title = title.replace(/\*\*/g, ''); // Remove bold
+      title = title.replace(/\*/g, ''); // Remove italic
+      title = title.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1'); // Remove markdown links
+      
+      // Truncate to 50 characters and add ellipsis if needed
+      if (title.length > 50) {
+        title = title.substring(0, 47) + '...';
+      }
+      
+      // Add timestamp for uniqueness
+      const now = new Date();
+      const month = now.toLocaleDateString('en-US', { month: 'short' });
+      const day = now.getDate();
+      const time = now.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+      });
+      
+      return `${title} - ${month} ${day}, ${time}`;
+    }
+    
+    // Fallback to GPT name with timestamp if no user message found
     const now = new Date();
     const month = now.toLocaleDateString('en-US', { month: 'short' });
     const day = now.getDate();
@@ -57,7 +89,7 @@ export function useAutoSaveConversation({
 
     try {
       const conversationData: ConversationData = {
-        title: generateTitle(gptName),
+        title: generateTitle(gptName, messages),
         gptId,
         sessionId,
         messages: messages.map(msg => ({

@@ -2,12 +2,19 @@
 
 import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Plus, Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, Sparkles, Search } from "lucide-react";
 import Link from "next/link";
 import { AutoBuilderDialog } from "./auto-builder-dialog";
+import { useSearchContext } from "./gpts-list-wrapper";
 
 export function GptsPageClient() {
   const [autoBuildOpen, setAutoBuildOpen] = useState(false);
+  const { searchTerm, setSearchTerm } = useSearchContext();
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
 
   return (
     <>
@@ -40,6 +47,19 @@ export function GptsPageClient() {
             <span className="hidden sm:inline">Create New GPT</span>
             <span className="sm:hidden">Create GPT</span>
           </Link>
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search agents by name..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className="pl-10"
+          />
         </div>
       </div>
 

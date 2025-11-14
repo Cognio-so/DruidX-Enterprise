@@ -33,8 +33,9 @@ export async function getAdminHistory() {
       },
       messages: {
         orderBy: {
-          timestamp: 'asc'
+          timestamp: 'desc'
         },
+        take: 20, // Only fetch last 20 messages for performance - enough to find last user message
         select: {
           content: true,
           role: true,

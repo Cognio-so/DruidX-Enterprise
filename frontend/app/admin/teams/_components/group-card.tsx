@@ -27,7 +27,10 @@ export default function GroupCard({ group, onPreview }: GroupCardProps) {
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card 
+      className="hover:shadow-lg transition-shadow cursor-pointer"
+      onClick={() => onPreview(group.id)}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start gap-4">
           <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border">
@@ -76,7 +79,10 @@ export default function GroupCard({ group, onPreview }: GroupCardProps) {
         <Button
           variant="outline"
           className="w-full gap-2"
-          onClick={() => onPreview(group.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onPreview(group.id);
+          }}
         >
           <Eye className="h-4 w-4" />
           Preview

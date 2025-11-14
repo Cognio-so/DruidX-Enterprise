@@ -126,7 +126,7 @@ export const knowledgeBaseSchema = z.object({
       })
     )
     .min(1, { message: "At least one file is required" })
-    .max(5, { message: "You can upload at most 5 files at once" }),
+    .max(15, { message: "You can upload at most 15 files at once" }),
 });
 
 export type KnowledgeBaseFormValues = z.infer<typeof knowledgeBaseSchema>;
