@@ -35,6 +35,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
 import { deleteGptbyId } from "../action";
+import { getModelIcon } from "@/components/brand-icons";
 
 const modelDisplayNames: Record<string, string> = {
   gpt_4o: "GPT-4o",
@@ -48,6 +49,24 @@ const modelDisplayNames: Record<string, string> = {
   o1_mini: "o1 Mini",
   o2_preview: "o2 Preview",
   o4_mini: "o4 Mini",
+  // Groq models
+  groq_llama: "Llama (Groq)",
+  groq_mixtral: "Mixtral (Groq)",
+  // Meta models
+  llama_3: "Llama 3",
+  llama_3_1: "Llama 3.1",
+  meta_llama: "Meta Llama",
+  // DeepSeek models
+  deepseek_chat: "DeepSeek Chat",
+  deepseek_coder: "DeepSeek Coder",
+  deepseek_v2: "DeepSeek V2",
+  deepseek_v3_1: "DeepSeek V3.1",
+  // xAI (Grok) models
+  grok_4_fast: "Grok 4 Fast",
+  // Moonshot AI (Kimi) models
+  kimi_k2_0905: "Kimi K2 0905",
+  // Meta models
+  meta_llama_3_3_70b: "Meta Llama 3.3 70B",
 };
 
 interface GptCardProps {
@@ -155,12 +174,17 @@ export function GptCard({ gpt }: GptCardProps) {
       </CardHeader>
 
       <CardContent className="pt-0 flex-1 flex flex-col">
-        <CardDescription className="mb-3 sm:mb-4 text-xs sm:text-sm md:text-base line-clamp-2 sm:line-clamp-3 flex-shrink-0">
+        {/* Description with fixed height */}
+        <div className="h-[3.5rem] sm:h-[4rem] md:h-[4.5rem] mb-3 sm:mb-4 flex-shrink-0 overflow-hidden">
+          <CardDescription className="text-xs sm:text-sm md:text-base line-clamp-2 sm:line-clamp-3">
           {gpt.description}
         </CardDescription>
+        </div>
 
-        {/* Single horizontal line for calendar, icons, and GPT model */}
-        <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4 flex-shrink-0">
+        {/* Fixed position section for Calendar, Model, and Tools */}
+        <div className="flex-shrink-0 space-y-2 sm:space-y-2.5">
+          {/* First row: Calendar and Model name */}
+          <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500">
           <div className="flex items-center gap-1">
             <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 flex-shrink-0" />
             <span className="truncate text-xs sm:text-sm">
@@ -168,35 +192,47 @@ export function GptCard({ gpt }: GptCardProps) {
             </span>
           </div>
           
-          <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
+            <span className="bg-violet-800 text-white font-medium text-xs sm:text-sm truncate max-w-[80px] sm:max-w-[120px] md:max-w-none px-2 py-1 rounded-full flex items-center gap-1.5">
+              {getModelIcon(gpt.model)}
+              <span className="truncate">
+                {modelDisplayNames[gpt.model] || gpt.model}
+              </span>
+            </span>
+          </div>
+
+          {/* Second row: Tool icons with names */}
+          {(gpt.webBrowser || gpt.hybridRag || gpt.imageEnabled || gpt.videoEnabled) && (
+            <div className="flex items-center gap-2 sm:gap-3 md:gap-4 text-xs sm:text-sm text-gray-500 flex-wrap">
             {gpt.webBrowser && (
-              <div className="flex items-center gap-0.5 sm:gap-1">
+                <div className="flex items-center gap-1">
                 <Globe className="w-3 h-3 sm:w-4 sm:h-4 text-green-600 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">Web Browser</span>
               </div>
             )}
             {gpt.hybridRag && (
-              <div className="flex items-center gap-0.5 sm:gap-1">
+                <div className="flex items-center gap-1">
                 <FileSearch className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">Hybrid RAG</span>
               </div>
             )}
             {gpt.imageEnabled && (
-              <div className="flex items-center gap-0.5 sm:gap-1">
+                <div className="flex items-center gap-1">
                 <ImageIcon className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">Image</span>
               </div>
             )}
             {gpt.videoEnabled && (
-              <div className="flex items-center gap-0.5 sm:gap-1">
+                <div className="flex items-center gap-1">
                 <Video className="w-3 h-3 sm:w-4 sm:h-4 text-red-600 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">Video</span>
               </div>
             )}
-            <span className="text-purple-500 font-medium text-xs sm:text-sm truncate max-w-[80px] sm:max-w-[120px] md:max-w-none">
-              {modelDisplayNames[gpt.model] || gpt.model}
-            </span>
           </div>
+          )}
         </div>
 
         {/* Start Chat Button */}
-        <div className="mt-auto">
+        <div className="mt-auto pt-3 sm:pt-4 md:pt-5">
           <Link
             href={`/admin/gpts/${gpt.id}/chat`}
             className={buttonVariants({

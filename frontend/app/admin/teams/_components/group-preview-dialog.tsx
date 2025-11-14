@@ -61,6 +61,24 @@ export default function GroupPreviewDialog({
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
   const loadingRef = useRef(false);
 
+  // Function to refetch group data
+  const refetchGroupData = async () => {
+    if (!groupId) return;
+    
+    loadingRef.current = true;
+    try {
+      const data = await getGroupDetailsForClient(groupId);
+      setGroup(data);
+      setHasAttemptedLoad(true);
+      loadingRef.current = false;
+    } catch (error) {
+      toast.error("Failed to load group data");
+      setGroup(null);
+      setHasAttemptedLoad(true);
+      loadingRef.current = false;
+    }
+  };
+
   // Fetch group data when dialog opens - track loading state to avoid showing "not found" prematurely
   useEffect(() => {
     if (open && groupId && !loadingRef.current) {
@@ -88,10 +106,14 @@ export default function GroupPreviewDialog({
   const existingMemberIds = group?.members.map((m: { user: { id: string } }) => m.user.id) || [];
   const availableMembers = teamMembers.filter((m: TeamMember) => !existingMemberIds.includes(m.id));
 
-  // Initialize selected member IDs when dialog opens
-  if (open && availableMembers.length > 0 && selectedMemberIds.length === 0) {
-    setSelectedMemberIds([availableMembers[0].id]);
-  }
+  // Initialize selected member IDs when Add Members dialog opens
+  useEffect(() => {
+    if (showAddMembers && availableMembers.length > 0 && selectedMemberIds.length === 0) {
+      setSelectedMemberIds([availableMembers[0].id]);
+    } else if (!showAddMembers) {
+      setSelectedMemberIds([]);
+    }
+  }, [showAddMembers, availableMembers.length]);
 
   const handleRemoveMember = async (userId: string) => {
     if (!groupId) return;
@@ -103,6 +125,7 @@ export default function GroupPreviewDialog({
         if (result.success) {
           toast.success("Member removed from group");
           router.refresh();
+          await refetchGroupData();
         } else {
           toast.error(result.error || "Failed to remove member");
         }
@@ -122,6 +145,7 @@ export default function GroupPreviewDialog({
         if (result.success) {
           toast.success("GPT removed from group");
           router.refresh();
+          await refetchGroupData();
         } else {
           toast.error(result.error || "Failed to remove GPT");
         }
@@ -168,6 +192,7 @@ export default function GroupPreviewDialog({
           setShowAddMembers(false);
           setSelectedMemberIds([]);
           router.refresh();
+          await refetchGroupData();
         } else {
           toast.error(result.error || "Failed to add members");
         }
@@ -452,6 +477,7 @@ export default function GroupPreviewDialog({
         onOpenChange={setShowAssignGpt}
         adminGpts={adminGpts}
         group={group}
+        onSuccess={refetchGroupData}
       />
 
       {showAddMembers && (

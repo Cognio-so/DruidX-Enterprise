@@ -38,6 +38,7 @@ import { ImageModelDialog } from "../../../create-gpt/_components/ImageModelDial
 import { VideoModelDialog } from "../../../create-gpt/_components/VideoModelDialog";
 import { GptFormValues, gptSchema } from "@/lib/zodSchema";
 import { editGpt } from "../action";
+import { getModelIcon } from "@/components/brand-icons";
 
 const GptModels = [
   { id: "gemini_2_5_flash", name: "Gemini 2.5 Flash" },
@@ -202,14 +203,24 @@ export function EditGptForm({ gptId, initialData }: EditGptFormProps) {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Choose a model" />
+                            <div className="flex items-center gap-2">
+                              {field.value && getModelIcon(field.value, "flex-shrink-0")}
+                              <SelectValue placeholder="Choose a model">
+                                {field.value 
+                                  ? GptModels.find(m => m.id === field.value)?.name || field.value
+                                  : "Choose a model"}
+                              </SelectValue>
+                            </div>
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="max-h-[400px] overflow-y-auto">
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 p-2">
                             {GptModels.map((model) => (
                               <SelectItem key={model.id} value={model.id} className="text-sm">
-                                {model.name}
+                                <div className="flex items-center gap-2">
+                                  {getModelIcon(model.id, "flex-shrink-0")}
+                                  <span>{model.name}</span>
+                                </div>
                               </SelectItem>
                             ))}
                           </div>

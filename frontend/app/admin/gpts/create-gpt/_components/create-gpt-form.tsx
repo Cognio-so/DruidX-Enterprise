@@ -39,6 +39,7 @@ import { VideoModelDialog } from "./VideoModelDialog";
 import { GptFormValues, gptSchema } from "@/lib/zodSchema";
 import { createGpt } from "../action";
 import { KnowledgeBase } from "@/data/get-knowledge-base";
+import { getModelIcon } from "@/components/brand-icons";
 
 interface CreateGptFormProps {
   knowledgeBases?: KnowledgeBase[];
@@ -179,14 +180,24 @@ export function CreateGptForm({ knowledgeBases = [] }: CreateGptFormProps) {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Choose a model" />
+                            <div className="flex items-center gap-2">
+                              {field.value && getModelIcon(field.value, "flex-shrink-0")}
+                              <SelectValue placeholder="Choose a model">
+                                {field.value 
+                                  ? GptModels.find(m => m.id === field.value)?.name || field.value
+                                  : "Choose a model"}
+                              </SelectValue>
+                            </div>
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="max-h-[400px] overflow-y-auto">
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 p-2">
                             {GptModels.map((model) => (
                               <SelectItem key={model.id} value={model.id} className="text-sm">
-                                {model.name}
+                                <div className="flex items-center gap-2">
+                                  {getModelIcon(model.id, "flex-shrink-0")}
+                                  <span>{model.name}</span>
+                                </div>
                               </SelectItem>
                             ))}
                           </div>

@@ -56,6 +56,7 @@ interface HistoryDataTableProps {
 export function HistoryDataTable({ data }: HistoryDataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -112,6 +113,26 @@ export function HistoryDataTable({ data }: HistoryDataTableProps) {
       },
       cell: ({ row }) => {
         const history = row.original;
+        
+        // Get the last user message efficiently
+        // Messages are ordered by timestamp desc, so first user message is the last one
+        let previewText = "No messages yet";
+        if (history.messages && history.messages.length > 0) {
+          // Find first user message (since messages are ordered desc, first = most recent)
+          const lastUserMessage = history.messages.find(msg => msg.role === "user");
+          if (lastUserMessage) {
+            // Remove markdown formatting and truncate
+            const cleanMessage = lastUserMessage.content
+              .replace(/[#*_`\[\]()]/g, '') // Remove markdown chars
+              .replace(/\n/g, ' ') // Replace newlines with spaces
+              .trim();
+            
+            previewText = cleanMessage.length > 60
+              ? cleanMessage.substring(0, 60) + "..."
+              : cleanMessage;
+          }
+        }
+
         return (
           <div className="flex items-center gap-3 min-w-0">
             <div className="relative w-8 h-8 flex-shrink-0">
@@ -132,8 +153,8 @@ export function HistoryDataTable({ data }: HistoryDataTableProps) {
               <div className="font-medium truncate" title={history.title}>
                 {history.title}
               </div>
-              <div className="text-sm text-muted-foreground truncate">
-                with {history.gpt.name}
+              <div className="text-sm text-muted-foreground truncate" title={previewText}>
+                {previewText}
               </div>
             </div>
           </div>
@@ -268,12 +289,44 @@ export function HistoryDataTable({ data }: HistoryDataTableProps) {
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    globalFilterFn: (row, columnId, filterValue) => {
+      const history = row.original;
+      const searchLower = filterValue.toLowerCase().trim();
+      
+      // Search in title
+      if (history.title.toLowerCase().includes(searchLower)) {
+        return true;
+      }
+      
+      // Search in GPT name
+      if (history.gpt.name.toLowerCase().includes(searchLower)) {
+        return true;
+      }
+      
+      // Search in user name
+      if (history.user.name.toLowerCase().includes(searchLower)) {
+        return true;
+      }
+      
+      // Search in message content
+      if (history.messages && history.messages.length > 0) {
+        for (const message of history.messages) {
+          if (message.content.toLowerCase().includes(searchLower)) {
+            return true;
+          }
+        }
+      }
+      
+      return false;
+    },
     state: {
       sorting,
       columnFilters,
+      globalFilter,
     },
   });
 
@@ -283,11 +336,9 @@ export function HistoryDataTable({ data }: HistoryDataTableProps) {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search conversations..."
-            value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("title")?.setFilterValue(event.target.value)
-            }
+            placeholder="Search conversations, messages, or keywords..."
+            value={globalFilter ?? ""}
+            onChange={(event) => setGlobalFilter(event.target.value)}
             className="pl-8"
           />
         </div>
@@ -314,21 +365,36 @@ export function HistoryDataTable({ data }: HistoryDataTableProps) {
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                const history = row.original;
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => {
+                      router.push(`/admin/gpts/${history.gpt.id}/chat?conversation=${history.id}`);
+                    }}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell 
+                        key={cell.id}
+                        onClick={(e) => {
+                          // Stop propagation for action buttons to prevent navigation
+                          if (cell.column.id === "actions") {
+                            e.stopPropagation();
+                          }
+                        }}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell

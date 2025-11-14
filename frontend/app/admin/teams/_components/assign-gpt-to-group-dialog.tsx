@@ -28,6 +28,7 @@ interface AssignGptToGroupDialogProps {
   onOpenChange: (open: boolean) => void;
   adminGpts: AdminGpt[];
   group: GroupDetails | null;
+  onSuccess?: () => void | Promise<void>;
 }
 
 export default function AssignGptToGroupDialog({ 
@@ -35,7 +36,8 @@ export default function AssignGptToGroupDialog({
   open, 
   onOpenChange,
   adminGpts,
-  group
+  group,
+  onSuccess
 }: AssignGptToGroupDialogProps) {
   const [selectedGptIds, setSelectedGptIds] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
@@ -73,6 +75,9 @@ export default function AssignGptToGroupDialog({
           toast.success("GPTs assigned to group successfully");
           onOpenChange(false);
           router.refresh();
+          if (onSuccess) {
+            await onSuccess();
+          }
         } else {
           toast.error(result.error || "Failed to assign GPTs");
         }

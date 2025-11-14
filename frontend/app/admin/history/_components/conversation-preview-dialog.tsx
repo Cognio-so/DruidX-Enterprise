@@ -21,9 +21,12 @@ import {
   MessageCircle,
   Eye,
   ExternalLink,
+  MessageSquare,
 } from "lucide-react";
 import Image from "next/image";
 import Markdown from "@/components/ui/markdown";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface ConversationPreviewDialogProps {
   history: AdminHistory;
@@ -32,6 +35,7 @@ interface ConversationPreviewDialogProps {
 
 export function ConversationPreviewDialog({ history, children }: ConversationPreviewDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString("en-GB", {
@@ -89,30 +93,44 @@ export function ConversationPreviewDialog({ history, children }: ConversationPre
         }}
       >
         <DialogHeader className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b">
-          <DialogTitle className="flex items-center gap-2 sm:gap-3">
-            <div className="relative w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8">
-              {history.gpt.image && history.gpt.image !== "default-avatar.png" ? (
-                <Image
-                  src={history.gpt.image}
-                  alt={history.gpt.name}
-                  fill
-                  className="rounded-full object-cover border border-gray-200"
-                />
-              ) : (
-                <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+          <div className="flex items-center justify-between gap-4 mb-2">
+            <DialogTitle className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+              <div className="relative w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8">
+                {history.gpt.image && history.gpt.image !== "default-avatar.png" ? (
+                  <Image
+                    src={history.gpt.image}
+                    alt={history.gpt.name}
+                    fill
+                    className="rounded-full object-cover border border-gray-200"
+                  />
+                ) : (
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm sm:text-base md:text-lg font-semibold truncate" title={history.title}>
+                  {history.title}
                 </div>
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm sm:text-base md:text-lg font-semibold truncate" title={history.title}>
-                {history.title}
+                <div className="text-xs sm:text-sm text-muted-foreground font-normal truncate">
+                  with {history.gpt.name}
+                </div>
               </div>
-              <div className="text-xs sm:text-sm text-muted-foreground font-normal truncate">
-                with {history.gpt.name}
-              </div>
-            </div>
-          </DialogTitle>
+            </DialogTitle>
+            <Link href={`/admin/gpts/${history.gpt.id}/chat?conversation=${history.id}`}>
+              <Button 
+                variant="default" 
+                size="sm" 
+                className="gap-2 flex-shrink-0 mr-10"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span className="hidden sm:inline">Open in Chat</span>
+                <span className="sm:hidden">Open</span>
+              </Button>
+            </Link>
+          </div>
           <DialogDescription className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 pt-2">
             <div className="flex items-center gap-2">
               <Avatar className="w-4 h-4 sm:w-5 sm:h-5">
