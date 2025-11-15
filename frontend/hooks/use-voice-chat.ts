@@ -41,12 +41,20 @@ export function useVoiceChat({
 
   const addMessage = useCallback(
     (role: "user" | "assistant", content: string) => {
+      console.log("🔊 addMessage called:", { 
+        role, 
+        content: content.substring(0, 100), 
+        contentLength: content.length 
+      });
+      
       const message: VoiceMessage = {
-        id: Date.now().toString() + Math.random(),
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         role,
         content,
         timestamp: new Date().toISOString(),
       };
+      
+      console.log("✨ Creating message:", message.id, role);
       onMessage?.(message);
     },
     [onMessage]
@@ -135,23 +143,80 @@ export function useVoiceChat({
         }
       });
 
-      room.on(RoomEvent.DataReceived, (payload, participant) => {
+      // Register text stream handler for LiveKit transcriptions
+      // This is the correct way to receive transcriptions from LiveKit
+      room.registerTextStreamHandler("lk.transcription", async (reader, participantIdentity) => {
         try {
-          const decoder = new TextDecoder();
-          const data = JSON.parse(decoder.decode(payload));
+          const participantId = typeof participantIdentity === "string" 
+            ? participantIdentity 
+            : participantIdentity?.identity || "";
           
-          console.log("Data received:", data);
-          
-          if (data.type === "transcription") {
-            const { text, role } = data;
-            if (text && text.trim()) {
-              addMessage(role === "user" ? "user" : "assistant", text);
+          console.log("📝 Text stream handler registered for transcriptions");
+          console.log("📝 Participant:", participantId);
+          console.log("📝 Stream info:", {
+            topic: reader.info.topic,
+            attributes: reader.info.attributes,
+          });
+
+          const messages: string[] = [];
+          let fullMessage = "";
+
+          // Read all messages from the stream using async iteration
+          // TextStreamReader is an async iterable
+          for await (const value of reader) {
+            if (typeof value === "string") {
+              messages.push(value);
+              fullMessage += value;
             }
-          } else if (data.text) {
-            addMessage(participant?.identity?.includes("agent") ? "assistant" : "user", data.text);
+          }
+
+          // Check if this is a transcription
+          const attributes = reader.info.attributes;
+          const isTranscription = attributes?.["lk.transcribed_track_id"] != null;
+          const isFinal = attributes?.["lk.transcription_final"] === "true";
+          const segmentId = attributes?.["lk.segment_id"];
+          const transcribedTrackId = attributes?.["lk.transcribed_track_id"];
+
+          console.log("📝 Transcription received:", {
+            participantId,
+            isTranscription,
+            isFinal,
+            segmentId,
+            transcribedTrackId,
+            messageLength: fullMessage.length,
+            messagePreview: fullMessage.substring(0, 100),
+          });
+
+          if (isTranscription && fullMessage.trim()) {
+            // Determine role based on participant identity
+            // Agent transcriptions come from the agent participant
+            // User transcriptions come from the local participant
+            const role = participantId.includes("agent") || 
+                        participantId.includes("assistant") ||
+                        participantId !== room.localParticipant.identity
+              ? "assistant"
+              : "user";
+
+            console.log("✅ Processing transcription:", {
+              role,
+              isFinal,
+              content: fullMessage.substring(0, 100),
+            });
+
+            // Only add final transcriptions to avoid duplicates
+            // Interim transcriptions can be used for live typing indicators if needed
+            if (isFinal) {
+              addMessage(role, fullMessage);
+            } else {
+              // For interim transcriptions, you could update a streaming message
+              // For now, we'll only show final transcriptions
+              console.log("⏳ Interim transcription (not displaying):", fullMessage.substring(0, 50));
+            }
+          } else {
+            console.log("ℹ️ Non-transcription text stream:", fullMessage.substring(0, 100));
           }
         } catch (err) {
-          console.error("Error parsing voice data:", err);
+          console.error("❌ Error reading text stream:", err);
         }
       });
 
