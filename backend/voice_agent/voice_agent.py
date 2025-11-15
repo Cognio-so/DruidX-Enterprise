@@ -616,6 +616,7 @@ async def entrypoint(ctx: agents.JobContext):
         logger.info(f"🎯 Agent entrypoint CALLED for room: {ctx.room.name}")
 
         # Define default models and instructions
+        #--------------------------------------------------------------
         # These defaults will be overridden by values from Redis if available (set in main.py)
         openai_model = "gpt-4.1-nano"
         stt_model = "nova-3"
