@@ -129,6 +129,8 @@ DEEPGRAM_STT_MODELS = ("nova-3", "nova-2")
 CARTESIA_STT_MODELS = ("ink-whisper", "ink-whisper-2025-06-04")
 ELEVENLABS_TTS_MODELS = ("ODq5zmih8GrVes37Dizd","Xb7hH8MSUJpSbSDYk0k2", "iP95p4xoKVk53GoZ742B")
 CARTESIA_TTS_MODELS = ("f786b574-daa5-4673-aa0c-cbe3e8534c02", "9626c31c-bec5-4cca-baa8-f8ba9e84c8bc")
+# Cartesia Soni 3 (Sonic-3) model identifier - supports 42 languages
+CARTESIA_SONI3_MODEL = "sonic-3"
 # Hume does not have specific model names for TTS in the same way
 HUME_TTS_MODELS = ("Colton Rivers", "Ava Song","Priya","Suresh")
 
@@ -139,7 +141,7 @@ class VoiceAssistant:
         tools: List[Callable] = None,
         openai_model: str = "gpt-4.1-nano",
         stt_model: str = "nova-3",
-        tts_model: str = "aura-2-ophelia-en",
+        tts_model: str = "ink-whisper",  # Default TTS model (can be overridden via Redis config from main.py)
         initial_greeting: str = "Greet the user warmly, introduce yourself as a voice assistant, and offer your assistance.",
         enable_parallel_tts: bool = False,
     ):
@@ -185,10 +187,11 @@ class VoiceAssistant:
         self.stt_error_count = 0  # Track STT errors
         self.tts_error_count = 0  # Track TTS errors
         self.tts_semaphore = asyncio.Semaphore(1)  # For handling concurrent TTS requests
-
-                # Add these two lines to track streaming state
         self.last_printed_len = 0
         self.last_role = None
+        
+        # Store context for sending transcriptions
+        self.ctx = None  # Will store JobContext
 
 
     @function_tool
@@ -318,26 +321,42 @@ class VoiceAssistant:
             stt_plugin = deepgram.STT(model="nova-3")
 
 
-        # Dynamically select TTS plugin
+        # Dynamically select TTS plugin based on model from main.py (via Redis)
         tts_plugin = None
-        logger.info(f"Configuring TTS with model: {self.tts_model}")
-        if self.tts_model in DEEPGRAM_TTS_MODELS:
+        logger.info(f"Configuring TTS with model from main.py: {self.tts_model}")
+        
+        # Check for Cartesia Soni 3 (Sonic-3) model identifiers
+        if self.tts_model == "soni-3" or self.tts_model == "sonic-3":
+            # Cartesia Soni 3 (Sonic-3) with multilingual support (42 languages)
+            # Use default voice ID or get from environment variable
+            voice_id = os.getenv("CARTESIA_VOICE_ID", "9626c31c-bec5-4cca-baa8-f8ba9e84c8bc")
+            tts_plugin = cartesia.TTS(model="sonic-3", voice=voice_id, api_key=os.getenv("CARTESIA_API_KEY"))
+            logger.info(f"Using Cartesia Soni 3 (Sonic-3) TTS plugin with multilingual support. Voice ID: {voice_id}")
+        elif self.tts_model in CARTESIA_TTS_MODELS:
+            # Cartesia with voice ID from tts_model parameter (voice IDs from main.py)
+            tts_plugin = cartesia.TTS(model="sonic-3", voice=self.tts_model, api_key=os.getenv("CARTESIA_API_KEY"))
+            logger.info(f"Using Cartesia TTS plugin with voice ID from main.py: {self.tts_model}")
+        elif self.tts_model in DEEPGRAM_TTS_MODELS:
             tts_plugin = deepgram.TTS(model=self.tts_model, api_key=os.getenv("DEEPGRAM_API_KEY"))
-            logger.info("Using Deepgram TTS plugin.")
+            logger.info(f"Using Deepgram TTS plugin with model from main.py: {self.tts_model}")
         elif self.tts_model in ELEVENLABS_TTS_MODELS:
             tts_plugin = elevenlabs.TTS(voice_id=self.tts_model, model="eleven_turbo_v2_5", api_key=os.getenv("ELEVENLABS_API_KEY"))
-            logger.info("Using ElevenLabs TTS plugin.")
-        elif self.tts_model in CARTESIA_TTS_MODELS:
-            # Cartesia requires a voice ID, retrieved from environment variables
-            # voice_id = os.getenv("CARTESIA_VOICE_ID", "9626c31c-bec5-4cca-baa8-f8ba9e84c8bc") # A default voice
-            tts_plugin = cartesia.TTS(model="sonic-3", voice=self.tts_model, api_key=os.getenv("CARTESIA_API_KEY"))
-            logger.info(f"Using Cartesia TTS plugin with voice ID: {voice_id}")
+            logger.info(f"Using ElevenLabs TTS plugin with voice ID from main.py: {self.tts_model}")
         elif self.tts_model in HUME_TTS_MODELS:
             tts_plugin = hume.TTS(voice=hume.VoiceByName(name=self.tts_model, provider=hume.VoiceProvider.hume), api_key=os.getenv("HUME_API_KEY"))
-            logger.info("Using Hume TTS plugin.")
+            logger.info(f"Using Hume TTS plugin with voice from main.py: {self.tts_model}")
         else:
-            logger.warning(f"TTS model '{self.tts_model}' not recognized. Defaulting to Deepgram's 'aura-2-ophelia-en'.")
-            tts_plugin = deepgram.TTS(model="aura-2-ophelia-en", api_key=os.getenv("DEEPGRAM_API_KEY"))
+            # Fallback: Use Deepgram TTS model
+            logger.warning(f"TTS model '{self.tts_model}' from main.py not in recognized lists. Using Deepgram TTS as fallback.")
+            try:
+                # Try using the model name as a Deepgram model
+                tts_plugin = deepgram.TTS(model=self.tts_model, api_key=os.getenv("DEEPGRAM_API_KEY"))
+                logger.info(f"Using Deepgram TTS plugin with model from main.py: {self.tts_model}")
+            except Exception as e:
+                # If that fails, use default Deepgram model
+                logger.warning(f"Failed to use '{self.tts_model}' as Deepgram model: {e}. Defaulting to Deepgram 'aura-2-ophelia-en'.")
+                tts_plugin = deepgram.TTS(model="aura-2-ophelia-en", api_key=os.getenv("DEEPGRAM_API_KEY"))
+                logger.info("Using Deepgram TTS plugin with default model: aura-2-ophelia-en")
 
 
         # Create the agent session with the dynamically selected plugins
@@ -413,26 +432,6 @@ class VoiceAssistant:
                         # Return partial result while search continues in background
                         return "I'm looking into that now. Here's what I know so far..."
 
-    async def _send_transcription(
-        self, ctx: agents.JobContext, text: str, role: str = "user"
-    ):
-        """Send transcription as data packet to room"""
-        try:
-            import json
-
-            data = json.dumps(
-                {"type": "transcription", "text": text, "role": role}
-            ).encode()
-            await ctx.room.local_participant.publish_data(
-                data, reliable=True, topic="transcription"
-            )
-            logger.info(f"Sent transcription: {role} - {text[:]}")
-        except Exception as e:
-            logger.error(f"Error sending transcription: {e}")
-            import traceback
-
-            traceback.print_exc()
-
     def on_conversation_item_added(self, event: ConversationItemAddedEvent):
         """Callback for when a conversation item is added, streaming word by word."""
         if event.item.role == "assistant":
@@ -446,54 +445,34 @@ class VoiceAssistant:
                 new_text = full_text[self.last_printed_len:]
 
                 # Print word by word to simulate typing
-                # We split by space to process words and handle chunks that may end mid-word
                 words = new_text.split(" ")
                 for i, word in enumerate(words):
                     if not word:
                         continue
-                    
-                    # Add a space after each word, except the last one in the chunk
                     print(f"{word}{' ' if i < len(words) - 1 else ''}", end="", flush=True)
-
-                    # Optional: small delay for a more natural typing effect
-                    # time.sleep(0.05)
 
                 self.last_printed_len = len(full_text)
 
         # Update the last role seen to correctly detect the start of a new message
         self.last_role = event.item.role
 
-        # logging.info(
-        #     f"Conversation item added from {event.item.role}: {event.item.text_content}."
-        # )
-        # logging.info(
-        #     f"Conversation item added from {event.item.role}: {event.item.text_content}. interrupted: {event.item.interrupted}"
-        # )    
-        # to iterate over all types of content:
-        # for content in event.item.content:
-        #     if isinstance(content, str):
-        #         logging.info(f" - text: {content}")
-        #     elif isinstance(content, ImageContent):
-        #         # image is either a rtc.VideoFrame or URL to the image
-        #         logging.info(f" - image: {content.image}")
-        #     elif isinstance(content, AudioContent):
-        #         # frame is a list[rtc.AudioFrame]
-        #         logging.info(
-        #             f" - audio frame count: {len(content.frame)}, transcript: {content.transcript}"
-        #         )
-
     def on_user_input_transcribed(self, event: UserInputTranscribedEvent):
         """Callback for when user input is transcribed"""
-        logging.info(
-            f"User input transcribed: {event.transcript}, "
+        logger.info(
+            f"🎤 User input transcribed: {event.transcript}, "
             f"language: {event.language}, "
             f"final: {event.is_final}, "
             f"speaker id: {event.speaker_id}"
         )
+        
+        # User transcriptions are automatically published via text streams
 
     async def start(self, ctx: agents.JobContext) -> None:
         """Start the agent in the provided room context with error handling"""
         logger.info(f"Starting voice assistant for room: {ctx.room.name}")
+
+        # Store context for use in callbacks
+        self.ctx = ctx
 
         # Initialize session if not already done, with retry
         retry_count = 0
@@ -524,7 +503,8 @@ class VoiceAssistant:
             original_on_user_speech_committed = self.session.on_user_speech_committed
 
             async def on_user_speech(text: str):
-                await self._send_transcription(ctx, text, "user")
+                logger.info(f"🎤 User speech committed: {text}")
+                # REMOVE manual transcription sending - LiveKit handles this automatically
                 if original_on_user_speech_committed:
                     await original_on_user_speech_committed(text)
 
@@ -555,18 +535,14 @@ class VoiceAssistant:
             await self.background_audio.start(room=ctx.room, agent_session=self.session)
 
             # Generate initial greeting with retry and send transcription
-            # greeting_text = "Hello! I'm your voice assistant. How can I help you today?"
             logger.info("Generating initial greeting...")
             await self._generate_greeting_with_retry()
-            # await self._send_transcription(ctx, greeting_text, "assistant")
             logger.info("Initial greeting sent successfully")
 
         except Exception as e:
             logger.error(f"Error starting assistant: {str(e)}")
             import traceback
-
             traceback.print_exc()
-            # Re-raise to let the caller know it failed
             raise
 
     async def _generate_greeting_with_retry(self, max_attempts=1):
@@ -670,9 +646,10 @@ async def entrypoint(ctx: agents.JobContext):
         logger.info(f"🎯 Agent entrypoint CALLED for room: {ctx.room.name}")
 
         # Define default models and instructions
+        # These defaults will be overridden by values from Redis if available (set in main.py)
         openai_model = "gpt-4.1-nano"
         stt_model = "nova-3"
-        tts_model = "aura-2-ophelia-en"
+        tts_model = "ink-whisper"  # Default TTS model (matches main.py default, can be overridden via Redis)
         instructions = None  # Default to None, letting VoiceAssistant use its internal default
 
         # Try to extract session_id from room name

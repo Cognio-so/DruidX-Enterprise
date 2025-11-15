@@ -78,6 +78,7 @@ class SessionManager:
             "uploaded_images": [],
             "kb": [],
             "gpt_config": None,
+            "instruction":"",
             "created_at": datetime.now().isoformat(),
             "doc_embeddings":False,
             "img_urls": [],
@@ -184,7 +185,9 @@ async def set_gpt_config(session_id: str, gpt_config: dict):
     session["gpt_config"] = gpt_config
     mcp_connections = gpt_config.get("mcpConnections", [])
     session["mcp_connections"] = mcp_connections
-    print(f"gpt_config-----------------//: {gpt_config}")
+    # print(f"gpt_config-----------------//: {gpt_config}")
+    session["instruction"]=gpt_config["instruction"]
+    print(f". instruction",  session["instruction"])
 
     if session.get("kb"):
         try:
@@ -1316,7 +1319,7 @@ async def voice_connect(request: dict):
     
     openai_model = "gpt-4.1-nano"
     stt_model = "nova-3"
-    tts_model = "ODq5zmih8GrVes37Dizd"
+    tts_model = "sonic-3"
     
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID is required")
@@ -1326,8 +1329,8 @@ async def voice_connect(request: dict):
         session = await SessionManager.get_session(session_id)
         
         # FIX: Ensure gpt_config is a dictionary, even if it's None in the session
-        gpt_config = session.get("gpt_config")
-        instructions = gpt_config.get("instruction","")
+        # gpt_config = session.get("gpt_config")
+        instructions =  session["instruction"]
         print(f"instuction/////////////", instructions)
 
         # Store voice config in Redis for the agent worker to pick up
