@@ -1319,7 +1319,7 @@ async def voice_connect(request: dict):
     
     openai_model = "gpt-4.1-nano"
     stt_model = "nova-3"
-    tts_model = "sonic-3"
+    tts_model = "f786b574-daa5-4673-aa0c-cbe3e8534c02"
     
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID is required")

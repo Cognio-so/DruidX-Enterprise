@@ -113,25 +113,19 @@ class ReliableDeepgramSTT(deepgram.STT):
         logger.error(
             f"STT failed after {self.max_retries} attempts: {str(last_error)}"
         )
-        # Try to restart deepgram connection
         try:
             logger.info("Attempting to restart Deepgram connection...")
-            # Implementation may need to be adjusted based on internal Deepgram implementation
             return await super()._run()
         except Exception as e:
             logger.error(f"Failed to restart Deepgram connection: {str(e)}")
             raise
 
-
-# Define model tuples for dynamic provider selection
 DEEPGRAM_TTS_MODELS = ("aura-2-ophelia-en", "aura-2-helena-en", "aura-2-mars-en")
 DEEPGRAM_STT_MODELS = ("nova-3", "nova-2")
 CARTESIA_STT_MODELS = ("ink-whisper", "ink-whisper-2025-06-04")
 ELEVENLABS_TTS_MODELS = ("ODq5zmih8GrVes37Dizd","Xb7hH8MSUJpSbSDYk0k2", "iP95p4xoKVk53GoZ742B")
 CARTESIA_TTS_MODELS = ("f786b574-daa5-4673-aa0c-cbe3e8534c02", "9626c31c-bec5-4cca-baa8-f8ba9e84c8bc")
-# Cartesia Soni 3 (Sonic-3) model identifier - supports 42 languages
 CARTESIA_SONI3_MODEL = "sonic-3"
-# Hume does not have specific model names for TTS in the same way
 HUME_TTS_MODELS = ("Colton Rivers", "Ava Song","Priya","Suresh")
 
 class VoiceAssistant:
@@ -141,7 +135,7 @@ class VoiceAssistant:
         tools: List[Callable] = None,
         openai_model: str = "gpt-4.1-nano",
         stt_model: str = "nova-3",
-        tts_model: str = "ink-whisper",  # Default TTS model (can be overridden via Redis config from main.py)
+        tts_model: str = "ink-whisper", 
         initial_greeting: str = "Greet the user warmly, introduce yourself as a voice assistant, and offer your assistance.",
         enable_parallel_tts: bool = False,
     ):
@@ -165,33 +159,26 @@ class VoiceAssistant:
 
         audio_file_path = os.path.join(current_dir, "assets", "thinking_sound.wav")
         self.background_audio = BackgroundAudioPlayer(
-            # ambient_sound=AudioConfig(BuiltinAudioClip.OFFICE_AMBIENCE, volume=0.1),
             thinking_sound=[
                 AudioConfig(audio_file_path, volume=0.05)
             ]
         )
-
-        # Initialize the web search tool
         try:
             self.web_search_tool = TavilyWebSearchTool(max_results=3)
             logger.info("Tavily web search tool initialized.")
         except Exception as e:
             self.web_search_tool = None
             logger.error(f"Failed to initialize TavilyWebSearchTool: {e}")
-
-        # If a tool was passed in, use it, otherwise default to our web_search method
         self.tools = tools or ([self.web_search] if self.web_search_tool else [])
 
         self.session = None
         self.agent_instance = None
-        self.stt_error_count = 0  # Track STT errors
-        self.tts_error_count = 0  # Track TTS errors
-        self.tts_semaphore = asyncio.Semaphore(1)  # For handling concurrent TTS requests
+        self.stt_error_count = 0  
+        self.tts_error_count = 0  
+        self.tts_semaphore = asyncio.Semaphore(1) 
         self.last_printed_len = 0
         self.last_role = None
-        
-        # Store context for sending transcriptions
-        self.ctx = None  # Will store JobContext
+        self.ctx = None  
 
 
     @function_tool
@@ -206,11 +193,7 @@ class VoiceAssistant:
 
         logger.info(f"Performing web search for: {query}")
         try:
-            # The search tool returns a dictionary, not a list.
-            # CALL THE ASYNC VERSION OF THE SEARCH
             response_dict = await self.web_search_tool.asearch(query=query)
-
-            # Check for valid response and the 'results' key.
             if (
                 not response_dict
                 or "results" not in response_dict
@@ -272,6 +255,15 @@ class VoiceAssistant:
         )
         return agent
 
+    def _is_uuid_format(self, text: str) -> bool:
+        """Check if text looks like a UUID (Cartesia voice ID format)"""
+        if not text:
+            return False
+        # UUID format: 8-4-4-4-12 hex characters (e.g., "9626c31c-bec5-4cca-baa8-f8ba9e84c8bc")
+        import re
+        uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+        return bool(re.match(uuid_pattern, text.lower()))
+
     async def _verify_api_keys(self) -> bool:
         """Verify that all required API keys are available"""
         required_keys = {
@@ -301,8 +293,6 @@ class VoiceAssistant:
         """Initialize the agent session with all required components and enhanced error handling"""
         if not await self._verify_api_keys():
             return None
-
-        # Dynamically select STT plugin
         stt_plugin = None
         logger.info(f"Configuring STT with model: {self.stt_model}")
         if self.stt_model in DEEPGRAM_STT_MODELS:
@@ -312,30 +302,15 @@ class VoiceAssistant:
         elif self.stt_model in CARTESIA_STT_MODELS:
             stt_plugin = cartesia.STT(model=self.stt_model, api_key=os.getenv("CARTESIA_API_KEY"))
             logger.info("Using Cartesia STT plugin.")
-
-        # Add other STT providers here, e.g., Cartesia STT if it becomes available
-        # elif self.stt_model in CARTESIA_STT_MODELS:
-        #     stt_plugin = cartesia.STT(...)
         else:
             logger.warning(f"STT model '{self.stt_model}' not recognized. Defaulting to Deepgram's 'nova-3'.")
             stt_plugin = deepgram.STT(model="nova-3")
-
-
-        # Dynamically select TTS plugin based on model from main.py (via Redis)
         tts_plugin = None
-        logger.info(f"Configuring TTS with model from main.py: {self.tts_model}")
+        logger.info(f"Configuring TTS with voice ID/model from main.py: {self.tts_model}")
         
-        # Check for Cartesia Soni 3 (Sonic-3) model identifiers
-        if self.tts_model == "soni-3" or self.tts_model == "sonic-3":
-            # Cartesia Soni 3 (Sonic-3) with multilingual support (42 languages)
-            # Use default voice ID or get from environment variable
-            voice_id = os.getenv("CARTESIA_VOICE_ID", "9626c31c-bec5-4cca-baa8-f8ba9e84c8bc")
-            tts_plugin = cartesia.TTS(model="sonic-3", voice=voice_id, api_key=os.getenv("CARTESIA_API_KEY"))
-            logger.info(f"Using Cartesia Soni 3 (Sonic-3) TTS plugin with multilingual support. Voice ID: {voice_id}")
-        elif self.tts_model in CARTESIA_TTS_MODELS:
-            # Cartesia with voice ID from tts_model parameter (voice IDs from main.py)
+        if self.tts_model in CARTESIA_TTS_MODELS or self._is_uuid_format(self.tts_model):
             tts_plugin = cartesia.TTS(model="sonic-3", voice=self.tts_model, api_key=os.getenv("CARTESIA_API_KEY"))
-            logger.info(f"Using Cartesia TTS plugin with voice ID from main.py: {self.tts_model}")
+            logger.info(f"Using Cartesia Soni 3 (Sonic-3) TTS plugin with voice ID from main.py: {self.tts_model}")
         elif self.tts_model in DEEPGRAM_TTS_MODELS:
             tts_plugin = deepgram.TTS(model=self.tts_model, api_key=os.getenv("DEEPGRAM_API_KEY"))
             logger.info(f"Using Deepgram TTS plugin with model from main.py: {self.tts_model}")
@@ -346,20 +321,15 @@ class VoiceAssistant:
             tts_plugin = hume.TTS(voice=hume.VoiceByName(name=self.tts_model, provider=hume.VoiceProvider.hume), api_key=os.getenv("HUME_API_KEY"))
             logger.info(f"Using Hume TTS plugin with voice from main.py: {self.tts_model}")
         else:
-            # Fallback: Use Deepgram TTS model
             logger.warning(f"TTS model '{self.tts_model}' from main.py not in recognized lists. Using Deepgram TTS as fallback.")
             try:
-                # Try using the model name as a Deepgram model
                 tts_plugin = deepgram.TTS(model=self.tts_model, api_key=os.getenv("DEEPGRAM_API_KEY"))
                 logger.info(f"Using Deepgram TTS plugin with model from main.py: {self.tts_model}")
             except Exception as e:
-                # If that fails, use default Deepgram model
                 logger.warning(f"Failed to use '{self.tts_model}' as Deepgram model: {e}. Defaulting to Deepgram 'aura-2-ophelia-en'.")
                 tts_plugin = deepgram.TTS(model="aura-2-ophelia-en", api_key=os.getenv("DEEPGRAM_API_KEY"))
                 logger.info("Using Deepgram TTS plugin with default model: aura-2-ophelia-en")
 
-
-        # Create the agent session with the dynamically selected plugins
         self.session = AgentSession(
             vad=silero.VAD.load(
                 force_cpu=False,
