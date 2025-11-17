@@ -550,18 +550,15 @@ async def stream_chat(session_id: str, request: ChatRequest):
         kb_docs_structured = []
         if session.get("kb"):
             for doc in session["kb"]:
-                if isinstance(doc, dict):
-                    # Include KB docs even if content is empty (already embedded)
-                    # The presence of file_url indicates it's a valid KB doc
-                    if doc.get("file_url") or doc.get("content"):
-                        kb_docs_structured.append({
-                            "id": doc.get("id"),
-                            "filename": doc.get("filename"),
-                            "content": doc.get("content", ""),  # Allow empty content
-                            "file_type": doc.get("file_type"),
-                            "size": doc.get("size"),
-                            "file_url": doc.get("file_url", "")  # Include file_url
-                        })
+                if isinstance(doc, dict) and (doc.get("file_url") or doc.get("content")):
+                    kb_docs_structured.append({
+                        "id": doc.get("id"),
+                        "filename": doc.get("filename"),
+                        "content": doc.get("content", ""),
+                        "file_type": doc.get("file_type"),
+                        "size": doc.get("size"),
+                        "file_url": doc.get("file_url", "")
+                    })
         
         print(f"=== DOCUMENT CONTENT ===")
         print(f"Uploaded docs count: {len(uploaded_docs_content)}")
@@ -832,18 +829,14 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
         kb_docs_structured = []
         if session.get("kb"):
             for doc in session["kb"]:
-                if isinstance(doc, dict):
-                    # Include KB docs even if content is empty (already embedded)
-                    # The presence of file_url indicates it's a valid KB doc
-                    if doc.get("file_url") or doc.get("content"):
-                        kb_docs_structured.append({
-                            "id": doc.get("id"),
-                            "filename": doc.get("filename"),
-                            "content": doc.get("content", ""),  # Allow empty content
-                            "file_type": doc.get("file_type"),
-                            "size": doc.get("size"),
-                            "file_url": doc.get("file_url", "")  # Include file_url
-                        })
+                if isinstance(doc, dict) and doc.get("content"):
+                    kb_docs_structured.append({
+                        "id": doc.get("id"),
+                        "filename": doc.get("filename"),
+                        "content": doc["content"],
+                        "file_type": doc.get("file_type"),
+                        "size": doc.get("size")
+                    })
         new_uploaded_docs_content = []
         if session.get("new_uploaded_docs"):
             for doc in session.get("new_uploaded_docs"):
