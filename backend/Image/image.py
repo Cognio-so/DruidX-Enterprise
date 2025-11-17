@@ -20,7 +20,7 @@ async def _enhance_prompt_with_context(
     print("✨ Enhancing prompt with conversation context...")
 
     history_str = ""
-    for m in (conversation or [])[-5:]:  # Last 5 messages for context
+    for m in (conversation or [])[-6:]:  # Last 5 messages for context
         role = (m.get("type") or m.get("role") or "").lower()
         content = m.get("content", "")
         speaker = "User" if role in ("human", "user") else "Assistant"

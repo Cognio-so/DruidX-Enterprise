@@ -10,6 +10,7 @@ import subprocess
 import platform
 import json
 import redis.asyncio as redis
+import re
 
 from livekit import agents
 from livekit.agents import (
@@ -29,7 +30,7 @@ from livekit.agents import (
     ConversationItemAddedEvent,
     UserInputTranscribedEvent,
 )
-from livekit.agents.llm import ImageContent, AudioContent
+from livekit.agents.llm import ImageContent, AudioContent, ChatMessage
 from livekit.plugins import (
     google,
     openai,
@@ -45,6 +46,13 @@ from livekit.plugins import (
 # Import the web search tool
 from langgraph_websearcch import TavilyWebSearchTool
 
+backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
+from Rag.Rag import _search_collection
+from redis_client import ensure_redis_client
+
 # Set up logging to see more detailed error messages
 import sys
 
@@ -53,8 +61,6 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     stream=sys.stderr,  # Write to stderr so Railway can see it
 )
-# Set the logging level for langsmith.client to WARNING to hide DEBUG messages
-# logging.getLogger("langsmith.client").setLevel(logging.WARNING)
 logger = logging.getLogger("voice_assistant")
 
 load_dotenv()
@@ -141,12 +147,14 @@ class VoiceAssistant:
     ):
         if instructions is None:
             current_date = date.today().strftime("%B %d, %Y")
-            self.instructions = f"""You are a helpful voice AI assistant with powerful web search capabilities.
-                Today's date is {current_date}. Use this information for any date-related queries to provide the most current answers.
-                You can answer questions, provide information, and engage in conversation.
-                When a user asks a question you don't know the answer to, use the web_search tool.
-                Be concise, friendly, and helpful in your responses.
-                Summarize search results into a natural, conversational response."""
+            self.instructions = (
+                f"<prompt>"
+                f"<today>{current_date}</today>"
+                f"<persona>Helpful voice assistant with web search.</persona>"
+                f"<behavior>Be concise, friendly, and accurate.</behavior>"
+                f"<fallback>Call web_search when knowledge is insufficient.</fallback>"
+                f"</prompt>"
+            )
         else:
             self.instructions = instructions
         self.openai_model = openai_model
@@ -179,6 +187,9 @@ class VoiceAssistant:
         self.last_printed_len = 0
         self.last_role = None
         self.ctx = None  
+        self.enable_rag = True
+        self.rag_session_id = None  
+        self._session_cache: dict[str, dict] = {}
 
 
     @function_tool
@@ -239,21 +250,51 @@ class VoiceAssistant:
             yield chunk
 
     def _create_agent(self) -> Agent:
-        """Create the agent instance with instructions and tools"""
-        # Create an agent with error handling for responses
-        agent = Agent(
-            instructions=f"""
-            {self.instructions}
+        """Create the agent instance with instructions, tools, and RAG injection"""
+        from livekit.agents import ModelSettings
+        from livekit.agents.llm import ChatChunk
 
-            If you notice that I'm having trouble with audio input or output, suggest that I try text input
-            or mention that there might be temporary connection issues.
+        class RAGEnabledAgent(Agent):
+            def __init__(self, voice_assistant_instance, chat_ctx: ChatContext):
+                super().__init__(
+                    chat_ctx=chat_ctx,
+                    instructions=(
+                        f"{voice_assistant_instance.instructions}"
+                        "<prompt>"
+                        "<audio_issue>Suggest text input if audio fails.</audio_issue>"
+                        "<network_issue>Explain temporary connection problems calmly.</network_issue>"
+                        "</prompt>"
+                    ),
+                    tools=voice_assistant_instance.tools,
+                )
+                self.voice_assistant = voice_assistant_instance
 
-            If I ask about problems with audio, explain that occasional network or API issues might
-            occur and the system will try to recover automatically.
-            """,
-            tools=self.tools,
-        )
-        return agent
+            async def llm_node(
+                self,
+                chat_ctx: ChatContext,
+                tools: list,
+                model_settings: ModelSettings
+            ) -> AsyncIterable[ChatChunk | str]:
+                """Override llm_node to inject RAG context before LLM runs"""
+                logger.info(f"🤖 llm_node CALLED - Chat context has {len(chat_ctx.items)} items")
+
+                try:
+                    await self.voice_assistant._inject_rag_context(chat_ctx)
+                except Exception as e:
+                    logger.error(f"❌ Error injecting RAG context: {e}", exc_info=True)
+
+                async for chunk in Agent.default.llm_node(self, chat_ctx, tools, model_settings):
+                    yield chunk
+
+        return RAGEnabledAgent(self, ChatContext())
+
+    def _is_uuid_format(self, text: str) -> bool:
+        """Check if text looks like a UUID (Cartesia voice ID format)"""
+        if not text:
+            return False
+        import re
+        uuid_pattern = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        return bool(re.match(uuid_pattern, text.lower()))
 
     async def _verify_api_keys(self) -> bool:
         """Verify that all required API keys are available"""
@@ -299,7 +340,7 @@ class VoiceAssistant:
         tts_plugin = None
         logger.info(f"Configuring TTS with voice ID/model from main.py: {self.tts_model}")
         
-        if self.tts_model in CARTESIA_TTS_MODELS:
+        if self.tts_model in CARTESIA_TTS_MODELS or self._is_uuid_format(self.tts_model):
             tts_plugin = cartesia.TTS(model="sonic-3", voice=self.tts_model, api_key=os.getenv("CARTESIA_API_KEY"))
             logger.info(f"Using Cartesia Soni 3 (Sonic-3) TTS plugin with voice ID from main.py: {self.tts_model}")
         elif self.tts_model in DEEPGRAM_TTS_MODELS:
@@ -428,12 +469,171 @@ class VoiceAssistant:
         
         # User transcriptions are automatically published via text streams
 
+    async def _inject_rag_context(self, chat_ctx: ChatContext) -> None:
+        """Perform RAG lookup from KB and inject context into chat context"""
+        logger.info(f"🔍 _inject_rag_context called - RAG enabled: {self.enable_rag}")
+
+        if not self.enable_rag:
+            logger.debug("RAG is disabled, skipping KB lookup")
+            return
+
+        session_id = self.rag_session_id
+        if not session_id and self.ctx and self.ctx.room:
+            room_name = self.ctx.room.name
+            if room_name and room_name.startswith("voice-"):
+                suffix = room_name[len("voice-") :]
+                if suffix:
+                    session_id = suffix
+                    self.rag_session_id = session_id
+
+        if not session_id:
+            logger.debug("No session_id found for RAG lookup")
+            return
+
+        session = await self._get_session_config(session_id)
+        if not session:
+            return
+
+        gpt_config = session["gpt_config"]
+        custom_instructions = gpt_config.get("instruction", "")
+        gpt_id = gpt_config.get("gpt_id")
+        user_id = gpt_config.get("userId")
+
+        if not gpt_id or not user_id:
+            logger.debug("No gpt_id or userId in session, skipping KB RAG")
+            return
+
+        collection_name = f"kb_{gpt_id}_{user_id}"
+
+        user_query = ""
+        if chat_ctx.items:
+            for item in reversed(chat_ctx.items):
+                if isinstance(item, ChatMessage) and item.role == "user":
+                    if hasattr(item, "text_content") and item.text_content:
+                        user_query = item.text_content
+                    elif item.content:
+                        if isinstance(item.content, str):
+                            user_query = item.content
+                        else:
+                            user_query = " ".join(
+                                str(part) for part in item.content if isinstance(part, str)
+                            )
+                    break
+
+        if not user_query:
+            logger.debug("No user query found in chat context")
+            return
+
+        logger.info(f"🔍 Performing RAG lookup for query: {user_query[:100]}")
+        logger.info(
+            f"🔍 RAG Search Config - Collection: {collection_name}, Query: {user_query[:100]}"
+        )
+
+        rag_results = await _search_collection(collection_name, user_query, limit=2)
+
+        def _fallback_message():
+            logger.info(
+                "No relevant KB content found. Allowing agent to use general knowledge or web search."
+            )
+            fallback_xml = (
+                "<prompt>"
+                "<kb_status>missing</kb_status>"
+                "<action>Answer with general reasoning and call web_search if needed.</action>"
+                "</prompt>"
+            )
+            chat_ctx.add_message(role="system", content=fallback_xml)
+
+        filtered_results = [chunk for chunk in rag_results if chunk and chunk.strip()]
+        if not filtered_results:
+            _fallback_message()
+            return
+
+        query_tokens = {
+            token
+            for token in re.findall(r"\b\w{4,}\b", user_query.lower())
+        }
+        if query_tokens:
+            relevance_found = any(
+                any(token in chunk.lower() for token in query_tokens)
+                for chunk in filtered_results
+            )
+            if not relevance_found:
+                _fallback_message()
+                return
+
+        logger.info(f"📚 Retrieved {len(filtered_results)} chunks from KB")
+        rag_context = "\n\n".join(filtered_results[:2])
+
+        if custom_instructions:
+            context_message = (
+                "<kb_prompt>"
+                f"<role>{custom_instructions}</role>"
+                f"<knowledge>{rag_context}</knowledge>"
+                "<rules>"
+                "<rule>Prefer the knowledge when it directly answers the question.</rule>"
+                "<rule>If the question moves beyond this scope, reply like a normal voice assistant and use web_search if helpful.</rule>"
+                "<rule>Reference concrete facts when you do use the knowledge.</rule>"
+                "</rules>"
+                "</kb_prompt>"
+            )
+        else:
+            context_message = (
+                "<kb_prompt>"
+                "<role>General voice assistant with optional knowledge snippets.</role>"
+                f"<knowledge>{rag_context}</knowledge>"
+                "<rules>"
+                "<rule>Blend these snippets naturally into your answer when relevant.</rule>"
+                "<rule>If they do not help, rely on general reasoning or web_search.</rule>"
+                "</rules>"
+                "</kb_prompt>"
+            )
+
+        chat_ctx.add_message(
+            role="assistant",
+            content=context_message
+        )
+
+        logger.info(f"✅ Injected KB context for session {session_id}")
+
+    async def _get_session_config(self, session_id: str) -> Optional[dict]:
+        if session_id in self._session_cache:
+            return self._session_cache[session_id]
+
+        try:
+            redis_client = await ensure_redis_client()
+            if not redis_client:
+                logger.warning("Redis not available for RAG session lookup")
+                return None
+
+            session_key = f"session:{session_id}"
+            session_data = await redis_client.get(session_key)
+            if not session_data:
+                logger.warning(f"Session {session_id} not found in Redis for RAG lookup")
+                logger.debug(f"Tried to access session key: {session_key}")
+                return None
+
+            session = json.loads(session_data)
+            session.setdefault("gpt_config", {})
+            self._session_cache[session_id] = session
+            logger.info(f"✅ Cached session {session_id} from Redis for RAG")
+            return session
+        except Exception as e:
+            logger.warning(f"Could not get session for RAG: {e}", exc_info=True)
+            return None
+
     async def start(self, ctx: agents.JobContext) -> None:
         """Start the agent in the provided room context with error handling"""
         logger.info(f"Starting voice assistant for room: {ctx.room.name}")
 
         # Store context for use in callbacks
         self.ctx = ctx
+
+        if ctx.room and ctx.room.name:
+            room_name = ctx.room.name
+            if room_name.startswith("voice-"):
+                suffix = room_name[len("voice-") :]
+                if suffix:
+                    self.rag_session_id = suffix
 
         # Initialize session if not already done, with retry
         retry_count = 0

@@ -165,6 +165,11 @@
       <indicators>Video editing requests: "make it longer", "change the style", "add effects", "edit this", "modify", "adjust", "enhance", "trim", "add music", "change speed", pronouns referring to video ("it", "this video")</indicators>
       <action>Route to Video node for video editing. is_video flag MUST be true.</action>
     </rule>
+    
+    <rule type="Followup_state_check">
+      Always inspect last_route and the most recent conversation turns before rerouting a follow-up query.
+      <action>When a message is a follow-up, reuse the previous node if the topic continues, or fall back to RAG if documents drive the thread. Never decide follow-up routing without checking conversation context.</action>
+    </rule>
 
     <rule type="topic_switch">
       If query is completely new topic despite previous WebSearch:
