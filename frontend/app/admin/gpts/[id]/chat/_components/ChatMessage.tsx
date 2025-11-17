@@ -2,13 +2,15 @@
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Image from "next/image";
-import { User, ExternalLink, Download } from "lucide-react";
+import { User, ExternalLink, Download, Copy, Check, RefreshCw } from "lucide-react";
 import { Message, MessageContent } from "@/components/ai-elements/message";
 import { Response } from "@/components/ai-elements/response";
 import { ResearchTimeline } from "@/components/ResearchTimeline";
 import { ResearchPhaseShimmer } from "@/components/ResearchPhaseShimmer";
 import { Reasoning } from "@/components/ai-elements/reasoning";
 import { ShimmeringText } from "@/components/ui/shimmering-text";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 interface UploadedDoc {
   url: string;
@@ -63,6 +65,7 @@ interface ChatMessageProps {
   currentPhase?: StatusPhase | null;
   webSearchStatus?: WebSearchStatus;
   thinkingState?: string | null;
+  onRetry?: (text: string) => void;
 }
 
 export default function ChatMessage({
@@ -79,7 +82,9 @@ export default function ChatMessage({
   currentPhase = null,
   webSearchStatus,
   thinkingState: backendThinkingState,
+  onRetry,
 }: ChatMessageProps) {
+  const [copied, setCopied] = useState(false);
 
   // Handle download for images and videos
   const handleDownload = async (url: string, filename?: string) => {
@@ -126,6 +131,17 @@ export default function ChatMessage({
     return "File";
   };
 
+  const handleCopy = async () => {
+    if (!message) return;
+    try {
+      await navigator.clipboard.writeText(message);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch (error) {
+      console.error("Copy failed:", error);
+    }
+  };
+
   return (
     <div className="w-full max-w-5xl mx-auto break-words">
       <Message from={isUser ? "user" : "assistant"}>
@@ -168,6 +184,20 @@ export default function ChatMessage({
                 <div className="text-xs mt-1 opacity-70 text-muted-foreground">
                   {timestamp}
                 </div>
+                {onRetry && (
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => onRetry(message)}
+                      title="Rerun message"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </MessageContent>
             <Avatar className="h-8 w-8 flex-shrink-0">
@@ -289,6 +319,18 @@ export default function ChatMessage({
                 )}
                 {message ? (
                   <div className="bg-muted/60 border border-border rounded-lg p-4 break-words">
+                    <div className="flex justify-end mb-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground"
+                        onClick={handleCopy}
+                        title="Copy response"
+                      >
+                        {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
                     <Response sources={sources}>{message}</Response>
                     <div className="flex items-center justify-between mt-2">
                       <div className="text-xs opacity-70 text-muted-foreground">

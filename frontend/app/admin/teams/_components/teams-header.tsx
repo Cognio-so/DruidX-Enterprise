@@ -5,6 +5,7 @@ import InviteMember from "./invite-member";
 import CreateGroupDialog from "./create-group-dialog";
 import TeamsSearch from "./teams-search";
 import TeamsFilter from "./teams-filter";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 interface TeamsHeaderProps {
   searchTerm: string;
@@ -27,9 +28,12 @@ export default function TeamsHeader({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex-1">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-primary">
-            Teams
-          </h1>
+          <div className="flex items-center gap-3">
+            <SidebarTrigger className="h-9 w-9 md:hidden" />
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-primary">
+              Teams
+            </h1>
+          </div>
           <p className="text-muted-foreground mt-1 text-sm sm:text-base">
             Manage team members and their access permissions
           </p>

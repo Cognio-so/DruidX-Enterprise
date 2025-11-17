@@ -14,6 +14,7 @@ import { User, Camera, Crown, Calendar, Save } from "lucide-react";
 import { updateProfile } from "../action";
 import { getUserDetails } from "../action";
 import ApiKeysManager from "./api-keys-manager";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default async function SettingsUI() {
   const userResult = await getUserDetails();
@@ -54,7 +55,10 @@ export default async function SettingsUI() {
     <div className="container mx-auto px-4 py-6 max-w-4xl">
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-primary">Profile Settings</h1>
+          <div className="flex items-center gap-3">
+            <SidebarTrigger className="h-9 w-9 md:hidden" />
+            <h1 className="text-3xl font-bold text-primary">Profile Settings</h1>
+          </div>
           <p className="text-muted-foreground">
             Manage your profile information
           </p>

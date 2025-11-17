@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowUp, Globe, Paperclip, Sparkle, Telescope, X, Phone, PhoneOff, AudioLines, XCircle } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ArrowUp, Globe, Paperclip, Sparkle, Telescope, X, Phone, PhoneOff, AudioLines, XCircle, Plus } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { getModelsForFrontend, frontendToBackend, getDisplayName } from "@/lib/modelMapping";
 import { ComposioToolSelector } from "@/app/admin/gpts/[id]/chat/_components/ComposioToolSelector";
@@ -54,6 +55,29 @@ interface UploadedDoc {
   type: string;
 }
 
+const mergeUploadedDocs = (
+  existing: UploadedDoc[],
+  incoming: UploadedDoc[]
+): UploadedDoc[] => {
+  const map = new Map<string, UploadedDoc>();
+  [...existing, ...incoming].forEach((doc) => {
+    const key = `${doc.url || ""}|${doc.filename}|${doc.type}`;
+    map.set(key, doc);
+  });
+  return Array.from(map.values());
+};
+
+type UploadStage = "uploading" | "processing" | "completed" | "error";
+
+interface UploadingFileState {
+  id: string;
+  file?: File;
+  fileName: string;
+  fileType: string;
+  progress: number;
+  stage: UploadStage;
+}
+
 // Get models from mapping
 const models = getModelsForFrontend();
 
@@ -81,12 +105,13 @@ export default function ChatInput({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedDocs, setUploadedDocs] = useState<UploadedDoc[]>([]);
   const [composioTools, setComposioTools] = useState<string[]>([]);
-  const [uploadingFiles, setUploadingFiles] = useState<Array<{
-    id: string;
-    file: File;
-    progress: number;
-    status: 'uploading' | 'completed' | 'error';
-  }>>([]);
+  const [uploadingFiles, setUploadingFiles] = useState<UploadingFileState[]>([]);
+  const hasActiveUploads = uploadingFiles.some(
+    (file) => file.stage === "uploading" || file.stage === "processing"
+  );
+  const visibleUploadingFiles = uploadingFiles.filter(
+    (file) => file.stage === "uploading" || file.stage === "error"
+  );
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -139,7 +164,7 @@ export default function ChatInput({
   };
 
   const handleSend = () => {
-    if ((message.trim() || uploadedDocs.length > 0) && !isLoading && !isUploading && uploadingFiles.length === 0) {
+    if ((message.trim() || uploadedDocs.length > 0) && !isLoading && !isUploading && !hasActiveUploads) {
       const backendModelName = frontendToBackend(selectedModel);
       
       const sendOptions = {
@@ -195,7 +220,7 @@ export default function ChatInput({
       xhr.upload.addEventListener("progress", (event) => {
         if (event.lengthComputable && onProgress) {
           const progress = Math.round((event.loaded / event.total) * 100);
-          onProgress(progress);
+          onProgress(Math.min(progress, 95));
         }
       });
 
@@ -264,14 +289,18 @@ export default function ChatInput({
 
     setIsUploading(true);
     const uploadedDocsList: UploadedDoc[] = [];
+    const successfulUploadIds = new Set<string>();
     const errors: string[] = [];
+    const shouldAwaitBackend = typeof onDocumentUploaded === "function";
 
     // Create uploading files state with unique IDs
-    const newUploadingFiles = validFiles.map((file) => ({
+    const newUploadingFiles: UploadingFileState[] = validFiles.map((file) => ({
       id: `${file.name}-${Date.now()}-${Math.random()}`,
       file,
+      fileName: file.name,
+      fileType: file.type,
       progress: 0,
-      status: 'uploading' as const,
+      stage: "uploading" as const,
     }));
 
     setUploadingFiles(prev => [...prev, ...newUploadingFiles]);
@@ -280,7 +309,7 @@ export default function ChatInput({
       // Upload files sequentially to avoid overwhelming the server
       for (const uploadingFile of newUploadingFiles) {
         try {
-          const fileUrl = await uploadToS3(uploadingFile.file, (progress) => {
+          const fileUrl = await uploadToS3(uploadingFile.file!, (progress) => {
             setUploadingFiles(prev =>
               prev.map(f =>
                 f.id === uploadingFile.id ? { ...f, progress } : f
@@ -290,31 +319,67 @@ export default function ChatInput({
 
           const newDoc: UploadedDoc = {
             url: fileUrl,
-            filename: uploadingFile.file.name,
-            type: uploadingFile.file.type
+            filename: uploadingFile.fileName,
+            type: uploadingFile.fileType
           };
           uploadedDocsList.push(newDoc);
+          successfulUploadIds.add(uploadingFile.id);
 
-          // Mark as completed and immediately remove from uploading list
           setUploadingFiles(prev =>
-            prev.filter(f => f.id !== uploadingFile.id)
+            prev.map(f =>
+              f.id === uploadingFile.id
+                ? {
+                    ...f,
+                    file: undefined,
+                    progress: shouldAwaitBackend ? Math.max(f.progress, 95) : 100,
+                    stage: shouldAwaitBackend ? "processing" : "completed",
+                  }
+                : f
+            )
           );
+
+          if (!shouldAwaitBackend) {
+            setTimeout(() => {
+              setUploadingFiles(prev =>
+                prev.filter(f => f.id !== uploadingFile.id)
+              );
+            }, 1000);
+          }
         } catch (error) {
-          errors.push(uploadingFile.file.name);
-          console.error(`Failed to upload ${uploadingFile.file.name}:`, error);
-          
-          // Remove errored file from uploading list
+          errors.push(uploadingFile.fileName);
+          console.error(`Failed to upload ${uploadingFile.fileName}:`, error);
           setUploadingFiles(prev =>
-            prev.filter(f => f.id !== uploadingFile.id)
+            prev.map(f =>
+              f.id === uploadingFile.id
+                ? { ...f, stage: "error" }
+                : f
+            )
           );
         }
       }
 
-      // Add all successfully uploaded docs to state
       if (uploadedDocsList.length > 0) {
-        setUploadedDocs(prev => [...prev, ...uploadedDocsList]);
-        // Batch upload all documents as an array to backend
-        await onDocumentUploaded?.(uploadedDocsList);
+        if (shouldAwaitBackend) {
+          await onDocumentUploaded?.(uploadedDocsList);
+        }
+
+        setUploadedDocs(prev => mergeUploadedDocs(prev, uploadedDocsList));
+
+        if (shouldAwaitBackend) {
+          setUploadingFiles(prev =>
+            prev.map(f =>
+              successfulUploadIds.has(f.id)
+                ? { ...f, progress: 100, stage: "completed" }
+                : f
+            )
+          );
+
+          setTimeout(() => {
+            setUploadingFiles(prev =>
+              prev.filter(f => !successfulUploadIds.has(f.id))
+            );
+          }, 1200);
+        }
       }
 
       // Show error message if some files failed
@@ -357,40 +422,49 @@ export default function ChatInput({
     return 'File';
   };
 
+  const getUploadStatusLabel = (stage: UploadStage) => {
+    if (stage === "processing") return "Processing";
+    if (stage === "completed") return "Done";
+    if (stage === "error") return "Error";
+    return "Uploading";
+  };
+
+  const getUploadBarColor = (stage: UploadStage) => {
+    if (stage === "error") return "bg-destructive";
+    if (stage === "completed") return "bg-green-500";
+    if (stage === "processing") return "bg-amber-500";
+    return "bg-primary";
+  };
+
+  const canSend = Boolean(message.trim() || uploadedDocs.length > 0);
+  const showVoiceShortcut = !canSend;
+
   return (
     <div className={`w-full max-w-4xl mx-auto ${hasMessages ? "" : "px-4"}`}>
       {/* Show uploading files with progress */}
-      {uploadingFiles.length > 0 && (
+      {visibleUploadingFiles.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-2">
-          {uploadingFiles.map((uploadingFile) => (
+          {visibleUploadingFiles.map((uploadingFile) => (
             <div
               key={uploadingFile.id}
               className="flex items-center gap-2 bg-muted/50 border border-border rounded-lg px-3 py-2 text-sm min-w-[200px]"
             >
-              <span className="text-lg">{getFileIcon(uploadingFile.file.type)}</span>
+              <span className="text-lg">{getFileIcon(uploadingFile.fileType)}</span>
               <div className="flex flex-col min-w-0 flex-1">
-                <span className="font-medium truncate max-w-[120px]" title={uploadingFile.file.name}>
-                  {uploadingFile.file.name}
+                <span className="font-medium truncate max-w-[150px]" title={uploadingFile.fileName}>
+                  {uploadingFile.fileName}
                 </span>
                 <div className="flex items-center gap-2 mt-1">
                   <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                     <div
-                      className={`h-full transition-all duration-300 ${
-                        uploadingFile.status === 'error' 
-                          ? 'bg-destructive' 
-                          : uploadingFile.status === 'completed'
-                          ? 'bg-green-500'
-                          : 'bg-primary'
-                      }`}
+                      className={`h-full transition-all duration-300 ${getUploadBarColor(uploadingFile.stage)}`}
                       style={{ width: `${uploadingFile.progress}%` }}
                     />
                   </div>
                   <span className="text-xs text-muted-foreground min-w-[35px]">
-                    {uploadingFile.status === 'error' 
-                      ? 'Error' 
-                      : uploadingFile.status === 'completed'
-                      ? 'Done'
-                      : `${uploadingFile.progress}%`}
+                    {uploadingFile.stage === "uploading"
+                      ? `${uploadingFile.progress}%`
+                      : getUploadStatusLabel(uploadingFile.stage)}
                   </span>
                 </div>
               </div>
@@ -460,10 +534,10 @@ export default function ChatInput({
           )}
         </div>
 
-        <div className="flex items-center justify-between px-3 py-2">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-3 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
             <Select value={selectedModel} onValueChange={handleModelChange} disabled={isLoading || connected || isUploading}>
-              <SelectTrigger className="h-7 px-2 rounded-full text-sm border-border bg-muted hover:bg-accent focus:ring-0 focus:ring-offset-0">
+              <SelectTrigger className="h-6 sm:h-7 px-2 rounded-full text-[11px] sm:text-sm border-border bg-muted hover:bg-accent focus:ring-0 focus:ring-offset-0 min-w-[95px] sm:min-w-[150px]">
                 <div className="flex items-center gap-2">
                   <Sparkle className="size-4 text-primary" />
                   <SelectValue />
@@ -510,7 +584,7 @@ export default function ChatInput({
             )}
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5 justify-end">
             <Button
               variant={connected ? "default" : "outline"}
               size="icon"
@@ -548,7 +622,7 @@ export default function ChatInput({
 
             <Button
               onClick={handleSend}
-              disabled={(!message.trim() && uploadedDocs.length === 0) || isLoading || connected || isUploading || uploadingFiles.length > 0}
+              disabled={(!message.trim() && uploadedDocs.length === 0) || isLoading || connected || isUploading || hasActiveUploads}
               size="icon"
               className="h-7 w-7 rounded-full"
             >

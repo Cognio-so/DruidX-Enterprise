@@ -4,17 +4,20 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/ui/themeToggle";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
-import { Bot, MessageSquarePlus } from "lucide-react";
+import { Bot, MessageSquarePlus, Pencil, PencilLine } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import Link from "next/link";
 
 interface ChatHeaderProps {
   gptName?: string;
   gptImage?: string;
   onNewChat?: () => void;
+  gptId?: string;
 }
 
-export default function ChatHeader({ gptName, gptImage, onNewChat }: ChatHeaderProps) {
+export default function ChatHeader({ gptName, gptImage, onNewChat, gptId }: ChatHeaderProps) {
   const { data: session } = authClient.useSession();
   const [mounted, setMounted] = useState(false);
 
@@ -37,6 +40,7 @@ export default function ChatHeader({ gptName, gptImage, onNewChat }: ChatHeaderP
   return (
     <div className="flex items-center justify-between w-full">
       <div className="flex items-center gap-3">
+        <SidebarTrigger className="h-8 w-8 md:hidden" />
         <div className="relative w-8 h-8">
           {gptImage && gptImage !== "default-avatar.png" ? (
             <Image
@@ -73,6 +77,30 @@ export default function ChatHeader({ gptName, gptImage, onNewChat }: ChatHeaderP
             <MessageSquarePlus className="h-4 w-4 text-primary" />
             <span className="hidden sm:inline">New Chat</span>
           </Button>
+        )}
+        {gptId && (
+          <>
+            <Link href={`/admin/gpts/${gptId}/edit`} className="hidden sm:flex">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-2"
+                title="Edit GPT"
+              >
+                <PencilLine className="h-4 w-4 text-primary" />
+                Edit GPT
+              </Button>
+            </Link>
+            <Link href={`/admin/gpts/${gptId}/edit`} className="sm:hidden">
+              <Button
+                variant="ghost"
+                size="icon"
+                title="Edit GPT"
+              >
+                <Pencil className="h-4 w-4 text-primary" />
+              </Button>
+            </Link>
+          </>
         )}
         <ThemeToggle />
         <Avatar className="h-8 w-8">

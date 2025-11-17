@@ -7,6 +7,7 @@ import { Plus, Sparkles, Search } from "lucide-react";
 import Link from "next/link";
 import { AutoBuilderDialog } from "./auto-builder-dialog";
 import { useSearchContext } from "./gpts-list-wrapper";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export function GptsPageClient() {
   const [autoBuildOpen, setAutoBuildOpen] = useState(false);
@@ -20,14 +21,17 @@ export function GptsPageClient() {
     <>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div className="flex-1">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-primary">
-            GPT Collection
-          </h1>
+          <div className="flex items-center gap-3">
+            <SidebarTrigger className="h-9 w-9 md:hidden" />
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-primary">
+              GPT Collection
+            </h1>
+          </div>
           <p className="text-muted-foreground mt-1 text-sm sm:text-base">
             Manage and organize your custom GPTs
           </p>
         </div>
-        <div className="flex-shrink-0 flex gap-2">
+        <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row sm:items-center">
           <Button
             onClick={() => setAutoBuildOpen(true)}
             variant="outline"

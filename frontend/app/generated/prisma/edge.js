@@ -339,7 +339,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\shiva\\Desktop\\DruidX-Enterprise\\frontend\\app\\generated\\prisma",
+      "value": "C:\\Users\\shiva\\Desktop\\druidx-enterprise\\frontend\\app\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -353,12 +353,11 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\shiva\\Desktop\\DruidX-Enterprise\\frontend\\prisma\\schema.prisma",
+    "sourceFilePath": "C:\\Users\\shiva\\Desktop\\druidx-enterprise\\frontend\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null,
-    "schemaEnvPath": "../../../.env"
+    "rootEnvPath": null
   },
   "relativePath": "../../../prisma",
   "clientVersion": "6.19.0",
