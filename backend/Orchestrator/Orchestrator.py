@@ -102,7 +102,7 @@ async def summarizer(state, keep_last=2):
         # google_api_key = os.getenv("GOOGLE_API_KEY", "")
         # llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", temperature=0.3, api_key=google_api_key)
         llm = ChatGroq(
-        model="openai/gpt-oss-20b",  
+        model="openai/gpt-oss-120b",  
         temperature=0.4,
         groq_api_key=os.getenv("GROQ_API_KEY")
     )
@@ -471,7 +471,7 @@ async def orchestrator(state: GraphState) -> GraphState:
         state["active_docs"]=new_Doc
     if not state.get("tasks"):
         messages = state.get("messages", [])
-        def _format_last_turns_for_prompt(msgs, k=6, max_words_assistant=300):
+        def _format_last_turns_for_prompt(msgs, k=2, max_words_assistant=500):
             """
             Builds a condensed conversation history string for the analyzer.
 
@@ -501,16 +501,23 @@ async def orchestrator(state: GraphState) -> GraphState:
         sess = ctx.get("session", {})
         last_route = sess.get("last_route")
         session_summary = sess.get("summary", "")
-        recent_messages_text = _format_last_turns_for_prompt(messages, k=2)
+        recent_messages_text = _format_last_turns_for_prompt(messages, k=4)
+        if session_summary:
+            if recent_messages_text:
+                recent_messages_text = (
+                    f"{recent_messages_text}\n\nEarlier Summary:\n{session_summary}"
+                )
+            else:
+                recent_messages_text = f"Earlier Summary:\n{session_summary}"
         
         # Extract custom instruction and websearch flag from gpt_config
         gpt_config = state.get("gpt_config", {})
         custom_instruction = gpt_config.get("instruction", "").strip() if gpt_config else ""
         is_websearch_enabled = bool(websearch)
-        
-        print(f"[Orchestrator] Custom instruction present: {bool(custom_instruction)}")
-        print(f"[Orchestrator] WebSearch enabled: {bool(websearch)}")
-        
+        # print(f"recent_messages_text: {recent_messages_text}")
+        # print(f"[Orchestrator] Custom instruction present: {bool(custom_instruction)}")
+        # print(f"[Orchestrator] WebSearch enabled: {bool(websearch)}")
+        # print(f"last`route in orchestrator------------------", last_route)
         # Extract image URLs from new_uploaded_docs and populate edit_img_urls
         edit_img_urls = []
         if new_Doc:
@@ -552,6 +559,8 @@ async def orchestrator(state: GraphState) -> GraphState:
     if not state.get("tasks"):
         # Deep search is now handled by separate endpoint, not through orchestrator
         plan = result.get("execution_order", []) if result else ["SimpleLLM"]
+        if not plan:
+            plan = ["SimpleLLM"]
         has_image_in_plan = any(
             task.lower() in ["image", "img"] 
             for task in plan
