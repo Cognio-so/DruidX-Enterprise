@@ -4,19 +4,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getKnowledgeBases } from "@/data/get-knowledge-base";
 import AddKnowledgeBase from "./_components/add-knowledge-base";
 import KnowledgeBaseList from "./_components/knowledge-base-list";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 async function KnowledgeBaseContent() {
   const knowledgeBases = await getKnowledgeBases();
 
   return (
     <div className="space-y-6 p-4">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="space-y-3">
+        <div className="flex items-start gap-3">
+          <SidebarTrigger className="h-9 w-9 md:hidden" />
           <h1 className="text-3xl font-bold text-primary">Knowledge Base</h1>
-          <p className="text-muted-foreground/80 mt-1">
-            Manage your knowledge base files and documents
-          </p>
         </div>
+        <p className="text-muted-foreground/80">
+          Manage your knowledge base files and documents
+        </p>
         <AddKnowledgeBase />
       </div>
 

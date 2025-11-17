@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowUp, Globe, Paperclip, Sparkle, Telescope, X, Phone, PhoneOff, AudioLines, XCircle } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ArrowUp, Globe, Paperclip, Sparkle, Telescope, X, Phone, PhoneOff, AudioLines, XCircle, Plus } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { getModelsForFrontend, frontendToBackend, getDisplayName } from "@/lib/modelMapping";
 import { ComposioToolSelector } from "./ComposioToolSelector";
@@ -54,6 +55,29 @@ interface UploadedDoc {
   type: string;
 }
 
+const mergeUploadedDocs = (
+  existing: UploadedDoc[],
+  incoming: UploadedDoc[]
+): UploadedDoc[] => {
+  const map = new Map<string, UploadedDoc>();
+  [...existing, ...incoming].forEach((doc) => {
+    const key = `${doc.url || ""}|${doc.filename}|${doc.type}`;
+    map.set(key, doc);
+  });
+  return Array.from(map.values());
+};
+
+type UploadStage = "uploading" | "processing" | "completed" | "error";
+
+interface UploadingFileState {
+  id: string;
+  file?: File;
+  fileName: string;
+  fileType: string;
+  progress: number;
+  stage: UploadStage;
+}
+
 // Get models from mapping
 const models = getModelsForFrontend();
 
@@ -81,12 +105,13 @@ export default function ChatInput({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedDocs, setUploadedDocs] = useState<UploadedDoc[]>([]);
   const [composioTools, setComposioTools] = useState<string[]>([]);
-  const [uploadingFiles, setUploadingFiles] = useState<Array<{
-    id: string;
-    file: File;
-    progress: number;
-    status: 'uploading' | 'completed' | 'error';
-  }>>([]);
+  const [uploadingFiles, setUploadingFiles] = useState<UploadingFileState[]>([]);
+  const hasActiveUploads = uploadingFiles.some(
+    (file) => file.stage === "uploading" || file.stage === "processing"
+  );
+  const visibleUploadingFiles = uploadingFiles.filter(
+    (file) => file.stage === "uploading" || file.stage === "error"
+  );
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -139,7 +164,7 @@ export default function ChatInput({
   };
 
   const handleSend = () => {
-    if ((message.trim() || uploadedDocs.length > 0) && !isLoading && !isUploading && uploadingFiles.length === 0) {
+    if ((message.trim() || uploadedDocs.length > 0) && !isLoading && !isUploading && !hasActiveUploads) {
       const backendModelName = frontendToBackend(selectedModel);
       
       const sendOptions = {
@@ -195,7 +220,7 @@ export default function ChatInput({
       xhr.upload.addEventListener("progress", (event) => {
         if (event.lengthComputable && onProgress) {
           const progress = Math.round((event.loaded / event.total) * 100);
-          onProgress(progress);
+          onProgress(Math.min(progress, 95));
         }
       });
 
@@ -264,14 +289,18 @@ export default function ChatInput({
 
     setIsUploading(true);
     const uploadedDocsList: UploadedDoc[] = [];
+    const successfulUploadIds = new Set<string>();
     const errors: string[] = [];
+    const shouldAwaitBackend = typeof onDocumentUploaded === "function";
 
     // Create uploading files state with unique IDs
-    const newUploadingFiles = validFiles.map((file) => ({
+    const newUploadingFiles: UploadingFileState[] = validFiles.map((file) => ({
       id: `${file.name}-${Date.now()}-${Math.random()}`,
       file,
+      fileName: file.name,
+      fileType: file.type,
       progress: 0,
-      status: 'uploading' as const,
+      stage: "uploading" as const,
     }));
 
     setUploadingFiles(prev => [...prev, ...newUploadingFiles]);
@@ -280,7 +309,7 @@ export default function ChatInput({
       // Upload files sequentially to avoid overwhelming the server
       for (const uploadingFile of newUploadingFiles) {
         try {
-          const fileUrl = await uploadToS3(uploadingFile.file, (progress) => {
+          const fileUrl = await uploadToS3(uploadingFile.file!, (progress) => {
             setUploadingFiles(prev =>
               prev.map(f =>
                 f.id === uploadingFile.id ? { ...f, progress } : f
@@ -290,31 +319,67 @@ export default function ChatInput({
 
           const newDoc: UploadedDoc = {
             url: fileUrl,
-            filename: uploadingFile.file.name,
-            type: uploadingFile.file.type
+            filename: uploadingFile.fileName,
+            type: uploadingFile.fileType
           };
           uploadedDocsList.push(newDoc);
+          successfulUploadIds.add(uploadingFile.id);
 
-          // Mark as completed and immediately remove from uploading list
           setUploadingFiles(prev =>
-            prev.filter(f => f.id !== uploadingFile.id)
+            prev.map(f =>
+              f.id === uploadingFile.id
+                ? {
+                    ...f,
+                    file: undefined,
+                    progress: shouldAwaitBackend ? Math.max(f.progress, 95) : 100,
+                    stage: shouldAwaitBackend ? "processing" : "completed",
+                  }
+                : f
+            )
           );
+
+          if (!shouldAwaitBackend) {
+            setTimeout(() => {
+              setUploadingFiles(prev =>
+                prev.filter(f => f.id !== uploadingFile.id)
+              );
+            }, 1000);
+          }
         } catch (error) {
-          errors.push(uploadingFile.file.name);
-          console.error(`Failed to upload ${uploadingFile.file.name}:`, error);
-          
-          // Remove errored file from uploading list
+          errors.push(uploadingFile.fileName);
+          console.error(`Failed to upload ${uploadingFile.fileName}:`, error);
           setUploadingFiles(prev =>
-            prev.filter(f => f.id !== uploadingFile.id)
+            prev.map(f =>
+              f.id === uploadingFile.id
+                ? { ...f, stage: "error" }
+                : f
+            )
           );
         }
       }
 
-      // Add all successfully uploaded docs to state
       if (uploadedDocsList.length > 0) {
-        setUploadedDocs(prev => [...prev, ...uploadedDocsList]);
-        // Batch upload all documents as an array to backend
-        await onDocumentUploaded?.(uploadedDocsList);
+        if (shouldAwaitBackend) {
+          await onDocumentUploaded?.(uploadedDocsList);
+        }
+
+        setUploadedDocs(prev => mergeUploadedDocs(prev, uploadedDocsList));
+
+        if (shouldAwaitBackend) {
+          setUploadingFiles(prev =>
+            prev.map(f =>
+              successfulUploadIds.has(f.id)
+                ? { ...f, progress: 100, stage: "completed" }
+                : f
+            )
+          );
+
+          setTimeout(() => {
+            setUploadingFiles(prev =>
+              prev.filter(f => !successfulUploadIds.has(f.id))
+            );
+          }, 1200);
+        }
       }
 
       // Show error message if some files failed
@@ -357,40 +422,49 @@ export default function ChatInput({
     return 'File';
   };
 
+  const getUploadStatusLabel = (stage: UploadStage) => {
+    if (stage === "processing") return "Processing";
+    if (stage === "completed") return "Done";
+    if (stage === "error") return "Error";
+    return "Uploading";
+  };
+
+  const getUploadBarColor = (stage: UploadStage) => {
+    if (stage === "error") return "bg-destructive";
+    if (stage === "completed") return "bg-green-500";
+    if (stage === "processing") return "bg-amber-500";
+    return "bg-primary";
+  };
+
+  const canSend = Boolean(message.trim() || uploadedDocs.length > 0);
+  const showVoiceShortcut = !canSend;
+
   return (
-    <div className={`w-full max-w-4xl mx-auto ${hasMessages ? "" : "px-4"}`}>
+    <div className={`w-full max-w-4xl mx-auto  ${hasMessages ? "" : "px-4"}`}>
       {/* Show uploading files with progress */}
-      {uploadingFiles.length > 0 && (
+      {visibleUploadingFiles.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-2">
-          {uploadingFiles.map((uploadingFile) => (
+          {visibleUploadingFiles.map((uploadingFile) => (
             <div
               key={uploadingFile.id}
               className="flex items-center gap-2 bg-muted/50 border border-border rounded-lg px-3 py-2 text-sm min-w-[200px]"
             >
-              <span className="text-lg">{getFileIcon(uploadingFile.file.type)}</span>
+              <span className="text-lg">{getFileIcon(uploadingFile.fileType)}</span>
               <div className="flex flex-col min-w-0 flex-1">
-                <span className="font-medium truncate max-w-[120px]" title={uploadingFile.file.name}>
-                  {uploadingFile.file.name}
+                <span className="font-medium truncate max-w-[150px]" title={uploadingFile.fileName}>
+                  {uploadingFile.fileName}
                 </span>
                 <div className="flex items-center gap-2 mt-1">
                   <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                     <div
-                      className={`h-full transition-all duration-300 ${
-                        uploadingFile.status === 'error' 
-                          ? 'bg-destructive' 
-                          : uploadingFile.status === 'completed'
-                          ? 'bg-green-500'
-                          : 'bg-primary'
-                      }`}
+                      className={`h-full transition-all duration-300 ${getUploadBarColor(uploadingFile.stage)}`}
                       style={{ width: `${uploadingFile.progress}%` }}
                     />
                   </div>
                   <span className="text-xs text-muted-foreground min-w-[35px]">
-                    {uploadingFile.status === 'error' 
-                      ? 'Error' 
-                      : uploadingFile.status === 'completed'
-                      ? 'Done'
-                      : `${uploadingFile.progress}%`}
+                    {uploadingFile.stage === "uploading"
+                      ? `${uploadingFile.progress}%`
+                      : getUploadStatusLabel(uploadingFile.stage)}
                   </span>
                 </div>
               </div>
@@ -429,10 +503,10 @@ export default function ChatInput({
         </div>
       )}
 
-      <div className="relative bg-muted/20 rounded-3xl shadow-sm border border-border overflow-hidden">
-        <div className="p-3">
+      <div className="relative bg-muted/20 rounded-2xl shadow-sm border border-border overflow-hidden">
+        <div className="p-2">
           {connected ? (
-            <div className="w-full min-h-[50px] flex items-center justify-center">
+            <div className="w-full min-h-[44px] flex items-center justify-center">
               <LiveWaveform 
                 stream={audioStream} 
                 active={connected}
@@ -454,106 +528,225 @@ export default function ChatInput({
               onKeyPress={handleKeyPress}
               placeholder={isUploading ? "Uploading documents..." : "Ask anything..."}
               disabled={isLoading || connecting || isUploading}
-              className="w-full min-h-[50px] max-h-[200px] resize-none outline-none text-lg leading-snug bg-transparent placeholder:text-muted-foreground disabled:opacity-50 overflow-y-auto [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-clip-padding"
+              className="w-full min-h-[44px] max-h-[180px] resize-none outline-none text-base leading-snug bg-transparent placeholder:text-muted-foreground disabled:opacity-50 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-clip-padding"
               rows={2}
             />
           )}
         </div>
 
-        <div className="flex items-center justify-between px-3 py-2">
-          <div className="flex items-center gap-2">
-            <Select value={selectedModel} onValueChange={handleModelChange} disabled={isLoading || connected || isUploading}>
-              <SelectTrigger className="h-7 px-2 rounded-full text-sm border-border bg-muted hover:bg-accent focus:ring-0 focus:ring-offset-0">
-                <div className="flex items-center gap-2">
-                  <Sparkle className="size-4 text-primary" />
-                  <SelectValue />
-                </div>
-              </SelectTrigger>
-              <SelectContent className="max-h-[400px] overflow-y-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 p-2">
-                  {models.map(model => (
-                    <SelectItem key={model.value} value={model.value} className="text-sm">
-                      <div className="flex items-center gap-2">
-                        {model.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </div>
-              </SelectContent>
-            </Select>
+        <div className="flex flex-col gap-2 px-3 py-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,application/json"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
 
-            <Button
-              variant={webSearch ? "default" : "outline"}
-              size="icon"
-              className="h-7 w-7 rounded-full"
-              onClick={() => setWebSearch(!webSearch)}
-              disabled={isLoading || connected || isUploading}
-            >
-              <Globe className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant={deepSearch ? "default" : "outline"}
-              size="icon"
-              className="h-7 w-7 rounded-full"
-              onClick={() => setDeepSearch(!deepSearch)}
-              disabled={isLoading || connected || isUploading}
-            >
-              <Telescope className="size-4"/>
-            </Button>
-            
-            {gptId && (
-              <ComposioToolSelector
-                gptId={gptId}
-                onToolsChange={setComposioTools}
-                disabled={isLoading || connected || isUploading}
-              />
-            )}
+          {/* Mobile Controls */}
+          <div className="flex items-center justify-between gap-2 md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  disabled={isLoading || connecting || isUploading}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-72 space-y-3">
+                <div>
+                  <DropdownMenuLabel className="text-xs text-muted-foreground">Model</DropdownMenuLabel>
+                  <Select value={selectedModel} onValueChange={handleModelChange} disabled={isLoading || connected || isUploading}>
+                    <SelectTrigger className="h-8 px-2 rounded-full text-xs border-border bg-muted hover:bg-accent focus:ring-0 focus:ring-offset-0 mt-2">
+                      <div className="flex items-center gap-2">
+                        <Sparkle className="size-4 text-primary" />
+                        <SelectValue />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[400px] overflow-y-auto text-sm">
+                      <div className="grid grid-cols-1 gap-1 p-2">
+                        {models.map(model => (
+                          <SelectItem key={model.value} value={model.value}>
+                            {model.name}
+                          </SelectItem>
+                        ))}
+                      </div>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <DropdownMenuLabel className="text-xs text-muted-foreground">Quick actions</DropdownMenuLabel>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <Button
+                      variant={webSearch ? "default" : "outline"}
+                      size="sm"
+                      className="h-8 px-3 rounded-full text-xs"
+                      onClick={() => setWebSearch(!webSearch)}
+                      disabled={isLoading || connected || isUploading}
+                    >
+                      <Globe className="h-3.5 w-3.5 mr-1.5" />
+                      Web
+                    </Button>
+                    <Button
+                      variant={deepSearch ? "default" : "outline"}
+                      size="sm"
+                      className="h-8 px-3 rounded-full text-xs"
+                      onClick={() => setDeepSearch(!deepSearch)}
+                      disabled={isLoading || connected || isUploading}
+                    >
+                      <Telescope className="h-3.5 w-3.5 mr-1.5" />
+                      Deep
+                    </Button>
+                  </div>
+                </div>
+
+                {gptId && (
+                  <div>
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">MCP tools</DropdownMenuLabel>
+                    <div className="mt-2">
+                      <ComposioToolSelector
+                        gptId={gptId}
+                        onToolsChange={setComposioTools}
+                        disabled={isLoading || connected || isUploading}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <DropdownMenuSeparator />
+                <div>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-center rounded-full"
+                    disabled={isLoading || isUploading || connected}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Paperclip className="h-3.5 w-3.5 mr-2" />
+                    Attach files
+                  </Button>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <div className="flex items-center gap-2">
+              {showVoiceShortcut && (
+                <Button
+                  variant={connected ? "default" : "outline"}
+                  size="icon"
+                  className={cn(
+                    "h-8 w-8 rounded-full",
+                    connected && "bg-primary hover:bg-primary/90 text-white"
+                  )}
+                  onClick={handleVoiceToggle}
+                  disabled={isLoading || connecting}
+                  title={connected ? "Disconnect voice" : "Start voice"}
+                >
+                  {connected ? <XCircle className="h-4 w-4" /> : <AudioLines className="h-4 w-4" />}
+                </Button>
+              )}
+
+              <Button
+                onClick={handleSend}
+                disabled={!canSend || isLoading || connected || isUploading || hasActiveUploads}
+                size="icon"
+                className="h-8 w-8 rounded-full"
+              >
+                <ArrowUp className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <Button
-              variant={connected ? "default" : "outline"}
-              size="icon"
-              className={cn(
-                "h-7 w-7 rounded-full",
-                connected && "bg-primary hover:bg-primary/90 text-white"
-              )}
-              onClick={handleVoiceToggle}
-              disabled={isLoading || connecting}
-              title={connected ? "Disconnect voice" : "Connect voice"}
-            >
-              {connected ? (
-                <XCircle className="h-3.5 w-3.5 " />
-              ) : (
-                <AudioLines className="h-3.5 w-3.5" />
-              )}
-            </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,application/json"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-7 w-7 rounded-full"
-              disabled={isLoading || isUploading || connected}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Paperclip className="h-3.5 w-3.5" />
-            </Button>
+          {/* Desktop Controls */}
+          <div className="hidden md:flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Select value={selectedModel} onValueChange={handleModelChange} disabled={isLoading || connected || isUploading}>
+                <SelectTrigger className="h-7 px-2 rounded-full text-sm border-border bg-muted hover:bg-accent focus:ring-0 focus:ring-offset-0 min-w-[150px]">
+                  <div className="flex items-center gap-2">
+                    <Sparkle className="size-4 text-primary" />
+                    <SelectValue />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="max-h-[400px] overflow-y-auto">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 p-2">
+                    {models.map(model => (
+                      <SelectItem key={model.value} value={model.value} className="text-sm">
+                        {model.name}
+                      </SelectItem>
+                    ))}
+                  </div>
+                </SelectContent>
+              </Select>
 
-            <Button
-              onClick={handleSend}
-              disabled={(!message.trim() && uploadedDocs.length === 0) || isLoading || connected || isUploading || uploadingFiles.length > 0}
-              size="icon"
-              className="h-7 w-7 rounded-full"
-            >
-              <ArrowUp className="h-3.5 w-3.5" />
-            </Button>
+              <Button
+                variant={webSearch ? "default" : "outline"}
+                size="icon"
+                className="h-7 w-7 rounded-full"
+                onClick={() => setWebSearch(!webSearch)}
+                disabled={isLoading || connected || isUploading}
+              >
+                <Globe className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant={deepSearch ? "default" : "outline"}
+                size="icon"
+                className="h-7 w-7 rounded-full"
+                onClick={() => setDeepSearch(!deepSearch)}
+                disabled={isLoading || connected || isUploading}
+              >
+                <Telescope className="size-4" />
+              </Button>
+
+              {gptId && (
+                <ComposioToolSelector
+                  gptId={gptId}
+                  onToolsChange={setComposioTools}
+                  disabled={isLoading || connected || isUploading}
+                />
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant={connected ? "default" : "outline"}
+                size="icon"
+                className={cn(
+                  "h-7 w-7 rounded-full",
+                  connected && "bg-primary hover:bg-primary/90 text-white"
+                )}
+                onClick={handleVoiceToggle}
+                disabled={isLoading || connecting}
+                title={connected ? "Disconnect voice" : "Connect voice"}
+              >
+                {connected ? (
+                  <XCircle className="h-3.5 w-3.5 " />
+                ) : (
+                  <AudioLines className="h-3.5 w-3.5" />
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7 rounded-full"
+                disabled={isLoading || isUploading || connected}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Paperclip className="h-3.5 w-3.5" />
+              </Button>
+
+              <Button
+                onClick={handleSend}
+                disabled={!canSend || isLoading || connected || isUploading || hasActiveUploads}
+                size="icon"
+                className="h-7 w-7 rounded-full"
+              >
+                {canSend ? <ArrowUp className="h-3.5 w-3.5" /> : <AudioLines className="h-3.5 w-3.5" />}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

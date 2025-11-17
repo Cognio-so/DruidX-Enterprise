@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { ComposioToolsGrid } from "./_components/composio-tools-grid";
 import ToolsLoading from "./loading";
 import { getAdminGpts } from "@/data/get-admin-gpts";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 
 
@@ -46,7 +47,10 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
   return (
     <div className="container mx-auto py-6 space-y-6 p-4">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-primary">External Tools</h1>
+        <div className="flex items-center gap-3">
+          <SidebarTrigger className="h-9 w-9 md:hidden" />
+          <h1 className="text-3xl font-bold tracking-tight text-primary">External Tools</h1>
+        </div>
         <p className="text-muted-foreground/80">
           Browse and connect to available tools. These tools enable
           your GPTs to interact with external services and platforms.

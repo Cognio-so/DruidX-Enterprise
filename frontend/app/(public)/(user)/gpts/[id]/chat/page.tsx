@@ -224,6 +224,21 @@ export default function ChatGptById() {
     fetchGptData();
   }, [gptId]);
 
+  const handleRetryMessage = useCallback(
+    (content: string) => {
+      if (!content.trim()) {
+        return;
+      }
+      sendMessage(content.trim(), {
+        web_search: false,
+        rag: hybridRag,
+        deep_search: false,
+        uploaded_doc: false,
+      });
+    },
+    [sendMessage, hybridRag]
+  );
+
   return (
     <>
       <ResearchPlanApprovalDialog
@@ -282,6 +297,7 @@ export default function ChatGptById() {
                         currentPhase={currentPhase}
                         webSearchStatus={isLastAssistantMessage ? webSearchStatus : undefined}
                         thinkingState={isLastAssistantMessage ? thinkingState : undefined}
+                        onRetry={msg.role === "user" ? handleRetryMessage : undefined}
                       />
                     );
                   })}

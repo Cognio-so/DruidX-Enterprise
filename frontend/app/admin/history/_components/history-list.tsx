@@ -1,5 +1,6 @@
 import { getAdminHistory } from "@/data/get-admin-history";
 import { HistoryDataTable } from "./history-data-table";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default async function HistoryList() {
   const conversations = await getAdminHistory();
@@ -33,11 +34,14 @@ export default async function HistoryList() {
   return (
     <div className="space-y-6 ">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-primary">Conversation History</h1>
-          <p className="text-muted-foreground mt-1">
-            {conversations.length} conversation{conversations.length !== 1 ? 's' : ''} found
-          </p>
+        <div className="flex items-start gap-3">
+          <SidebarTrigger className="h-9 w-9 md:hidden" />
+          <div>
+            <h1 className="text-2xl font-bold text-primary">Conversation History</h1>
+            <p className="text-muted-foreground mt-1">
+              {conversations.length} conversation{conversations.length !== 1 ? 's' : ''} found
+            </p>
+          </div>
         </div>
       </div>
 

@@ -570,6 +570,40 @@ export function AutoBuilderDialog({
     [messages, collectedData]
   );
 
+  const formatAssistantContent = (content: string) => {
+    if (!content) return "";
+    const trimmed = content.trim();
+    const match =
+      trimmed.match(/<complete[\s\S]*$/i) ||
+      trimmed.match(/<summary[\s\S]*$/i) ||
+      trimmed.match(/<data[\s\S]*$/i) ||
+      trimmed.match(/\{[\s\S]*$/);
+
+    if (!match) {
+      return content;
+    }
+
+    const index = trimmed.indexOf(match[0]);
+    if (index === -1) {
+      return content;
+    }
+
+    const intro = trimmed.slice(0, index).trim();
+    const structured = trimmed.slice(index).trim();
+    const lang = structured.startsWith("{")
+      ? "json"
+      : structured.startsWith("<")
+      ? "xml"
+      : "markdown";
+    const codeBlock = `\`\`\`${lang}\n${structured}\n\`\`\``;
+
+    if (intro) {
+      return `${intro}\n\n${codeBlock}`;
+    }
+
+    return codeBlock;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
@@ -583,15 +617,20 @@ export function AutoBuilderDialog({
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <Conversation className="flex-1 min-h-0">
             <ConversationContent className="px-6 py-4">
-            {messages.map((message) => (
+            {messages.map((message) => {
+                const displayContent =
+                  message.role === 'assistant'
+                    ? formatAssistantContent(message.content)
+                    : message.content;
+                return (
                 <Fragment key={message.id}>
-                          <Message from={message.role}>
-                            <MessageContent>
-                      <Response>{message.content}</Response>
-                            </MessageContent>
-                          </Message>
-                        </Fragment>
-              ))}
+                  <Message from={message.role}>
+                    <MessageContent>
+                      <Response>{displayContent}</Response>
+                    </MessageContent>
+                  </Message>
+                </Fragment>
+              )})}
               {isLoading && <Loader />}
               {isSubmitting && (
                 <Message from="assistant">
