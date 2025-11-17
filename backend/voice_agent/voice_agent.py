@@ -255,15 +255,6 @@ class VoiceAssistant:
         )
         return agent
 
-    def _is_uuid_format(self, text: str) -> bool:
-        """Check if text looks like a UUID (Cartesia voice ID format)"""
-        if not text:
-            return False
-        # UUID format: 8-4-4-4-12 hex characters (e.g., "9626c31c-bec5-4cca-baa8-f8ba9e84c8bc")
-        import re
-        uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-        return bool(re.match(uuid_pattern, text.lower()))
-
     async def _verify_api_keys(self) -> bool:
         """Verify that all required API keys are available"""
         required_keys = {
@@ -308,7 +299,7 @@ class VoiceAssistant:
         tts_plugin = None
         logger.info(f"Configuring TTS with voice ID/model from main.py: {self.tts_model}")
         
-        if self.tts_model in CARTESIA_TTS_MODELS or self._is_uuid_format(self.tts_model):
+        if self.tts_model in CARTESIA_TTS_MODELS:
             tts_plugin = cartesia.TTS(model="sonic-3", voice=self.tts_model, api_key=os.getenv("CARTESIA_API_KEY"))
             logger.info(f"Using Cartesia Soni 3 (Sonic-3) TTS plugin with voice ID from main.py: {self.tts_model}")
         elif self.tts_model in DEEPGRAM_TTS_MODELS:
