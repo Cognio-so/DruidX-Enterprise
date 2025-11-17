@@ -161,8 +161,8 @@ async def get_existing_kb_file_urls(gpt_id: str, userId: str) -> set:
 
 async def check_kb_collection_exists(gpt_id: str, userId: str) -> tuple[bool, bool]:
     """
-    Check if KB collection exists in Qdrant and has data.
-    Returns: (collection_exists, has_data)
+    Check if KB collection exists in Qdrant and whether it contains any points.
+    Returns (collection_exists, has_data).
     """
     if not gpt_id or not userId:
         return (False, False)
@@ -176,15 +176,14 @@ async def check_kb_collection_exists(gpt_id: str, userId: str) -> tuple[bool, bo
         if collection_name not in collections:
             return (False, False)
         
-        # Check if collection has any points
+        # Quickly verify collection has data
         scroll_out, _ = await asyncio.to_thread(
             QDRANT_CLIENT.scroll,
             collection_name=collection_name,
-            limit=1,  # Just check if any data exists
+            limit=1,
             with_payload=False,
             with_vectors=False
         )
-        
         has_data = len(scroll_out) > 0
         return (True, has_data)
     except Exception as e:
@@ -201,6 +200,7 @@ async def preprocess_kb_documents(kb_docs: List[dict], gpt_id: str, userId: str,
         return
     
     collection_name = f"kb_{gpt_id}_{userId}"
+    cache_key = f"kb_cache:{collection_name}"
     existing_file_urls = await get_existing_kb_file_urls(gpt_id, userId)
     new_kb_docs = []
     for doc in kb_docs:
@@ -215,10 +215,6 @@ async def preprocess_kb_documents(kb_docs: List[dict], gpt_id: str, userId: str,
     
     if not new_kb_docs:
         print(f"[RAG] All KB documents already embedded for gpt_id={gpt_id}, userId={userId}")
-        # Verify collection exists in Qdrant (no Redis cache needed)
-        collection_exists, has_data = await check_kb_collection_exists(gpt_id, userId)
-        if not collection_exists or not has_data:
-            print(f"[RAG] Warning: KB collection not found in Qdrant despite documents being marked as embedded")
         return
     
     print(f"[RAG] Pre-processing {len(new_kb_docs)} new KB documents (out of {len(kb_docs)} total) for gpt_id={gpt_id}, userId={userId}")
@@ -248,7 +244,17 @@ async def preprocess_kb_documents(kb_docs: List[dict], gpt_id: str, userId: str,
         metadatas=kb_metadatas
     )
     
-    print(f"[RAG] Pre-processed {len(kb_texts)} new KB documents for gpt_id={gpt_id}, userId={userId}")
+    redis_client = await ensure_redis_client()
+    if redis_client:
+        await redis_client.hset(cache_key, mapping={
+            "collection_name": collection_name,
+            "is_hybrid": str(is_hybrid),
+            "processed_at": str(asyncio.get_event_loop().time()),
+            "document_count": len(kb_texts)
+        })
+        await redis_client.expire(cache_key, 86400)
+    
+    print(f"[RAG] Pre-processed and cached {len(kb_texts)} new KB documents for gpt_id={gpt_id}, userId={userId}")
 
 async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid: bool = False, is_new_upload: bool = False):
     """
@@ -1806,7 +1812,7 @@ async def _process_kb_docs(state, kb_docs, user_query, rag):
         print(f"[RAG] ERROR: Missing gpt_id or userId in gpt_config")
         raise Exception("KB not pre-processed. Please load custom GPT first.")
     
-    # Check if collection exists and has data
+    # Ensure the KB collection exists in Qdrant
     collection_exists, has_data = await check_kb_collection_exists(gpt_id, userId)
     if not collection_exists or not has_data:
         print(f"[RAG] ERROR: KB collection not found or empty for gpt_id={gpt_id}, userId={userId}")
@@ -1815,10 +1821,10 @@ async def _process_kb_docs(state, kb_docs, user_query, rag):
     await send_status_update(state, "🔍 Searching knowledge base...", 70)
     collection_name = f"kb_{gpt_id}_{userId}"
     
-    # Get is_hybrid from gpt_config instead of Redis cache
+    # Hybrid flag now comes from GPT configuration
     is_hybrid = gpt_config.get("hybridRag", False)
     
-    print(f"[RAG] Using pre-processed KB embeddings from collection: {collection_name} (hybrid: {is_hybrid})")
+    print(f"[RAG] Using pre-processed KB embeddings from collection: {collection_name}")
     
     if is_hybrid:
         res = await _hybrid_search_intersection(collection_name, user_query, limit=5)
@@ -1908,12 +1914,10 @@ async def Rag(state: GraphState) -> GraphState:
         if not has_user_docs:
             has_user_docs = bool(docs)
         has_kb = False
-        gpt_config = state.get("gpt_config", {})
         gpt_id = gpt_config.get("gpt_id")
         userId = gpt_config.get("userId")
         
         if gpt_id and userId:
-            # Check directly from Qdrant instead of Redis cache
             collection_exists, has_data = await check_kb_collection_exists(gpt_id, userId)
             has_kb = collection_exists and has_data
             if has_kb:
@@ -1921,7 +1925,7 @@ async def Rag(state: GraphState) -> GraphState:
             else:
                 print(f"[RAG] KB collection not found or empty for gpt_id={gpt_id}, userId={userId}")
         else:
-            # Fallback: check if kb_docs exist in state
+            # Fallback: rely on KB docs present in state (may be metadata only)
             has_kb = bool(kb_docs)
         
         print(f"[RAG] Document availability - User docs: {has_user_docs}, KB: {has_kb}")
