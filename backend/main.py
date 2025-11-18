@@ -1313,14 +1313,11 @@ async def voice_connect(request: dict):
     
     session_id = request.get("sessionId")
     gpt_id = request.get("gptId")
-    # Get model configuration from request body
-    # openai_model = request.get("openai_model")
-    # stt_model = request.get("stt_model")
-    # tts_model = request.get("tts_model")
+
     
     openai_model = "gpt-4.1-nano"
     stt_model = "nova-3"
-    tts_model = "f786b574-daa5-4673-aa0c-cbe3e8534c02"
+    tts_model = "aura-2-ophelia-en"
     
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID is required")
@@ -1328,9 +1325,6 @@ async def voice_connect(request: dict):
     try:
         # Get the full session to access gpt_config
         session = await SessionManager.get_session(session_id)
-        
-        # FIX: Ensure gpt_config is a dictionary, even if it's None in the session
-        # gpt_config = session.get("gpt_config")
         instructions =  session["instruction"]
         print(f"instuction/////////////", instructions)
 
