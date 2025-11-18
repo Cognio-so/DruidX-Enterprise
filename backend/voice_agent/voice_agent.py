@@ -145,7 +145,6 @@ class VoiceAssistant:
         initial_greeting: str = "Greet the user warmly, introduce yourself as a voice assistant, and offer your assistance.",
         enable_parallel_tts: bool = False,
         vad_config: dict = None,
-        job_ctx: agents.JobContext = None,
     ):
         if instructions is None:
             current_date = date.today().strftime("%B %d, %Y")
@@ -165,7 +164,6 @@ class VoiceAssistant:
         self.initial_greeting = initial_greeting
         self.enable_parallel_tts = enable_parallel_tts
         self.vad_config = vad_config or {}
-        self.job_ctx = job_ctx
 
         current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -366,36 +364,14 @@ class VoiceAssistant:
                 tts_plugin = cartesia.TTS(model="sonic-3", voice="f786b574-daa5-4673-aa0c-cbe3e8534c02", api_key=os.getenv("CARTESIA_API_KEY"))
                 logger.info("Using Cartesia TTS plugin with default model: sonic-3 and default voice ID: f786b574-daa5-4673-aa0c-cbe3e8534c02")
 
-        # VAD Caching Logic
-        vad_cache = self.job_ctx.job.proc.userdata.get("vad_cache", {})
-        default_params = {
-            "min_speech_duration": 0.05,
-            "max_buffered_speech": 60.0,
-            "activation_threshold": 0.5,
-            "min_silence_duration": 0.7,
-        }
-        current_params = {
-            "min_speech_duration": self.vad_config.get("min_speech_duration", default_params["min_speech_duration"]),
-            "max_buffered_speech": self.vad_config.get("max_buffered_speech", default_params["max_buffered_speech"]),
-            "activation_threshold": self.vad_config.get("activation_threshold", default_params["activation_threshold"]),
-            "min_silence_duration": self.vad_config.get("min_silence_duration", default_params["min_silence_duration"]),
-        }
-        vad_key = frozenset(current_params.items())
-        vad_instance = vad_cache.get(vad_key)
-
-        if not vad_instance:
-            logger.info(f"VAD config not in cache. Loading new VAD instance with params: {current_params}")
-            vad_instance = silero.VAD.load(
-                force_cpu=False,
-                sample_rate=16000,
-                **current_params
-            )
-            vad_cache[vad_key] = vad_instance
-        else:
-            logger.info(f"Using cached VAD instance for params: {current_params}")
-
         self.session = AgentSession(
-            vad=vad_instance,
+            vad=silero.VAD.load(
+                force_cpu=False,
+                min_speech_duration=self.vad_config.get("min_speech_duration", 0.05),
+                max_buffered_speech=self.vad_config.get("max_buffered_speech", 60.0),
+                activation_threshold=self.vad_config.get("activation_threshold", 0.5),
+                min_silence_duration=self.vad_config.get("min_silence_duration", 0.7),
+                sample_rate=16000,),
             stt=stt_plugin,
             llm=openai.LLM(model=self.openai_model),
             tts=tts_plugin,
@@ -821,32 +797,13 @@ class VoiceAssistant:
                 pass
 
 def prewarm(proc: JobProcess):
-    """
-    Pre-warms a default VAD instance and creates a cache for different VAD configurations.
-    This allows the worker to be ready for the most common case and dynamically load
-    other configurations as needed without restarting.
-    """
-    # Create a cache to store VAD instances with different configurations
-    proc.userdata["vad_cache"] = {}
-
-    # Define the default VAD configuration
-    default_config ={
-        "min_speech_duration": 0.05,
-        "max_buffered_speech": 60.0,
-        "activation_threshold": 0.5,
-        "min_silence_duration": 0.7,
-    } 
-
-    # Create a hashable key for the default configuration
-    default_key = frozenset(default_config.items())
-
-    # Load and cache the VAD instance with the default configuration
-    logger.info(f"Pre-warming default VAD with config: {default_config}")
-    proc.userdata["vad_cache"][default_key] = silero.VAD.load(
+    proc.userdata["vad"] = silero.VAD.load(
         force_cpu=False,
-        sample_rate=16000,
-        **default_config
-    )
+        min_speech_duration=0.05,
+        max_buffered_speech=60.0,
+        activation_threshold=0.5,
+        min_silence_duration=0.7,
+        sample_rate=16000)
 
 # Updated entrypoint function
 async def entrypoint(ctx: agents.JobContext):
@@ -907,7 +864,6 @@ async def entrypoint(ctx: agents.JobContext):
             stt_model=stt_model,
             tts_model=tts_model,
             vad_config=vad_config,
-            job_ctx=ctx,
         )
         logger.info("VoiceAssistant created, starting run()...")
         await assistant.run(ctx)
