@@ -36,6 +36,15 @@ export async function createGpt(data: {
   video: boolean;
   imageModel?: string;
   videoModel?: string;
+  voiceAgentEnabled?: boolean;
+  voiceAgentName?: string;
+  voiceConfidenceThreshold?: number;
+  voiceSttProvider?: string;
+  voiceSttModelId?: string;
+  voiceSttModelName?: string;
+  voiceTtsProvider?: string;
+  voiceTtsModelId?: string;
+  voiceTtsModelName?: string;
 }) {
   const session = await requireAdmin();
 
@@ -71,6 +80,15 @@ export async function createGpt(data: {
       videoEnabled: validatedData.video,
       imageModel: validatedData.imageModel || null,
       videoModel: validatedData.videoModel || null,
+      voiceAgentEnabled: validatedData.voiceAgentEnabled,
+      voiceAgentName: validatedData.voiceAgentName || null,
+      voiceConfidenceThreshold: validatedData.voiceConfidenceThreshold ?? null,
+      voiceSttProvider: validatedData.voiceSttProvider || null,
+      voiceSttModelId: validatedData.voiceSttModelId || null,
+      voiceSttModelName: validatedData.voiceSttModelName || null,
+      voiceTtsProvider: validatedData.voiceTtsProvider || null,
+      voiceTtsModelId: validatedData.voiceTtsModelId || null,
+      voiceTtsModelName: validatedData.voiceTtsModelName || null,
       knowledgeBase:
         validatedData.docs.length > 0
           ? JSON.stringify(validatedData.docs)

@@ -4,13 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ArrowUp, Globe, Paperclip, Sparkle, Telescope, X, Phone, PhoneOff, AudioLines, XCircle, Plus } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { getModelsForFrontend, frontendToBackend, getDisplayName } from "@/lib/modelMapping";
 import { ComposioToolSelector } from "@/app/admin/gpts/[id]/chat/_components/ComposioToolSelector";
 import { useVoiceChat } from "@/hooks/use-voice-chat";
 import { LiveWaveform } from "@/components/ui/live-waveform";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  VoiceAgentConfig,
+  VoiceConfigDialog,
+  STT_PROVIDER_LABELS,
+  TTS_PROVIDER_LABELS,
+} from "@/components/voice/voice-config-dialog";
 
 interface VoiceMessage {
   id: string;
@@ -47,6 +53,8 @@ interface ChatInputProps {
   imageModel?: string;
   videoModel?: string;
   onModelChange?: (model: string) => Promise<void>;
+  defaultVoiceConfig?: VoiceAgentConfig;
+  onVoiceSettingsChange?: (config: VoiceAgentConfig) => Promise<void> | void;
 }
 
 interface UploadedDoc {
@@ -97,6 +105,8 @@ export default function ChatInput({
   imageModel,
   videoModel,
   onModelChange,
+  defaultVoiceConfig,
+  onVoiceSettingsChange,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [selectedModel, setSelectedModel] = useState("gpt_4o");
@@ -123,6 +133,40 @@ export default function ChatInput({
     onMessage: onVoiceMessage,
   });
 
+  const sanitizeProvider = useCallback(
+    <T extends Record<string, string>>(value: string | null | undefined, labels: T) => {
+      if (!value) return null;
+      return Object.prototype.hasOwnProperty.call(labels, value)
+        ? (value as keyof T)
+        : null;
+    },
+    []
+  );
+
+  const buildVoiceConfig = useCallback(
+    (config?: VoiceAgentConfig): VoiceAgentConfig => ({
+      voiceAgentEnabled: config?.voiceAgentEnabled ?? false,
+      voiceAgentName: config?.voiceAgentName ?? "",
+      voiceConfidenceThreshold: config?.voiceConfidenceThreshold ?? 0.4,
+      voiceSttProvider: sanitizeProvider(config?.voiceSttProvider, STT_PROVIDER_LABELS),
+      voiceSttModelId: config?.voiceSttModelId ?? null,
+      voiceSttModelName: config?.voiceSttModelName ?? null,
+      voiceTtsProvider: sanitizeProvider(config?.voiceTtsProvider, TTS_PROVIDER_LABELS),
+      voiceTtsModelId: config?.voiceTtsModelId ?? null,
+      voiceTtsModelName: config?.voiceTtsModelName ?? null,
+    }),
+    [sanitizeProvider]
+  );
+
+  const [voiceDialogOpen, setVoiceDialogOpen] = useState(false);
+  const [voiceConfig, setVoiceConfig] = useState<VoiceAgentConfig>(() =>
+    buildVoiceConfig(defaultVoiceConfig)
+  );
+
+  useEffect(() => {
+    setVoiceConfig(buildVoiceConfig(defaultVoiceConfig));
+  }, [defaultVoiceConfig, buildVoiceConfig]);
+
   // Notify parent when voice connection changes
   useEffect(() => {
     onVoiceConnectionChange?.(connected);
@@ -141,7 +185,33 @@ export default function ChatInput({
     if (connected) {
       await disconnect();
     } else {
-      await connect();
+      setVoiceDialogOpen(true);
+    }
+  };
+
+  const handleVoiceConfigSave = async (config: VoiceAgentConfig) => {
+    setVoiceConfig(config);
+    setVoiceDialogOpen(false);
+
+    try {
+      await onVoiceSettingsChange?.(config);
+    } catch (err) {
+      console.error("Failed to sync voice settings:", err);
+    }
+
+    try {
+      await connect({
+        voiceAgentName: config.voiceAgentName,
+        voiceConfidenceThreshold: config.voiceConfidenceThreshold,
+        voiceSttProvider: config.voiceSttProvider,
+        voiceSttModelId: config.voiceSttModelId,
+        voiceSttModelName: config.voiceSttModelName,
+        voiceTtsProvider: config.voiceTtsProvider,
+        voiceTtsModelId: config.voiceTtsModelId,
+        voiceTtsModelName: config.voiceTtsModelName,
+      });
+    } catch (err) {
+      console.error("Voice connection failed:", err);
     }
   };
 
@@ -490,6 +560,7 @@ export default function ChatInput({
   const showVoiceShortcut = !canSend;
 
   return (
+    <>
     <div className={`w-full max-w-4xl mx-auto ${hasMessages ? "" : "px-4"}`}>
       {/* Show uploading files with progress */}
       {visibleUploadingFiles.length > 0 && (
@@ -682,5 +753,14 @@ export default function ChatInput({
         </div>
       </div>
     </div>
+      <VoiceConfigDialog
+        open={voiceDialogOpen}
+        onOpenChange={setVoiceDialogOpen}
+        value={voiceConfig}
+        onSave={handleVoiceConfigSave}
+        title="Choose Voice Models"
+        description="Select STT and TTS providers before starting a voice session."
+      />
+    </>
   );
 }

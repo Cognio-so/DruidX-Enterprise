@@ -6994,8 +6994,18 @@ export namespace Prisma {
 
   export type AggregateGpt = {
     _count: GptCountAggregateOutputType | null
+    _avg: GptAvgAggregateOutputType | null
+    _sum: GptSumAggregateOutputType | null
     _min: GptMinAggregateOutputType | null
     _max: GptMaxAggregateOutputType | null
+  }
+
+  export type GptAvgAggregateOutputType = {
+    voiceConfidenceThreshold: number | null
+  }
+
+  export type GptSumAggregateOutputType = {
+    voiceConfidenceThreshold: number | null
   }
 
   export type GptMinAggregateOutputType = {
@@ -7013,6 +7023,15 @@ export namespace Prisma {
     videoEnabled: boolean | null
     imageModel: string | null
     videoModel: string | null
+    voiceAgentEnabled: boolean | null
+    voiceAgentName: string | null
+    voiceConfidenceThreshold: number | null
+    voiceSttProvider: string | null
+    voiceSttModelId: string | null
+    voiceSttModelName: string | null
+    voiceTtsProvider: string | null
+    voiceTtsModelId: string | null
+    voiceTtsModelName: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -7032,6 +7051,15 @@ export namespace Prisma {
     videoEnabled: boolean | null
     imageModel: string | null
     videoModel: string | null
+    voiceAgentEnabled: boolean | null
+    voiceAgentName: string | null
+    voiceConfidenceThreshold: number | null
+    voiceSttProvider: string | null
+    voiceSttModelId: string | null
+    voiceSttModelName: string | null
+    voiceTtsProvider: string | null
+    voiceTtsModelId: string | null
+    voiceTtsModelName: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -7051,11 +7079,28 @@ export namespace Prisma {
     videoEnabled: number
     imageModel: number
     videoModel: number
+    voiceAgentEnabled: number
+    voiceAgentName: number
+    voiceConfidenceThreshold: number
+    voiceSttProvider: number
+    voiceSttModelId: number
+    voiceSttModelName: number
+    voiceTtsProvider: number
+    voiceTtsModelId: number
+    voiceTtsModelName: number
     createdAt: number
     updatedAt: number
     _all: number
   }
 
+
+  export type GptAvgAggregateInputType = {
+    voiceConfidenceThreshold?: true
+  }
+
+  export type GptSumAggregateInputType = {
+    voiceConfidenceThreshold?: true
+  }
 
   export type GptMinAggregateInputType = {
     id?: true
@@ -7072,6 +7117,15 @@ export namespace Prisma {
     videoEnabled?: true
     imageModel?: true
     videoModel?: true
+    voiceAgentEnabled?: true
+    voiceAgentName?: true
+    voiceConfidenceThreshold?: true
+    voiceSttProvider?: true
+    voiceSttModelId?: true
+    voiceSttModelName?: true
+    voiceTtsProvider?: true
+    voiceTtsModelId?: true
+    voiceTtsModelName?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -7091,6 +7145,15 @@ export namespace Prisma {
     videoEnabled?: true
     imageModel?: true
     videoModel?: true
+    voiceAgentEnabled?: true
+    voiceAgentName?: true
+    voiceConfidenceThreshold?: true
+    voiceSttProvider?: true
+    voiceSttModelId?: true
+    voiceSttModelName?: true
+    voiceTtsProvider?: true
+    voiceTtsModelId?: true
+    voiceTtsModelName?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -7110,6 +7173,15 @@ export namespace Prisma {
     videoEnabled?: true
     imageModel?: true
     videoModel?: true
+    voiceAgentEnabled?: true
+    voiceAgentName?: true
+    voiceConfidenceThreshold?: true
+    voiceSttProvider?: true
+    voiceSttModelId?: true
+    voiceSttModelName?: true
+    voiceTtsProvider?: true
+    voiceTtsModelId?: true
+    voiceTtsModelName?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -7153,6 +7225,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: GptAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: GptSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: GptMinAggregateInputType
@@ -7183,6 +7267,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: GptCountAggregateInputType | true
+    _avg?: GptAvgAggregateInputType
+    _sum?: GptSumAggregateInputType
     _min?: GptMinAggregateInputType
     _max?: GptMaxAggregateInputType
   }
@@ -7202,9 +7288,20 @@ export namespace Prisma {
     videoEnabled: boolean
     imageModel: string | null
     videoModel: string | null
+    voiceAgentEnabled: boolean
+    voiceAgentName: string | null
+    voiceConfidenceThreshold: number | null
+    voiceSttProvider: string | null
+    voiceSttModelId: string | null
+    voiceSttModelName: string | null
+    voiceTtsProvider: string | null
+    voiceTtsModelId: string | null
+    voiceTtsModelName: string | null
     createdAt: Date
     updatedAt: Date
     _count: GptCountAggregateOutputType | null
+    _avg: GptAvgAggregateOutputType | null
+    _sum: GptSumAggregateOutputType | null
     _min: GptMinAggregateOutputType | null
     _max: GptMaxAggregateOutputType | null
   }
@@ -7238,6 +7335,15 @@ export namespace Prisma {
     videoEnabled?: boolean
     imageModel?: boolean
     videoModel?: boolean
+    voiceAgentEnabled?: boolean
+    voiceAgentName?: boolean
+    voiceConfidenceThreshold?: boolean
+    voiceSttProvider?: boolean
+    voiceSttModelId?: boolean
+    voiceSttModelName?: boolean
+    voiceTtsProvider?: boolean
+    voiceTtsModelId?: boolean
+    voiceTtsModelName?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -7263,6 +7369,15 @@ export namespace Prisma {
     videoEnabled?: boolean
     imageModel?: boolean
     videoModel?: boolean
+    voiceAgentEnabled?: boolean
+    voiceAgentName?: boolean
+    voiceConfidenceThreshold?: boolean
+    voiceSttProvider?: boolean
+    voiceSttModelId?: boolean
+    voiceSttModelName?: boolean
+    voiceTtsProvider?: boolean
+    voiceTtsModelId?: boolean
+    voiceTtsModelName?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -7283,6 +7398,15 @@ export namespace Prisma {
     videoEnabled?: boolean
     imageModel?: boolean
     videoModel?: boolean
+    voiceAgentEnabled?: boolean
+    voiceAgentName?: boolean
+    voiceConfidenceThreshold?: boolean
+    voiceSttProvider?: boolean
+    voiceSttModelId?: boolean
+    voiceSttModelName?: boolean
+    voiceTtsProvider?: boolean
+    voiceTtsModelId?: boolean
+    voiceTtsModelName?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -7303,11 +7427,20 @@ export namespace Prisma {
     videoEnabled?: boolean
     imageModel?: boolean
     videoModel?: boolean
+    voiceAgentEnabled?: boolean
+    voiceAgentName?: boolean
+    voiceConfidenceThreshold?: boolean
+    voiceSttProvider?: boolean
+    voiceSttModelId?: boolean
+    voiceSttModelName?: boolean
+    voiceTtsProvider?: boolean
+    voiceTtsModelId?: boolean
+    voiceTtsModelName?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type GptOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "description" | "model" | "instruction" | "webBrowser" | "hybridRag" | "image" | "knowledgeBase" | "imageEnabled" | "videoEnabled" | "imageModel" | "videoModel" | "createdAt" | "updatedAt", ExtArgs["result"]["gpt"]>
+  export type GptOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "description" | "model" | "instruction" | "webBrowser" | "hybridRag" | "image" | "knowledgeBase" | "imageEnabled" | "videoEnabled" | "imageModel" | "videoModel" | "voiceAgentEnabled" | "voiceAgentName" | "voiceConfidenceThreshold" | "voiceSttProvider" | "voiceSttModelId" | "voiceSttModelName" | "voiceTtsProvider" | "voiceTtsModelId" | "voiceTtsModelName" | "createdAt" | "updatedAt", ExtArgs["result"]["gpt"]>
   export type GptInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     assignedToUsers?: boolean | Gpt$assignedToUsersArgs<ExtArgs>
@@ -7347,6 +7480,15 @@ export namespace Prisma {
       videoEnabled: boolean
       imageModel: string | null
       videoModel: string | null
+      voiceAgentEnabled: boolean
+      voiceAgentName: string | null
+      voiceConfidenceThreshold: number | null
+      voiceSttProvider: string | null
+      voiceSttModelId: string | null
+      voiceSttModelName: string | null
+      voiceTtsProvider: string | null
+      voiceTtsModelId: string | null
+      voiceTtsModelName: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["gpt"]>
@@ -7791,6 +7933,15 @@ export namespace Prisma {
     readonly videoEnabled: FieldRef<"Gpt", 'Boolean'>
     readonly imageModel: FieldRef<"Gpt", 'String'>
     readonly videoModel: FieldRef<"Gpt", 'String'>
+    readonly voiceAgentEnabled: FieldRef<"Gpt", 'Boolean'>
+    readonly voiceAgentName: FieldRef<"Gpt", 'String'>
+    readonly voiceConfidenceThreshold: FieldRef<"Gpt", 'Float'>
+    readonly voiceSttProvider: FieldRef<"Gpt", 'String'>
+    readonly voiceSttModelId: FieldRef<"Gpt", 'String'>
+    readonly voiceSttModelName: FieldRef<"Gpt", 'String'>
+    readonly voiceTtsProvider: FieldRef<"Gpt", 'String'>
+    readonly voiceTtsModelId: FieldRef<"Gpt", 'String'>
+    readonly voiceTtsModelName: FieldRef<"Gpt", 'String'>
     readonly createdAt: FieldRef<"Gpt", 'DateTime'>
     readonly updatedAt: FieldRef<"Gpt", 'DateTime'>
   }
@@ -19128,6 +19279,15 @@ export namespace Prisma {
     videoEnabled: 'videoEnabled',
     imageModel: 'imageModel',
     videoModel: 'videoModel',
+    voiceAgentEnabled: 'voiceAgentEnabled',
+    voiceAgentName: 'voiceAgentName',
+    voiceConfidenceThreshold: 'voiceConfidenceThreshold',
+    voiceSttProvider: 'voiceSttProvider',
+    voiceSttModelId: 'voiceSttModelId',
+    voiceSttModelName: 'voiceSttModelName',
+    voiceTtsProvider: 'voiceTtsProvider',
+    voiceTtsModelId: 'voiceTtsModelId',
+    voiceTtsModelName: 'voiceTtsModelName',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -19355,6 +19515,20 @@ export namespace Prisma {
    * Reference to a field of type 'ModelEnum[]'
    */
   export type ListEnumModelEnumFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ModelEnum[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Float'
+   */
+  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+  /**
+   * Reference to a field of type 'Float[]'
+   */
+  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 
@@ -19751,6 +19925,15 @@ export namespace Prisma {
     videoEnabled?: BoolFilter<"Gpt"> | boolean
     imageModel?: StringNullableFilter<"Gpt"> | string | null
     videoModel?: StringNullableFilter<"Gpt"> | string | null
+    voiceAgentEnabled?: BoolFilter<"Gpt"> | boolean
+    voiceAgentName?: StringNullableFilter<"Gpt"> | string | null
+    voiceConfidenceThreshold?: FloatNullableFilter<"Gpt"> | number | null
+    voiceSttProvider?: StringNullableFilter<"Gpt"> | string | null
+    voiceSttModelId?: StringNullableFilter<"Gpt"> | string | null
+    voiceSttModelName?: StringNullableFilter<"Gpt"> | string | null
+    voiceTtsProvider?: StringNullableFilter<"Gpt"> | string | null
+    voiceTtsModelId?: StringNullableFilter<"Gpt"> | string | null
+    voiceTtsModelName?: StringNullableFilter<"Gpt"> | string | null
     createdAt?: DateTimeFilter<"Gpt"> | Date | string
     updatedAt?: DateTimeFilter<"Gpt"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -19775,6 +19958,15 @@ export namespace Prisma {
     videoEnabled?: SortOrder
     imageModel?: SortOrderInput | SortOrder
     videoModel?: SortOrderInput | SortOrder
+    voiceAgentEnabled?: SortOrder
+    voiceAgentName?: SortOrderInput | SortOrder
+    voiceConfidenceThreshold?: SortOrderInput | SortOrder
+    voiceSttProvider?: SortOrderInput | SortOrder
+    voiceSttModelId?: SortOrderInput | SortOrder
+    voiceSttModelName?: SortOrderInput | SortOrder
+    voiceTtsProvider?: SortOrderInput | SortOrder
+    voiceTtsModelId?: SortOrderInput | SortOrder
+    voiceTtsModelName?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     user?: UserOrderByWithRelationInput
@@ -19802,6 +19994,15 @@ export namespace Prisma {
     videoEnabled?: BoolFilter<"Gpt"> | boolean
     imageModel?: StringNullableFilter<"Gpt"> | string | null
     videoModel?: StringNullableFilter<"Gpt"> | string | null
+    voiceAgentEnabled?: BoolFilter<"Gpt"> | boolean
+    voiceAgentName?: StringNullableFilter<"Gpt"> | string | null
+    voiceConfidenceThreshold?: FloatNullableFilter<"Gpt"> | number | null
+    voiceSttProvider?: StringNullableFilter<"Gpt"> | string | null
+    voiceSttModelId?: StringNullableFilter<"Gpt"> | string | null
+    voiceSttModelName?: StringNullableFilter<"Gpt"> | string | null
+    voiceTtsProvider?: StringNullableFilter<"Gpt"> | string | null
+    voiceTtsModelId?: StringNullableFilter<"Gpt"> | string | null
+    voiceTtsModelName?: StringNullableFilter<"Gpt"> | string | null
     createdAt?: DateTimeFilter<"Gpt"> | Date | string
     updatedAt?: DateTimeFilter<"Gpt"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -19826,11 +20027,22 @@ export namespace Prisma {
     videoEnabled?: SortOrder
     imageModel?: SortOrderInput | SortOrder
     videoModel?: SortOrderInput | SortOrder
+    voiceAgentEnabled?: SortOrder
+    voiceAgentName?: SortOrderInput | SortOrder
+    voiceConfidenceThreshold?: SortOrderInput | SortOrder
+    voiceSttProvider?: SortOrderInput | SortOrder
+    voiceSttModelId?: SortOrderInput | SortOrder
+    voiceSttModelName?: SortOrderInput | SortOrder
+    voiceTtsProvider?: SortOrderInput | SortOrder
+    voiceTtsModelId?: SortOrderInput | SortOrder
+    voiceTtsModelName?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: GptCountOrderByAggregateInput
+    _avg?: GptAvgOrderByAggregateInput
     _max?: GptMaxOrderByAggregateInput
     _min?: GptMinOrderByAggregateInput
+    _sum?: GptSumOrderByAggregateInput
   }
 
   export type GptScalarWhereWithAggregatesInput = {
@@ -19851,6 +20063,15 @@ export namespace Prisma {
     videoEnabled?: BoolWithAggregatesFilter<"Gpt"> | boolean
     imageModel?: StringNullableWithAggregatesFilter<"Gpt"> | string | null
     videoModel?: StringNullableWithAggregatesFilter<"Gpt"> | string | null
+    voiceAgentEnabled?: BoolWithAggregatesFilter<"Gpt"> | boolean
+    voiceAgentName?: StringNullableWithAggregatesFilter<"Gpt"> | string | null
+    voiceConfidenceThreshold?: FloatNullableWithAggregatesFilter<"Gpt"> | number | null
+    voiceSttProvider?: StringNullableWithAggregatesFilter<"Gpt"> | string | null
+    voiceSttModelId?: StringNullableWithAggregatesFilter<"Gpt"> | string | null
+    voiceSttModelName?: StringNullableWithAggregatesFilter<"Gpt"> | string | null
+    voiceTtsProvider?: StringNullableWithAggregatesFilter<"Gpt"> | string | null
+    voiceTtsModelId?: StringNullableWithAggregatesFilter<"Gpt"> | string | null
+    voiceTtsModelName?: StringNullableWithAggregatesFilter<"Gpt"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Gpt"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Gpt"> | Date | string
   }
@@ -20908,6 +21129,15 @@ export namespace Prisma {
     videoEnabled?: boolean
     imageModel?: string | null
     videoModel?: string | null
+    voiceAgentEnabled?: boolean
+    voiceAgentName?: string | null
+    voiceConfidenceThreshold?: number | null
+    voiceSttProvider?: string | null
+    voiceSttModelId?: string | null
+    voiceSttModelName?: string | null
+    voiceTtsProvider?: string | null
+    voiceTtsModelId?: string | null
+    voiceTtsModelName?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutGptInput
@@ -20932,6 +21162,15 @@ export namespace Prisma {
     videoEnabled?: boolean
     imageModel?: string | null
     videoModel?: string | null
+    voiceAgentEnabled?: boolean
+    voiceAgentName?: string | null
+    voiceConfidenceThreshold?: number | null
+    voiceSttProvider?: string | null
+    voiceSttModelId?: string | null
+    voiceSttModelName?: string | null
+    voiceTtsProvider?: string | null
+    voiceTtsModelId?: string | null
+    voiceTtsModelName?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
@@ -20954,6 +21193,15 @@ export namespace Prisma {
     videoEnabled?: BoolFieldUpdateOperationsInput | boolean
     imageModel?: NullableStringFieldUpdateOperationsInput | string | null
     videoModel?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceAgentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    voiceAgentName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceConfidenceThreshold?: NullableFloatFieldUpdateOperationsInput | number | null
+    voiceSttProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutGptNestedInput
@@ -20978,6 +21226,15 @@ export namespace Prisma {
     videoEnabled?: BoolFieldUpdateOperationsInput | boolean
     imageModel?: NullableStringFieldUpdateOperationsInput | string | null
     videoModel?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceAgentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    voiceAgentName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceConfidenceThreshold?: NullableFloatFieldUpdateOperationsInput | number | null
+    voiceSttProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
@@ -21001,6 +21258,15 @@ export namespace Prisma {
     videoEnabled?: boolean
     imageModel?: string | null
     videoModel?: string | null
+    voiceAgentEnabled?: boolean
+    voiceAgentName?: string | null
+    voiceConfidenceThreshold?: number | null
+    voiceSttProvider?: string | null
+    voiceSttModelId?: string | null
+    voiceSttModelName?: string | null
+    voiceTtsProvider?: string | null
+    voiceTtsModelId?: string | null
+    voiceTtsModelName?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -21019,6 +21285,15 @@ export namespace Prisma {
     videoEnabled?: BoolFieldUpdateOperationsInput | boolean
     imageModel?: NullableStringFieldUpdateOperationsInput | string | null
     videoModel?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceAgentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    voiceAgentName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceConfidenceThreshold?: NullableFloatFieldUpdateOperationsInput | number | null
+    voiceSttProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -21038,6 +21313,15 @@ export namespace Prisma {
     videoEnabled?: BoolFieldUpdateOperationsInput | boolean
     imageModel?: NullableStringFieldUpdateOperationsInput | string | null
     videoModel?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceAgentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    voiceAgentName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceConfidenceThreshold?: NullableFloatFieldUpdateOperationsInput | number | null
+    voiceSttProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -22098,6 +22382,17 @@ export namespace Prisma {
     not?: NestedEnumModelEnumFilter<$PrismaModel> | $Enums.ModelEnum
   }
 
+  export type FloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
   export type ComposioConnectionListRelationFilter = {
     every?: ComposioConnectionWhereInput
     some?: ComposioConnectionWhereInput
@@ -22133,8 +22428,21 @@ export namespace Prisma {
     videoEnabled?: SortOrder
     imageModel?: SortOrder
     videoModel?: SortOrder
+    voiceAgentEnabled?: SortOrder
+    voiceAgentName?: SortOrder
+    voiceConfidenceThreshold?: SortOrder
+    voiceSttProvider?: SortOrder
+    voiceSttModelId?: SortOrder
+    voiceSttModelName?: SortOrder
+    voiceTtsProvider?: SortOrder
+    voiceTtsModelId?: SortOrder
+    voiceTtsModelName?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type GptAvgOrderByAggregateInput = {
+    voiceConfidenceThreshold?: SortOrder
   }
 
   export type GptMaxOrderByAggregateInput = {
@@ -22152,6 +22460,15 @@ export namespace Prisma {
     videoEnabled?: SortOrder
     imageModel?: SortOrder
     videoModel?: SortOrder
+    voiceAgentEnabled?: SortOrder
+    voiceAgentName?: SortOrder
+    voiceConfidenceThreshold?: SortOrder
+    voiceSttProvider?: SortOrder
+    voiceSttModelId?: SortOrder
+    voiceSttModelName?: SortOrder
+    voiceTtsProvider?: SortOrder
+    voiceTtsModelId?: SortOrder
+    voiceTtsModelName?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -22171,8 +22488,21 @@ export namespace Prisma {
     videoEnabled?: SortOrder
     imageModel?: SortOrder
     videoModel?: SortOrder
+    voiceAgentEnabled?: SortOrder
+    voiceAgentName?: SortOrder
+    voiceConfidenceThreshold?: SortOrder
+    voiceSttProvider?: SortOrder
+    voiceSttModelId?: SortOrder
+    voiceSttModelName?: SortOrder
+    voiceTtsProvider?: SortOrder
+    voiceTtsModelId?: SortOrder
+    voiceTtsModelName?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type GptSumOrderByAggregateInput = {
+    voiceConfidenceThreshold?: SortOrder
   }
 
   export type EnumModelEnumWithAggregatesFilter<$PrismaModel = never> = {
@@ -22183,6 +22513,22 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumModelEnumFilter<$PrismaModel>
     _max?: NestedEnumModelEnumFilter<$PrismaModel>
+  }
+
+  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type GptScalarRelationFilter = {
@@ -22992,6 +23338,14 @@ export namespace Prisma {
     set?: $Enums.ModelEnum
   }
 
+  export type NullableFloatFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type UserUpdateOneRequiredWithoutGptNestedInput = {
     create?: XOR<UserCreateWithoutGptInput, UserUncheckedCreateWithoutGptInput>
     connectOrCreate?: UserCreateOrConnectWithoutGptInput
@@ -23550,6 +23904,17 @@ export namespace Prisma {
     not?: NestedEnumModelEnumFilter<$PrismaModel> | $Enums.ModelEnum
   }
 
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
   export type NestedEnumModelEnumWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.ModelEnum | EnumModelEnumFieldRefInput<$PrismaModel>
     in?: $Enums.ModelEnum[] | ListEnumModelEnumFieldRefInput<$PrismaModel>
@@ -23558,6 +23923,22 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumModelEnumFilter<$PrismaModel>
     _max?: NestedEnumModelEnumFilter<$PrismaModel>
+  }
+
+  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type NestedEnumMessageRoleFilter<$PrismaModel = never> = {
@@ -23686,6 +24067,15 @@ export namespace Prisma {
     videoEnabled?: boolean
     imageModel?: string | null
     videoModel?: string | null
+    voiceAgentEnabled?: boolean
+    voiceAgentName?: string | null
+    voiceConfidenceThreshold?: number | null
+    voiceSttProvider?: string | null
+    voiceSttModelId?: string | null
+    voiceSttModelName?: string | null
+    voiceTtsProvider?: string | null
+    voiceTtsModelId?: string | null
+    voiceTtsModelName?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptCreateNestedManyWithoutGptInput
@@ -23708,6 +24098,15 @@ export namespace Prisma {
     videoEnabled?: boolean
     imageModel?: string | null
     videoModel?: string | null
+    voiceAgentEnabled?: boolean
+    voiceAgentName?: string | null
+    voiceConfidenceThreshold?: number | null
+    voiceSttProvider?: string | null
+    voiceSttModelId?: string | null
+    voiceSttModelName?: string | null
+    voiceTtsProvider?: string | null
+    voiceTtsModelId?: string | null
+    voiceTtsModelName?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
@@ -23936,6 +24335,15 @@ export namespace Prisma {
     videoEnabled?: BoolFilter<"Gpt"> | boolean
     imageModel?: StringNullableFilter<"Gpt"> | string | null
     videoModel?: StringNullableFilter<"Gpt"> | string | null
+    voiceAgentEnabled?: BoolFilter<"Gpt"> | boolean
+    voiceAgentName?: StringNullableFilter<"Gpt"> | string | null
+    voiceConfidenceThreshold?: FloatNullableFilter<"Gpt"> | number | null
+    voiceSttProvider?: StringNullableFilter<"Gpt"> | string | null
+    voiceSttModelId?: StringNullableFilter<"Gpt"> | string | null
+    voiceSttModelName?: StringNullableFilter<"Gpt"> | string | null
+    voiceTtsProvider?: StringNullableFilter<"Gpt"> | string | null
+    voiceTtsModelId?: StringNullableFilter<"Gpt"> | string | null
+    voiceTtsModelName?: StringNullableFilter<"Gpt"> | string | null
     createdAt?: DateTimeFilter<"Gpt"> | Date | string
     updatedAt?: DateTimeFilter<"Gpt"> | Date | string
   }
@@ -24548,6 +24956,15 @@ export namespace Prisma {
     videoEnabled?: boolean
     imageModel?: string | null
     videoModel?: string | null
+    voiceAgentEnabled?: boolean
+    voiceAgentName?: string | null
+    voiceConfidenceThreshold?: number | null
+    voiceSttProvider?: string | null
+    voiceSttModelId?: string | null
+    voiceSttModelName?: string | null
+    voiceTtsProvider?: string | null
+    voiceTtsModelId?: string | null
+    voiceTtsModelName?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutGptInput
@@ -24571,6 +24988,15 @@ export namespace Prisma {
     videoEnabled?: boolean
     imageModel?: string | null
     videoModel?: string | null
+    voiceAgentEnabled?: boolean
+    voiceAgentName?: string | null
+    voiceConfidenceThreshold?: number | null
+    voiceSttProvider?: string | null
+    voiceSttModelId?: string | null
+    voiceSttModelName?: string | null
+    voiceTtsProvider?: string | null
+    voiceTtsModelId?: string | null
+    voiceTtsModelName?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
@@ -24608,6 +25034,15 @@ export namespace Prisma {
     videoEnabled?: BoolFieldUpdateOperationsInput | boolean
     imageModel?: NullableStringFieldUpdateOperationsInput | string | null
     videoModel?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceAgentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    voiceAgentName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceConfidenceThreshold?: NullableFloatFieldUpdateOperationsInput | number | null
+    voiceSttProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutGptNestedInput
@@ -24631,6 +25066,15 @@ export namespace Prisma {
     videoEnabled?: BoolFieldUpdateOperationsInput | boolean
     imageModel?: NullableStringFieldUpdateOperationsInput | string | null
     videoModel?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceAgentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    voiceAgentName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceConfidenceThreshold?: NullableFloatFieldUpdateOperationsInput | number | null
+    voiceSttProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
@@ -24697,6 +25141,15 @@ export namespace Prisma {
     videoEnabled?: boolean
     imageModel?: string | null
     videoModel?: string | null
+    voiceAgentEnabled?: boolean
+    voiceAgentName?: string | null
+    voiceConfidenceThreshold?: number | null
+    voiceSttProvider?: string | null
+    voiceSttModelId?: string | null
+    voiceSttModelName?: string | null
+    voiceTtsProvider?: string | null
+    voiceTtsModelId?: string | null
+    voiceTtsModelName?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutGptInput
@@ -24720,6 +25173,15 @@ export namespace Prisma {
     videoEnabled?: boolean
     imageModel?: string | null
     videoModel?: string | null
+    voiceAgentEnabled?: boolean
+    voiceAgentName?: string | null
+    voiceConfidenceThreshold?: number | null
+    voiceSttProvider?: string | null
+    voiceSttModelId?: string | null
+    voiceSttModelName?: string | null
+    voiceTtsProvider?: string | null
+    voiceTtsModelId?: string | null
+    voiceTtsModelName?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     conversations?: ConversationUncheckedCreateNestedManyWithoutGptInput
@@ -24808,6 +25270,15 @@ export namespace Prisma {
     videoEnabled?: BoolFieldUpdateOperationsInput | boolean
     imageModel?: NullableStringFieldUpdateOperationsInput | string | null
     videoModel?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceAgentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    voiceAgentName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceConfidenceThreshold?: NullableFloatFieldUpdateOperationsInput | number | null
+    voiceSttProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutGptNestedInput
@@ -24831,6 +25302,15 @@ export namespace Prisma {
     videoEnabled?: BoolFieldUpdateOperationsInput | boolean
     imageModel?: NullableStringFieldUpdateOperationsInput | string | null
     videoModel?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceAgentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    voiceAgentName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceConfidenceThreshold?: NullableFloatFieldUpdateOperationsInput | number | null
+    voiceSttProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     conversations?: ConversationUncheckedUpdateManyWithoutGptNestedInput
@@ -24897,6 +25377,15 @@ export namespace Prisma {
     videoEnabled?: boolean
     imageModel?: string | null
     videoModel?: string | null
+    voiceAgentEnabled?: boolean
+    voiceAgentName?: string | null
+    voiceConfidenceThreshold?: number | null
+    voiceSttProvider?: string | null
+    voiceSttModelId?: string | null
+    voiceSttModelName?: string | null
+    voiceTtsProvider?: string | null
+    voiceTtsModelId?: string | null
+    voiceTtsModelName?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutGptInput
@@ -24920,6 +25409,15 @@ export namespace Prisma {
     videoEnabled?: boolean
     imageModel?: string | null
     videoModel?: string | null
+    voiceAgentEnabled?: boolean
+    voiceAgentName?: string | null
+    voiceConfidenceThreshold?: number | null
+    voiceSttProvider?: string | null
+    voiceSttModelId?: string | null
+    voiceSttModelName?: string | null
+    voiceTtsProvider?: string | null
+    voiceTtsModelId?: string | null
+    voiceTtsModelName?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
@@ -25038,6 +25536,15 @@ export namespace Prisma {
     videoEnabled?: BoolFieldUpdateOperationsInput | boolean
     imageModel?: NullableStringFieldUpdateOperationsInput | string | null
     videoModel?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceAgentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    voiceAgentName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceConfidenceThreshold?: NullableFloatFieldUpdateOperationsInput | number | null
+    voiceSttProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutGptNestedInput
@@ -25061,6 +25568,15 @@ export namespace Prisma {
     videoEnabled?: BoolFieldUpdateOperationsInput | boolean
     imageModel?: NullableStringFieldUpdateOperationsInput | string | null
     videoModel?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceAgentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    voiceAgentName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceConfidenceThreshold?: NullableFloatFieldUpdateOperationsInput | number | null
+    voiceSttProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
@@ -25527,6 +26043,15 @@ export namespace Prisma {
     videoEnabled?: boolean
     imageModel?: string | null
     videoModel?: string | null
+    voiceAgentEnabled?: boolean
+    voiceAgentName?: string | null
+    voiceConfidenceThreshold?: number | null
+    voiceSttProvider?: string | null
+    voiceSttModelId?: string | null
+    voiceSttModelName?: string | null
+    voiceTtsProvider?: string | null
+    voiceTtsModelId?: string | null
+    voiceTtsModelName?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutGptInput
@@ -25550,6 +26075,15 @@ export namespace Prisma {
     videoEnabled?: boolean
     imageModel?: string | null
     videoModel?: string | null
+    voiceAgentEnabled?: boolean
+    voiceAgentName?: string | null
+    voiceConfidenceThreshold?: number | null
+    voiceSttProvider?: string | null
+    voiceSttModelId?: string | null
+    voiceSttModelName?: string | null
+    voiceTtsProvider?: string | null
+    voiceTtsModelId?: string | null
+    voiceTtsModelName?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
@@ -25620,6 +26154,15 @@ export namespace Prisma {
     videoEnabled?: BoolFieldUpdateOperationsInput | boolean
     imageModel?: NullableStringFieldUpdateOperationsInput | string | null
     videoModel?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceAgentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    voiceAgentName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceConfidenceThreshold?: NullableFloatFieldUpdateOperationsInput | number | null
+    voiceSttProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutGptNestedInput
@@ -25643,6 +26186,15 @@ export namespace Prisma {
     videoEnabled?: BoolFieldUpdateOperationsInput | boolean
     imageModel?: NullableStringFieldUpdateOperationsInput | string | null
     videoModel?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceAgentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    voiceAgentName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceConfidenceThreshold?: NullableFloatFieldUpdateOperationsInput | number | null
+    voiceSttProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
@@ -25690,6 +26242,15 @@ export namespace Prisma {
     videoEnabled?: boolean
     imageModel?: string | null
     videoModel?: string | null
+    voiceAgentEnabled?: boolean
+    voiceAgentName?: string | null
+    voiceConfidenceThreshold?: number | null
+    voiceSttProvider?: string | null
+    voiceSttModelId?: string | null
+    voiceSttModelName?: string | null
+    voiceTtsProvider?: string | null
+    voiceTtsModelId?: string | null
+    voiceTtsModelName?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -25818,6 +26379,15 @@ export namespace Prisma {
     videoEnabled?: BoolFieldUpdateOperationsInput | boolean
     imageModel?: NullableStringFieldUpdateOperationsInput | string | null
     videoModel?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceAgentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    voiceAgentName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceConfidenceThreshold?: NullableFloatFieldUpdateOperationsInput | number | null
+    voiceSttProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUpdateManyWithoutGptNestedInput
@@ -25840,6 +26410,15 @@ export namespace Prisma {
     videoEnabled?: BoolFieldUpdateOperationsInput | boolean
     imageModel?: NullableStringFieldUpdateOperationsInput | string | null
     videoModel?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceAgentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    voiceAgentName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceConfidenceThreshold?: NullableFloatFieldUpdateOperationsInput | number | null
+    voiceSttProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
@@ -25862,6 +26441,15 @@ export namespace Prisma {
     videoEnabled?: BoolFieldUpdateOperationsInput | boolean
     imageModel?: NullableStringFieldUpdateOperationsInput | string | null
     videoModel?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceAgentEnabled?: BoolFieldUpdateOperationsInput | boolean
+    voiceAgentName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceConfidenceThreshold?: NullableFloatFieldUpdateOperationsInput | number | null
+    voiceSttProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceSttModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
+    voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
