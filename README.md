@@ -230,7 +230,7 @@ DruidX/
 ### For Admins
 
 1. **Dashboard**: Monitor platform usage and metrics
-2. **Create GPTs**: Build custom AI assistants
+2. **Create Agents**: Build custom AI assistants
 3. **Manage Users**: Invite team members and assign roles
 4. **Assign GPTs**: Distribute GPTs to users/teams
 5. **Analytics**: View usage statistics and performance

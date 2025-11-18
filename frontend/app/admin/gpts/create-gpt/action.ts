@@ -90,7 +90,7 @@ export async function createGpt(data: {
     console.error("Error creating GPT:", error);
     return {
       success: false,
-      error: "Failed to create GPT. Please try again.",
+      error: "Failed to Create Agent. Please try again.",
     };
   }
 }

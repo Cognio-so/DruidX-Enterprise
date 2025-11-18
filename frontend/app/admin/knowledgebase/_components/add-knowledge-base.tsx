@@ -97,13 +97,6 @@ export default function AddKnowledgeBase({ onSuccess }: AddKnowledgeBaseProps) {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    const fileArray = Array.from(files);
-
-    if (uploadedFiles.length + fileArray.length > 15) {
-      toast.error("You can upload a maximum of 15 files at once");
-      return;
-    }
-
     const allowedTypes = [
       "image/",
       "application/pdf",
@@ -112,41 +105,60 @@ export default function AddKnowledgeBase({ onSuccess }: AddKnowledgeBaseProps) {
       "text/markdown",
       "application/json",
       "text/plain",
-      "text/csv",
-      "audio/mpeg",
-      "audio/wav",
-      "audio/x-wav",
-      "audio/webm",
+      "text/javascript",
+      "application/javascript",
+      "text/x-python",
+      "text/typescript",
+      "text/x-c++src",
+      "text/x-csrc",
+      "text/x-c",
+      "text/html",
+      "text/css",
     ];
 
-    // Also check file extensions for formats that might not have consistent MIME types
-    const allowedExtensions = [".docx", ".csv", ".txt", ".md", ".pdf", ".json", ".jpg", ".jpeg", ".png", ".webp", ".mp3", ".wav"];
+    // Code file extensions including HTML and CSS
+    const codeExtensions = [".py", ".js", ".ts", ".tsx", ".jsx", ".cpp", ".c", ".cc", ".cxx", ".h", ".hpp", ".java", ".rb", ".go", ".rs", ".php", ".swift", ".kt", ".scala", ".sh", ".bash", ".zsh", ".fish", ".ps1", ".bat", ".cmd", ".html", ".htm", ".css"];
 
+    // Check if total files exceed 5 (including already uploaded)
+    const totalFiles = uploadedFiles.length + files.length;
+    if (totalFiles > 5) {
+      toast.error(`You can only upload up to 5 documents at once. You currently have ${uploadedFiles.length} document(s) uploaded.`);
+      if (event.target) {
+        event.target.value = "";
+      }
+      return;
+    }
+
+    // Validate all files
+    const invalidFiles: string[] = [];
     const validFiles: File[] = [];
-    const errors: string[] = [];
 
-    fileArray.forEach((file) => {
-      const fileExtension = "." + file.name.split(".").pop()?.toLowerCase();
-      const isAllowedByType = allowedTypes.some((type) => file.type.startsWith(type));
-      const isAllowedByExtension = allowedExtensions.some((ext) => fileExtension === ext);
+    Array.from(files).forEach((file) => {
+      const fileName = file.name.toLowerCase();
+      const isAllowedByType = allowedTypes.some(type => file.type.startsWith(type));
+      const isAllowedByExtension = codeExtensions.some(ext => fileName.endsWith(ext)) ||
+        fileName.endsWith(".md") || fileName.endsWith(".markdown") ||
+        fileName.endsWith(".pdf") || fileName.endsWith(".doc") || fileName.endsWith(".docx") ||
+        fileName.endsWith(".json") || fileName.endsWith(".txt");
       
       if (!isAllowedByType && !isAllowedByExtension) {
-        errors.push(file.name);
+        invalidFiles.push(file.name);
       } else {
         validFiles.push(file);
       }
     });
 
-    if (errors.length > 0) {
-      toast.error(
-        `Invalid file type(s): ${errors.join(", ")}. Please upload PDF, Word (docx), CSV, Markdown (.md), JSON, Text (.txt), Images (jpg, png, webp), or Audio (mp3, wav) files.`
-      );
+    if (invalidFiles.length > 0) {
+      toast.error(`The following files are not supported: ${invalidFiles.join(", ")}\n\nPlease upload PDF, Word document, Markdown, JSON, code files (including HTML/CSS), or image files only.`);
+      if (event.target) {
+        event.target.value = "";
+      }
+      if (validFiles.length === 0) return;
     }
-
-    if (validFiles.length === 0) return;
 
     setIsUploading(true);
     const uploadedList: UploadedFile[] = [];
+    const errors: string[] = [];
 
     try {
       for (const file of validFiles) {
@@ -311,7 +323,7 @@ export default function AddKnowledgeBase({ onSuccess }: AddKnowledgeBaseProps) {
                 type="file"
                 onChange={handleFileUpload}
                 disabled={isUploading || isPending || uploadedFiles.length >= 15}
-                accept=".pdf,.doc,.docx,.csv,.md,.markdown,.json,.txt,.png,.jpg,.jpeg,.webp,.mp3,.wav"
+                accept=".pdf,.doc,.docx,.csv,.md,.markdown,.json,.txt,.png,.jpg,.jpeg,.webp,.mp3,.wav,.py,.js,.ts,.tsx,.jsx,.cpp,.c,.cc,.cxx,.h,.hpp,.java,.rb,.go,.rs,.php,.swift,.kt,.scala,.sh,.bash,.zsh,.fish,.ps1,.bat,.cmd,.html,.htm,.css"
                 className="flex-1"
                 multiple
               />

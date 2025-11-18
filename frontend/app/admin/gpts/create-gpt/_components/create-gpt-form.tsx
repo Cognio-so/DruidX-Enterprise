@@ -101,7 +101,7 @@ export function CreateGptForm({ knowledgeBases = [] }: CreateGptFormProps) {
           form.reset(); 
           router.push('/admin/gpts');
         } else {
-          toast.error(result.error || "Failed to create GPT");
+          toast.error(result.error || "Failed to Create Agent");
         }
       } catch (error) {
         console.error("Form submission error:", error);
@@ -370,7 +370,7 @@ export function CreateGptForm({ knowledgeBases = [] }: CreateGptFormProps) {
                   ) : (
                     <Sparkle className="size-4" />
                   )}
-                  {isPending ? "Creating GPT..." : "Create GPT"}
+                  {isPending ? "Creating Agent..." : "Create Agent"}
                 </Button>
               </div>
             </TabsContent>

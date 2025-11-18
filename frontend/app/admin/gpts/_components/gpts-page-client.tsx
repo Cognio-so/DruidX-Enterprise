@@ -49,7 +49,7 @@ export function GptsPageClient() {
           >
             <Plus className="w-4 h-4 mr-2" />
             <span className="hidden sm:inline">Create New GPT</span>
-            <span className="sm:hidden">Create GPT</span>
+            <span className="sm:hidden">Create Agent</span>
           </Link>
         </div>
       </div>

@@ -204,7 +204,7 @@ export default function DocsUploader({ value, onChange, knowledgeBases = [] }: D
     setErrors([]);
   };
 
-  const uploadToS3 = async (file: File, onProgress: (progress: number) => void): Promise<string> => {
+  const uploadToS3 = async (file: File): Promise<string> => {
     // Step 1: Get presigned URL from your API
     const response = await fetch("/api/s3/upload", {
       method: "POST",
@@ -224,34 +224,20 @@ export default function DocsUploader({ value, onChange, knowledgeBases = [] }: D
 
     const { uploadUrl, fileUrl } = await response.json();
 
-    // Step 2: Upload file to S3 using XMLHttpRequest for progress tracking
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-
-      xhr.upload.addEventListener("progress", (event) => {
-        if (event.lengthComputable) {
-          const progress = (event.loaded / event.total) * 100;
-          onProgress(progress);
-        }
-      });
-
-      xhr.addEventListener("load", () => {
-        if (xhr.status === 200) {
-          onProgress(100);
-          resolve(fileUrl);
-        } else {
-          reject(new Error("Upload failed"));
-        }
-      });
-
-      xhr.addEventListener("error", () => {
-        reject(new Error("Upload failed"));
-      });
-
-      xhr.open("PUT", uploadUrl);
-      xhr.setRequestHeader("Content-Type", file.type);
-      xhr.send(file);
+    // Step 2: Upload file to S3 without progress tracking
+    const uploadResponse = await fetch(uploadUrl, {
+      method: "PUT",
+      body: file,
+      headers: {
+        "Content-Type": file.type,
+      },
     });
+
+    if (!uploadResponse.ok) {
+      throw new Error("Upload failed");
+    }
+
+    return fileUrl;
   };
 
   const deleteFromS3 = async (url: string) => {
@@ -285,15 +271,27 @@ export default function DocsUploader({ value, onChange, knowledgeBases = [] }: D
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "text/markdown",
       "application/json",
+      "text/plain",
+      "text/javascript",
+      "application/javascript",
+      "text/x-python",
+      "text/typescript",
+      "text/x-c++src",
+      "text/x-csrc",
+      "text/x-c",
+      "text/html",
+      "text/css",
     ];
 
     // Check MIME type
     const isAllowedByMime = allowedTypes.some(type => file.type.startsWith(type));
     
-    // Also check file extension as fallback (some browsers don't detect .md as text/markdown)
+    // Also check file extension as fallback (some browsers don't detect code files correctly)
     const fileName = file.name.toLowerCase();
-    const allowedExtensions = [".md", ".markdown"];
-    const isAllowedByExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+    const codeExtensions = [".py", ".js", ".ts", ".tsx", ".jsx", ".cpp", ".c", ".cc", ".cxx", ".h", ".hpp", ".java", ".rb", ".go", ".rs", ".php", ".swift", ".kt", ".scala", ".sh", ".bash", ".zsh", ".fish", ".ps1", ".bat", ".cmd", ".html", ".htm", ".css"];
+    const allowedExtensions = [".md", ".markdown", ".pdf", ".doc", ".docx", ".json", ".txt"];
+    const allAllowedExtensions = [...codeExtensions, ...allowedExtensions];
+    const isAllowedByExtension = allAllowedExtensions.some(ext => fileName.endsWith(ext));
 
     if (!isAllowedByMime && !isAllowedByExtension) {
       return `File "${file.name}" is not an accepted file type.`;
@@ -343,13 +341,8 @@ export default function DocsUploader({ value, onChange, knowledgeBases = [] }: D
     // Upload files concurrently
     const uploadPromises = newUploadingFiles.map(async (uploadingFile) => {
       try {
-        const url = await uploadToS3(uploadingFile.file, (progress) => {
-          setUploadingFiles(prev =>
-            prev.map(f =>
-              f.id === uploadingFile.id ? { ...f, progress } : f
-            )
-          );
-        });
+        // Upload to S3 without progress tracking
+        const url = await uploadToS3(uploadingFile.file);
 
         setUploadingFiles(prev =>
           prev.map(f =>
@@ -576,7 +569,7 @@ export default function DocsUploader({ value, onChange, knowledgeBases = [] }: D
           ref={inputRef}
           type="file"
           multiple
-          accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,.md,.markdown,application/json"
+          accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,.md,.markdown,application/json,text/plain,text/javascript,application/javascript,text/x-python,text/typescript,text/x-c++src,text/x-csrc,text/x-c,text/html,text/css,.py,.js,.ts,.tsx,.jsx,.cpp,.c,.cc,.cxx,.h,.hpp,.java,.rb,.go,.rs,.php,.swift,.kt,.scala,.sh,.bash,.zsh,.fish,.ps1,.bat,.cmd,.html,.htm,.css"
           onChange={handleFileChange}
           className="sr-only"
           aria-label="Upload files"
@@ -594,7 +587,7 @@ export default function DocsUploader({ value, onChange, knowledgeBases = [] }: D
             Drag & drop or click to browse
           </p>
           <div className="text-muted-foreground/70 flex flex-wrap justify-center gap-1 text-xs">
-            <span>Images, PDFs, Word docs, Markdown, JSON</span>
+            <span>Images, PDFs, Word docs, Markdown, JSON, Code files (HTML/CSS)</span>
             <span>∙</span>
             <span>Max {maxFiles} files</span>
             <span>∙</span>
@@ -633,11 +626,8 @@ export default function DocsUploader({ value, onChange, knowledgeBases = [] }: D
                     {file.size > 0 ? formatBytes(file.size) : "Uploaded"}
                   </p>
                   {file.type === "uploading" && (
-                    <div className="w-full bg-gray-200 rounded-full h-1">
-                      <div
-                        className="bg-blue-600 h-1 rounded-full transition-all duration-300"
-                        style={{ width: `${file.progress}%` }}
-                      />
+                    <div className="text-xs text-muted-foreground">
+                      Uploading...
                     </div>
                   )}
                 </div>
