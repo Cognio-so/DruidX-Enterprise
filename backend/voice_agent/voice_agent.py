@@ -130,7 +130,7 @@ DEEPGRAM_TTS_MODELS = ("aura-2-ophelia-en", "aura-2-helena-en", "aura-2-mars-en"
 DEEPGRAM_STT_MODELS = ("nova-3", "nova-2")
 CARTESIA_STT_MODELS = ("ink-whisper", "ink-whisper-2025-06-04")
 ELEVENLABS_TTS_MODELS = ("ODq5zmih8GrVes37Dizd","Xb7hH8MSUJpSbSDYk0k2", "iP95p4xoKVk53GoZ742B")
-CARTESIA_TTS_MODELS = ("f786b574-daa5-4673-aa0c-cbe3e8534c02", "9626c31c-bec5-4cca-baa8-f8ba9e84c8bc")
+CARTESIA_TTS_MODELS = ("f786b574-daa5-4673-aa0c-cbe3e8534c02", "9626c31c-bec5-4cca-baa8-f8ba9e84c8bc","228fca29-3a0a-435c-8728-5cb483251068","6ccbfb76-1fc6-48f7-b71d-91ac6298247b")
 CARTESIA_SONI3_MODEL = "sonic-3"
 HUME_TTS_MODELS = ("Colton Rivers", "Ava Song","Priya","Suresh")
 
@@ -141,9 +141,11 @@ class VoiceAssistant:
         tools: List[Callable] = None,
         openai_model: str = "gpt-4.1-nano",
         stt_model: str = "nova-3",
-        tts_model: str = "f786b574-daa5-4673-aa0c-cbe3e8534c02", 
+        tts_model: str = "f786b574-daa5-4673-aa0c-cbe3e8534c02",
         initial_greeting: str = "Greet the user warmly, introduce yourself as a voice assistant, and offer your assistance.",
         enable_parallel_tts: bool = False,
+        vad_config: dict = None,
+        job_ctx: agents.JobContext = None,
     ):
         if instructions is None:
             current_date = date.today().strftime("%B %d, %Y")
@@ -162,6 +164,8 @@ class VoiceAssistant:
         self.tts_model = tts_model
         self.initial_greeting = initial_greeting
         self.enable_parallel_tts = enable_parallel_tts
+        self.vad_config = vad_config or {}
+        self.job_ctx = job_ctx
 
         current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -181,14 +185,14 @@ class VoiceAssistant:
 
         self.session = None
         self.agent_instance = None
-        self.stt_error_count = 0  
-        self.tts_error_count = 0  
-        self.tts_semaphore = asyncio.Semaphore(1) 
+        self.stt_error_count = 0
+        self.tts_error_count = 0
+        self.tts_semaphore = asyncio.Semaphore(1)
         self.last_printed_len = 0
         self.last_role = None
-        self.ctx = None  
+        self.ctx = None
         self.enable_rag = True
-        self.rag_session_id = None  
+        self.rag_session_id = None
         self._session_cache: dict[str, dict] = {}
 
 
@@ -362,12 +366,36 @@ class VoiceAssistant:
                 tts_plugin = cartesia.TTS(model="sonic-3", voice="f786b574-daa5-4673-aa0c-cbe3e8534c02", api_key=os.getenv("CARTESIA_API_KEY"))
                 logger.info("Using Cartesia TTS plugin with default model: sonic-3 and default voice ID: f786b574-daa5-4673-aa0c-cbe3e8534c02")
 
-        self.session = AgentSession(
-            vad=silero.VAD.load(
+        # VAD Caching Logic
+        vad_cache = self.job_ctx.job.proc.userdata.get("vad_cache", {})
+        default_params = {
+            "min_speech_duration": 0.05,
+            "max_buffered_speech": 60.0,
+            "activation_threshold": 0.5,
+            "min_silence_duration": 0.7,
+        }
+        current_params = {
+            "min_speech_duration": self.vad_config.get("min_speech_duration", default_params["min_speech_duration"]),
+            "max_buffered_speech": self.vad_config.get("max_buffered_speech", default_params["max_buffered_speech"]),
+            "activation_threshold": self.vad_config.get("activation_threshold", default_params["activation_threshold"]),
+            "min_silence_duration": self.vad_config.get("min_silence_duration", default_params["min_silence_duration"]),
+        }
+        vad_key = frozenset(current_params.items())
+        vad_instance = vad_cache.get(vad_key)
+
+        if not vad_instance:
+            logger.info(f"VAD config not in cache. Loading new VAD instance with params: {current_params}")
+            vad_instance = silero.VAD.load(
                 force_cpu=False,
-                activation_threshold=0.5,
-                min_silence_duration=0.7,
-                sample_rate=16000,),
+                sample_rate=16000,
+                **current_params
+            )
+            vad_cache[vad_key] = vad_instance
+        else:
+            logger.info(f"Using cached VAD instance for params: {current_params}")
+
+        self.session = AgentSession(
+            vad=vad_instance,
             stt=stt_plugin,
             llm=openai.LLM(model=self.openai_model),
             tts=tts_plugin,
@@ -375,7 +403,7 @@ class VoiceAssistant:
         )
 
         logger.info("AgentSession initialized with the following models:")
-        logger.info(f"  - VAD: Silero VAD")
+        logger.info(f"  - VAD: Silero VAD (Custom config: {bool(self.vad_config)})")
         logger.info(f"  - STT: {stt_plugin.__class__.__module__} (Model: {self.stt_model})")
         logger.info(f"  - LLM: OpenAI (Model: {self.openai_model})")
         logger.info(f"  - TTS: {tts_plugin.__class__.__module__} (Model: {self.tts_model})")
@@ -793,11 +821,32 @@ class VoiceAssistant:
                 pass
 
 def prewarm(proc: JobProcess):
-    proc.userdata["vad"] = silero.VAD.load(
+    """
+    Pre-warms a default VAD instance and creates a cache for different VAD configurations.
+    This allows the worker to be ready for the most common case and dynamically load
+    other configurations as needed without restarting.
+    """
+    # Create a cache to store VAD instances with different configurations
+    proc.userdata["vad_cache"] = {}
+
+    # Define the default VAD configuration
+    default_config ={
+        "min_speech_duration": 0.05,
+        "max_buffered_speech": 60.0,
+        "activation_threshold": 0.5,
+        "min_silence_duration": 0.7,
+    } 
+
+    # Create a hashable key for the default configuration
+    default_key = frozenset(default_config.items())
+
+    # Load and cache the VAD instance with the default configuration
+    logger.info(f"Pre-warming default VAD with config: {default_config}")
+    proc.userdata["vad_cache"][default_key] = silero.VAD.load(
         force_cpu=False,
-        activation_threshold=0.5,
-        min_silence_duration=0.7,
-        sample_rate=16000)
+        sample_rate=16000,
+        **default_config
+    )
 
 # Updated entrypoint function
 async def entrypoint(ctx: agents.JobContext):
@@ -813,6 +862,7 @@ async def entrypoint(ctx: agents.JobContext):
         stt_model = "nova-3"
         tts_model = "f786b574-daa5-4673-aa0c-cbe3e8534c02"  # Default TTS model (matches main.py default, can be overridden via Redis)
         instructions = None  # Default to None, letting VoiceAssistant use its internal default
+        vad_config = {}
 
         # Try to extract session_id from room name
         session_id = None
@@ -834,6 +884,7 @@ async def entrypoint(ctx: agents.JobContext):
                         stt_model = config.get("stt_model") or stt_model
                         tts_model = config.get("tts_model") or tts_model
                         instructions = config.get("instructions") or instructions
+                        vad_config = config.get("vad_config") or vad_config
                     else:
                         logger.info(f"No voice config found in Redis for key '{config_key}'. Using default models.")
                 except Exception as e:
@@ -847,6 +898,7 @@ async def entrypoint(ctx: agents.JobContext):
         logger.info(f"  - OpenAI LLM Model: {openai_model}")
         logger.info(f"  - STT Model: {stt_model}")
         logger.info(f"  - TTS Model: {tts_model}")
+        logger.info(f"  - VAD Config: {vad_config}")
         logger.info(f"  - Instructions: {'Custom' if instructions else 'Default'}")
 
         assistant = VoiceAssistant(
@@ -854,6 +906,8 @@ async def entrypoint(ctx: agents.JobContext):
             openai_model=openai_model,
             stt_model=stt_model,
             tts_model=tts_model,
+            vad_config=vad_config,
+            job_ctx=ctx,
         )
         logger.info("VoiceAssistant created, starting run()...")
         await assistant.run(ctx)
