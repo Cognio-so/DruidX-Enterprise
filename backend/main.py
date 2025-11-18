@@ -431,14 +431,14 @@ async def add_documents_by_url(session_id: str, request: dict):
             
             if image_count > 0:
                 print(f"[MAIN] Skipping {image_count} image(s) from embedding preprocessing")
-            replace=bool(session.get("doc_embeddings",False))
+            # replace=bool(session.get("doc_embeddings",False))
             if non_image_docs:
                 hybrid_rag = session.get("gpt_config", {}).get("hybridRag", False)
                 await preprocess_user_documents(
                     non_image_docs,  
                     session_id, 
                     is_hybrid=hybrid_rag,
-                    is_new_upload=replace
+                    is_new_upload=False 
                 )
                 session["doc_embeddings"]=False
                 print(f"✅ [MAIN] Pre-processed {len(non_image_docs)} non-image documents with embeddings")
