@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ArrowUp, Globe, Paperclip, Sparkle, Telescope, X, Phone, PhoneOff, AudioLines, XCircle, Plus } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { getModelsForFrontend, frontendToBackend, getDisplayName } from "@/lib/modelMapping";
@@ -647,92 +647,91 @@ export default function ChatInput({
 
           {/* Mobile Controls */}
           <div className="flex items-center justify-between gap-2 md:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
-                  disabled={isLoading || connecting || isUploading}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-72 space-y-3">
-                <div>
-                  <DropdownMenuLabel className="text-xs text-muted-foreground">Model</DropdownMenuLabel>
-                  <Select value={selectedModel} onValueChange={handleModelChange} disabled={isLoading || connected || isUploading}>
-                    <SelectTrigger className="h-8 px-2 rounded-full text-xs border-border bg-muted hover:bg-accent focus:ring-0 focus:ring-offset-0 mt-2">
-                      <div className="flex items-center gap-2">
-                        <Sparkle className="size-4 text-primary" />
-                        <SelectValue />
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[400px] overflow-y-auto text-sm">
-                      <div className="grid grid-cols-1 gap-1 p-2">
-                        {models.map(model => (
-                          <SelectItem key={model.value} value={model.value}>
-                            {model.name}
-                          </SelectItem>
-                        ))}
-                      </div>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <DropdownMenuLabel className="text-xs text-muted-foreground">Quick actions</DropdownMenuLabel>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    <Button
-                      variant={webSearch ? "default" : "outline"}
-                      size="sm"
-                      className="h-8 px-3 rounded-full text-xs"
-                      onClick={() => setWebSearch(!webSearch)}
-                      disabled={isLoading || connected || isUploading}
-                    >
-                      <Globe className="h-3.5 w-3.5 mr-1.5" />
-                      Web
-                    </Button>
-                    <Button
-                      variant={deepSearch ? "default" : "outline"}
-                      size="sm"
-                      className="h-8 px-3 rounded-full text-xs"
-                      onClick={() => setDeepSearch(!deepSearch)}
-                      disabled={isLoading || connected || isUploading}
-                    >
-                      <Telescope className="h-3.5 w-3.5 mr-1.5" />
-                      Deep
-                    </Button>
-                  </div>
-                </div>
-
-                {gptId && (
-                  <div>
-                    <DropdownMenuLabel className="text-xs text-muted-foreground">MCP tools</DropdownMenuLabel>
-                    <div className="mt-2">
-                      <ComposioToolSelector
-                        gptId={gptId}
-                        onToolsChange={setComposioTools}
-                        disabled={isLoading || connected || isUploading}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <DropdownMenuSeparator />
-                <div>
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-full justify-center rounded-full"
-                    disabled={isLoading || isUploading || connected}
-                    onClick={() => fileInputRef.current?.click()}
+                    size="icon"
+                    className="h-8 w-8 rounded-full"
+                    disabled={isLoading || connecting || isUploading}
                   >
-                    <Paperclip className="h-3.5 w-3.5 mr-2" />
-                    Attach files
+                    <Plus className="h-4 w-4" />
                   </Button>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-72 space-y-3">
+                  <div>
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">Model</DropdownMenuLabel>
+                    <Select value={selectedModel} onValueChange={handleModelChange} disabled={isLoading || connected || isUploading}>
+                      <SelectTrigger className="h-8 px-2 rounded-full text-xs border-border bg-muted hover:bg-accent focus:ring-0 focus:ring-offset-0 mt-2">
+                        <div className="flex items-center gap-2">
+                          <Sparkle className="size-4 text-primary" />
+                          <SelectValue />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[400px] overflow-y-auto text-sm">
+                        <div className="grid grid-cols-1 gap-1 p-2">
+                          {models.map(model => (
+                            <SelectItem key={model.value} value={model.value}>
+                              {model.name}
+                            </SelectItem>
+                          ))}
+                        </div>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">Quick actions</DropdownMenuLabel>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      <Button
+                        variant={webSearch ? "default" : "outline"}
+                        size="sm"
+                        className="h-8 px-3 rounded-full text-xs"
+                        onClick={() => setWebSearch(!webSearch)}
+                        disabled={isLoading || connected || isUploading}
+                      >
+                        <Globe className="h-3.5 w-3.5 mr-1.5" />
+                        Web
+                      </Button>
+                      <Button
+                        variant={deepSearch ? "default" : "outline"}
+                        size="sm"
+                        className="h-8 px-3 rounded-full text-xs"
+                        onClick={() => setDeepSearch(!deepSearch)}
+                        disabled={isLoading || connected || isUploading}
+                      >
+                        <Telescope className="h-3.5 w-3.5 mr-1.5" />
+                        Deep
+                      </Button>
+                    </div>
+                  </div>
+
+                  {gptId && (
+                    <div>
+                      <DropdownMenuLabel className="text-xs text-muted-foreground">MCP tools</DropdownMenuLabel>
+                      <div className="mt-2">
+                        <ComposioToolSelector
+                          gptId={gptId}
+                          onToolsChange={setComposioTools}
+                          disabled={isLoading || connected || isUploading}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                disabled={isLoading || isUploading || connected}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Paperclip className="h-3.5 w-3.5" />
+              </Button>
+            </div>
 
             <div className="flex items-center gap-2">
               {showVoiceShortcut && (

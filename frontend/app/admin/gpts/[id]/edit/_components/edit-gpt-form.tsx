@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTransition, useRef, useState } from "react";
-import { AudioLines, Loader2, Mic2, Sparkle } from "lucide-react";
+import { AudioLines, Loader2, Sparkle, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -45,6 +45,7 @@ import {
 import { GptFormValues, gptSchema } from "@/lib/zodSchema";
 import { editGpt } from "../action";
 import { getModelIcon } from "@/components/brand-icons";
+import { usePromptEnhancer } from "@/hooks/usePromptEnhancer";
 
 const GptModels = [
   { id: "gemini_2_5_flash", name: "Gemini 2.5 Flash" },
@@ -100,6 +101,7 @@ export function EditGptForm({ gptId, initialData }: EditGptFormProps) {
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const [videoDialogOpen, setVideoDialogOpen] = useState(false);
   const [voiceDialogOpen, setVoiceDialogOpen] = useState(false);
+  const { enhanceInstructions, isEnhancing, cancelEnhancement } = usePromptEnhancer();
 
   const form = useForm<GptFormValues>({
     resolver: zodResolver(gptSchema),
@@ -164,6 +166,31 @@ export function EditGptForm({ gptId, initialData }: EditGptFormProps) {
     form.setValue("voiceTtsProvider", undefined);
     form.setValue("voiceTtsModelId", undefined);
     form.setValue("voiceTtsModelName", undefined);
+  };
+
+  const handleEnhanceInstructions = async () => {
+    try {
+      const currentInstructions = form.getValues("instructions");
+      await enhanceInstructions({
+        instructions: currentInstructions,
+        gptName: form.getValues("gptName"),
+        gptDescription: form.getValues("gptDescription"),
+        onChunk: (value) => {
+          form.setValue("instructions", value, {
+            shouldDirty: true,
+            shouldTouch: true,
+          });
+        },
+      });
+      toast.success("Instructions enhanced successfully.");
+    } catch (error: any) {
+      if (error?.name === "AbortError") {
+        toast("Prompt enhancement cancelled.");
+        return;
+      }
+      console.error("Prompt enhancement error:", error);
+      toast.error(error?.message || "Failed to enhance instructions.");
+    }
   };
 
   const onSubmit = async (data: GptFormValues) => {
@@ -358,7 +385,36 @@ export function EditGptForm({ gptId, initialData }: EditGptFormProps) {
                   name="instructions"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Instructions</FormLabel>
+                      <div className="flex items-center justify-between gap-3">
+                        <FormLabel className="mb-0">Instructions</FormLabel>
+                        <div className="flex items-center gap-2">
+                          {isEnhancing && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              onClick={cancelEnhancement}
+                            >
+                              Cancel
+                            </Button>
+                          )}
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={isEnhancing || isPending}
+                            onClick={handleEnhanceInstructions}
+                            className="bg-[conic-gradient(at_top,_#6ee7b7,_#3b82f6,_#9333ea,_#6ee7b7)] px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:scale-[1.01] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/50 sm:w-auto"
+                          >
+                            {isEnhancing ? (
+                              <Loader2 className="mr-2 size-4 animate-spin" />
+                            ) : (
+                              <Sparkles className="mr-2 size-4" />
+                            )}
+                            {isEnhancing ? "Enhancing..." : "Enhance Prompt"}
+                          </Button>
+                        </div>
+                      </div>
                       <FormControl>
                         <RichTextEditor
                           field={{
@@ -367,6 +423,11 @@ export function EditGptForm({ gptId, initialData }: EditGptFormProps) {
                           }}
                         />
                       </FormControl>
+                      {isEnhancing && (
+                        <p className="text-xs text-muted-foreground">
+                          Enhancing instructions with GPT-4o mini...
+                        </p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}

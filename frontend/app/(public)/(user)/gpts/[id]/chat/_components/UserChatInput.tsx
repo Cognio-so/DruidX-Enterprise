@@ -655,100 +655,222 @@ export default function ChatInput({
           )}
         </div>
 
-        <div className="flex flex-col gap-3 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-2">
-            <Select value={selectedModel} onValueChange={handleModelChange} disabled={isLoading || connected || isUploading}>
-              <SelectTrigger className="h-6 sm:h-7 px-2 rounded-full text-[11px] sm:text-sm border-border bg-muted hover:bg-accent focus:ring-0 focus:ring-offset-0 min-w-[95px] sm:min-w-[150px]">
-                <div className="flex items-center gap-2">
-                  <Sparkle className="size-4 text-primary" />
-                  <SelectValue />
-                </div>
-              </SelectTrigger>
-              <SelectContent className="max-h-[400px] overflow-y-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 p-2">
-                  {models.map(model => (
-                    <SelectItem key={model.value} value={model.value} className="text-sm">
-                      <div className="flex items-center gap-2">
-                        {model.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </div>
-              </SelectContent>
-            </Select>
+        <div className="flex flex-col gap-3 px-3 py-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,application/json,text/plain,text/javascript,application/javascript,text/x-python,text/typescript,text/x-c++src,text/x-csrc,text/x-c,text/html,text/css,.py,.js,.ts,.tsx,.jsx,.cpp,.c,.cc,.cxx,.h,.hpp,.java,.rb,.go,.rs,.php,.swift,.kt,.scala,.sh,.bash,.zsh,.fish,.ps1,.bat,.cmd,.html,.htm,.css"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
 
-            <Button
-              variant={webSearch ? "default" : "outline"}
-              size="icon"
-              className="h-7 w-7 rounded-full"
-              onClick={() => setWebSearch(!webSearch)}
-              disabled={isLoading || connected || isUploading}
-            >
-              <Globe className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant={deepSearch ? "default" : "outline"}
-              size="icon"
-              className="h-7 w-7 rounded-full"
-              onClick={() => setDeepSearch(!deepSearch)}
-              disabled={isLoading || connected || isUploading}
-            >
-              <Telescope className="size-4"/>
-            </Button>
-            
-            {gptId && (
-              <ComposioToolSelector
-                gptId={gptId}
-                onToolsChange={setComposioTools}
-                disabled={isLoading || connected || isUploading}
-              />
-            )}
+          <div className="flex items-center justify-between gap-2 sm:hidden">
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 rounded-full"
+                    disabled={isLoading || connecting || isUploading}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-72 space-y-3">
+                  <div>
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">Model</DropdownMenuLabel>
+                    <Select value={selectedModel} onValueChange={handleModelChange} disabled={isLoading || connected || isUploading}>
+                      <SelectTrigger className="h-8 px-2 rounded-full text-xs border-border bg-muted hover:bg-accent focus:ring-0 focus:ring-offset-0 mt-2">
+                        <div className="flex items-center gap-2">
+                          <Sparkle className="size-4 text-primary" />
+                          <SelectValue />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[400px] overflow-y-auto text-sm">
+                        <div className="grid grid-cols-1 gap-1 p-2">
+                          {models.map(model => (
+                            <SelectItem key={model.value} value={model.value}>
+                              {model.name}
+                            </SelectItem>
+                          ))}
+                        </div>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">Quick actions</DropdownMenuLabel>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      <Button
+                        variant={webSearch ? "default" : "outline"}
+                        size="sm"
+                        className="h-8 px-3 rounded-full text-xs"
+                        onClick={() => setWebSearch(!webSearch)}
+                        disabled={isLoading || connected || isUploading}
+                      >
+                        <Globe className="h-3.5 w-3.5 mr-1.5" />
+                        Web
+                      </Button>
+                      <Button
+                        variant={deepSearch ? "default" : "outline"}
+                        size="sm"
+                        className="h-8 px-3 rounded-full text-xs"
+                        onClick={() => setDeepSearch(!deepSearch)}
+                        disabled={isLoading || connected || isUploading}
+                      >
+                        <Telescope className="h-3.5 w-3.5 mr-1.5" />
+                        Deep
+                      </Button>
+                    </div>
+                  </div>
+
+                  {gptId && (
+                    <div>
+                      <DropdownMenuLabel className="text-xs text-muted-foreground">MCP tools</DropdownMenuLabel>
+                      <div className="mt-2">
+                        <ComposioToolSelector
+                          gptId={gptId}
+                          onToolsChange={setComposioTools}
+                          disabled={isLoading || connected || isUploading}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                disabled={isLoading || isUploading || connected}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Paperclip className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {showVoiceShortcut && (
+                <Button
+                  variant={connected ? "default" : "outline"}
+                  size="icon"
+                  className={cn(
+                    "h-8 w-8 rounded-full",
+                    connected && "bg-primary hover:bg-primary/90 text-white"
+                  )}
+                  onClick={handleVoiceToggle}
+                  disabled={isLoading || connecting}
+                  title={connected ? "Disconnect voice" : "Connect voice"}
+                >
+                  {connected ? (
+                    <XCircle className="h-4 w-4" />
+                  ) : (
+                    <AudioLines className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
+              <Button
+                onClick={handleSend}
+                disabled={!canSend || isLoading || connected || isUploading || hasActiveUploads}
+                size="icon"
+                className="h-8 w-8 rounded-full"
+              >
+                <ArrowUp className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5 justify-end">
-            <Button
-              variant={connected ? "default" : "outline"}
-              size="icon"
-              className={cn(
-                "h-7 w-7 rounded-full",
-                connected && "bg-primary hover:bg-primary/90 text-white"
-              )}
-              onClick={handleVoiceToggle}
-              disabled={isLoading || connecting}
-              title={connected ? "Disconnect voice" : "Connect voice"}
-            >
-              {connected ? (
-                <XCircle className="h-3.5 w-3.5 " />
-              ) : (
-                <AudioLines className="h-3.5 w-3.5" />
-              )}
-            </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,application/json,text/plain,text/javascript,application/javascript,text/x-python,text/typescript,text/x-c++src,text/x-csrc,text/x-c,text/html,text/css,.py,.js,.ts,.tsx,.jsx,.cpp,.c,.cc,.cxx,.h,.hpp,.java,.rb,.go,.rs,.php,.swift,.kt,.scala,.sh,.bash,.zsh,.fish,.ps1,.bat,.cmd,.html,.htm,.css"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-7 w-7 rounded-full"
-              disabled={isLoading || isUploading || connected}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Paperclip className="h-3.5 w-3.5" />
-            </Button>
+          <div className="hidden sm:flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Select value={selectedModel} onValueChange={handleModelChange} disabled={isLoading || connected || isUploading}>
+                <SelectTrigger className="h-6 sm:h-7 px-2 rounded-full text-[11px] sm:text-sm border-border bg-muted hover:bg-accent focus:ring-0 focus:ring-offset-0 min-w-[95px] sm:min-w-[150px]">
+                  <div className="flex items-center gap-2">
+                    <Sparkle className="size-4 text-primary" />
+                    <SelectValue />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="max-h-[400px] overflow-y-auto">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 p-2">
+                    {models.map(model => (
+                      <SelectItem key={model.value} value={model.value} className="text-sm">
+                        <div className="flex items-center gap-2">
+                          {model.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </div>
+                </SelectContent>
+              </Select>
 
-            <Button
-              onClick={handleSend}
-              disabled={(!message.trim() && uploadedDocs.length === 0) || isLoading || connected || isUploading || hasActiveUploads}
-              size="icon"
-              className="h-7 w-7 rounded-full"
-            >
-              <ArrowUp className="h-3.5 w-3.5" />
-            </Button>
+              <Button
+                variant={webSearch ? "default" : "outline"}
+                size="icon"
+                className="h-7 w-7 rounded-full"
+                onClick={() => setWebSearch(!webSearch)}
+                disabled={isLoading || connected || isUploading}
+              >
+                <Globe className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant={deepSearch ? "default" : "outline"}
+                size="icon"
+                className="h-7 w-7 rounded-full"
+                onClick={() => setDeepSearch(!deepSearch)}
+                disabled={isLoading || connected || isUploading}
+              >
+                <Telescope className="size-4"/>
+              </Button>
+              
+              {gptId && (
+                <ComposioToolSelector
+                  gptId={gptId}
+                  onToolsChange={setComposioTools}
+                  disabled={isLoading || connected || isUploading}
+                />
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5 justify-end">
+              <Button
+                variant={connected ? "default" : "outline"}
+                size="icon"
+                className={cn(
+                  "h-7 w-7 rounded-full",
+                  connected && "bg-primary hover:bg-primary/90 text-white"
+                )}
+                onClick={handleVoiceToggle}
+                disabled={isLoading || connecting}
+                title={connected ? "Disconnect voice" : "Connect voice"}
+              >
+                {connected ? (
+                  <XCircle className="h-3.5 w-3.5 " />
+                ) : (
+                  <AudioLines className="h-3.5 w-3.5" />
+                )}
+              </Button>
+
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7 rounded-full"
+                disabled={isLoading || isUploading || connected}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Paperclip className="h-3.5 w-3.5" />
+              </Button>
+
+              <Button
+                onClick={handleSend}
+                disabled={(!message.trim() && uploadedDocs.length === 0) || isLoading || connected || isUploading || hasActiveUploads}
+                size="icon"
+                className="h-7 w-7 rounded-full"
+              >
+                <ArrowUp className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>

@@ -39,6 +39,7 @@ except Exception as e:
 
 VECTOR_SIZE = 1536
 QDRANT_UPSERT_BATCH_SIZE = int(os.getenv("QDRANT_UPSERT_BATCH_SIZE", "64"))
+USER_DOC_TTL_SECONDS = int(os.getenv("USER_DOC_TTL_SECONDS", "86400"))
 import aiofiles
 prompt_path = os.path.join(os.path.dirname(__file__), "Rag.md")
 def load_base_prompt() -> str:
@@ -113,6 +114,38 @@ async def clear_user_doc_cache(session_id: str = None):
         if keys_to_delete:
             await redis_client.delete(*keys_to_delete)
         print("[RAG] Cleared all user document caches (embeddings, BM25)")
+
+
+async def cleanup_expired_user_docs(session_id: str) -> bool:
+    """
+    Delete user document embeddings and cache data if they have expired.
+    Returns True if cleanup was performed.
+    """
+    redis_client = await ensure_redis_client()
+    redis_client_binary = await ensure_redis_client_binary()
+    if not redis_client or not session_id:
+        return False
+
+    cache_key = f"user_doc_cache:{session_id}"
+    cache = await redis_client.hgetall(cache_key)
+    if not cache:
+        return False
+
+    expires_at = float(cache.get("expires_at", "0") or 0)
+    if expires_at and time.time() > expires_at:
+        collection_name = cache.get("collection_name")
+        if collection_name:
+            try:
+                await asyncio.to_thread(QDRANT_CLIENT.delete_collection, collection_name=collection_name)
+                print(f"[RAG] Deleted expired Qdrant collection {collection_name}")
+            except Exception as e:
+                print(f"[RAG] Error deleting expired collection {collection_name}: {e}")
+        await redis_client.delete(cache_key, f"doc_order:{session_id}")
+        if redis_client_binary and collection_name:
+            await redis_client_binary.delete(f"bm25_index:{collection_name}")
+        print(f"[RAG] Cleared expired user document cache for session {session_id}")
+        return True
+    return False
 
 
 async def clear_image_cache(session_id: str = None):
@@ -273,6 +306,8 @@ async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid
     if not docs:
         return
     
+    await cleanup_expired_user_docs(session_id)
+
     collection_name = f"user_docs_{session_id}"
     cache_key = f"user_doc_cache:{session_id}"
     order_key = f"doc_order:{session_id}"
@@ -323,14 +358,16 @@ async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid
             if isinstance(doc, dict) and doc.get("id"):
                 await redis_client.rpush(order_key, doc.get("id"))
         
+        expires_at = time.time() + USER_DOC_TTL_SECONDS
         await redis_client.hset(cache_key, mapping={
             "collection_name": collection_name,
             "is_hybrid": str(is_hybrid),
             "processed_at": str(asyncio.get_event_loop().time()),
-            "document_count": len(doc_texts) + current_doc_index
+            "document_count": len(doc_texts) + current_doc_index,
+            "expires_at": str(expires_at)
         })
-        await redis_client.expire(cache_key, 86400)
-        await redis_client.expire(order_key, 86400)
+        await redis_client.expire(cache_key, USER_DOC_TTL_SECONDS)
+        await redis_client.expire(order_key, USER_DOC_TTL_SECONDS)
     
     print(f"[RAG] Pre-processed and cached {len(doc_texts)} NEW user documents for session {session_id} (total documents in session: {len(doc_texts) + current_doc_index})")
 
@@ -2023,6 +2060,8 @@ async def _process_user_docs(state, docs, user_query, rag, filter_doc_ids: Optio
     
     await send_status_update(state, "🔍 Searching user documents...", 50)
     
+    await cleanup_expired_user_docs(session_id)
+
     redis_client = await ensure_redis_client()
     cache_data = {}
     if redis_client:
