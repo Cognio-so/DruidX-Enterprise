@@ -12,6 +12,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getModelByFrontendValue } from "@/lib/modelMapping";
 import { ResearchPlanApprovalDialog } from "@/components/ResearchPlanApprovalDialog";
+import type { VoiceAgentConfig } from "@/components/voice/voice-config-dialog";
 
 interface GptData {
   id: string;
@@ -23,6 +24,15 @@ interface GptData {
   videoEnabled?: boolean;
   imageModel?: string;
   videoModel?: string;
+  voiceAgentEnabled?: boolean;
+  voiceAgentName?: string | null;
+  voiceConfidenceThreshold?: number | null;
+  voiceSttProvider?: string | null;
+  voiceSttModelId?: string | null;
+  voiceSttModelName?: string | null;
+  voiceTtsProvider?: string | null;
+  voiceTtsModelId?: string | null;
+  voiceTtsModelName?: string | null;
 }
 
 export default function ChatGptById() {
@@ -31,7 +41,13 @@ export default function ChatGptById() {
   const searchParams = useSearchParams();
   const gptId = params.id as string;
   const conversationId = searchParams.get("conversation");
-  const { sessionId, uploadDocument, hybridRag, updateGPTConfig } = useChatSession();
+  const {
+    sessionId,
+    uploadDocument,
+    hybridRag,
+    updateGPTConfig,
+    updateVoiceSettings,
+  } = useChatSession();
   const {
     messages,
     isLoading,
@@ -211,6 +227,15 @@ export default function ChatGptById() {
               videoEnabled: gpt.videoEnabled,
               imageModel: gpt.imageModel,
               videoModel: gpt.videoModel,
+              voiceAgentEnabled: gpt.voiceAgentEnabled,
+              voiceAgentName: gpt.voiceAgentName,
+              voiceConfidenceThreshold: gpt.voiceConfidenceThreshold,
+              voiceSttProvider: gpt.voiceSttProvider,
+              voiceSttModelId: gpt.voiceSttModelId,
+              voiceSttModelName: gpt.voiceSttModelName,
+              voiceTtsProvider: gpt.voiceTtsProvider,
+              voiceTtsModelId: gpt.voiceTtsModelId,
+              voiceTtsModelName: gpt.voiceTtsModelName,
             });
           } else {
             console.error("Failed to fetch GPT data:", response.status);
@@ -238,6 +263,22 @@ export default function ChatGptById() {
     },
     [sendMessage, hybridRag]
   );
+
+  const voiceDefaults: VoiceAgentConfig | undefined = gptData
+    ? {
+        voiceAgentEnabled: Boolean(gptData.voiceAgentEnabled),
+        voiceAgentName: gptData.voiceAgentName || "",
+        voiceConfidenceThreshold: gptData.voiceConfidenceThreshold ?? 0.4,
+        voiceSttProvider: (gptData.voiceSttProvider ??
+          null) as VoiceAgentConfig["voiceSttProvider"],
+        voiceSttModelId: gptData.voiceSttModelId ?? null,
+        voiceSttModelName: gptData.voiceSttModelName ?? null,
+        voiceTtsProvider: (gptData.voiceTtsProvider ??
+          null) as VoiceAgentConfig["voiceTtsProvider"],
+        voiceTtsModelId: gptData.voiceTtsModelId ?? null,
+        voiceTtsModelName: gptData.voiceTtsModelName ?? null,
+      }
+    : undefined;
 
   return (
     <>
@@ -333,6 +374,8 @@ export default function ChatGptById() {
             imageModel={gptData?.imageModel}
             videoModel={gptData?.videoModel}
             onModelChange={updateGPTConfig}
+            defaultVoiceConfig={voiceDefaults}
+            onVoiceSettingsChange={updateVoiceSettings}
           />
         </div>
       </div>

@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Sparkles, Search } from "lucide-react";
+import { Sparkles, Search } from "lucide-react";
 import Link from "next/link";
 import { AutoBuilderDialog } from "./auto-builder-dialog";
 import { useSearchContext } from "./gpts-list-wrapper";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { BsStars } from "react-icons/bs";
 
 export function GptsPageClient() {
   const [autoBuildOpen, setAutoBuildOpen] = useState(false);
@@ -37,7 +38,7 @@ export function GptsPageClient() {
             variant="outline"
             className="w-full sm:w-auto"
           >
-            <Sparkles className="w-4 h-4 mr-2" />
+            <Sparkles className="w-4 h-4 mr-2 text-primary" />
             <span className="hidden sm:inline">Auto-Build Agents</span>
             <span className="sm:hidden">Auto-Build</span>
           </Button>
@@ -47,8 +48,8 @@ export function GptsPageClient() {
               className: "w-full sm:w-auto",
             })}
           >
-            <Plus className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Create New GPT</span>
+            <BsStars className="size-4 mr-2" />
+            <span className="hidden sm:inline">Create Agent</span>
             <span className="sm:hidden">Create Agent</span>
           </Link>
         </div>

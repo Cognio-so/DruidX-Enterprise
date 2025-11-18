@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+const sttProviders = ["deepgram", "cartesia"] as const;
+const ttsProviders = [
+  "deepgram",
+  "cartesia",
+  "cartesia_sonic3",
+  "elevenlabs",
+  "hume",
+] as const;
+
 export const gptSchema = z.object({
   gptName: z
     .string()
@@ -50,6 +59,23 @@ export const gptSchema = z.object({
   video: z.boolean(),
   imageModel: z.string().optional(),
   videoModel: z.string().optional(),
+  voiceAgentEnabled: z.boolean(),
+  voiceAgentName: z
+    .string()
+    .min(2, { message: "Voice agent name must be at least 2 characters long" })
+    .max(80, { message: "Voice agent name must not exceed 80 characters" })
+    .optional(),
+  voiceConfidenceThreshold: z
+    .number()
+    .min(0, { message: "Confidence must be >= 0" })
+    .max(1, { message: "Confidence must be <= 1" })
+    .optional(),
+  voiceSttProvider: z.enum(sttProviders).optional(),
+  voiceSttModelId: z.string().optional(),
+  voiceSttModelName: z.string().optional(),
+  voiceTtsProvider: z.enum(ttsProviders).optional(),
+  voiceTtsModelId: z.string().optional(),
+  voiceTtsModelName: z.string().optional(),
 }).refine((data) => {
   if (data.image && !data.imageModel) {
     return false;
@@ -66,6 +92,24 @@ export const gptSchema = z.object({
 }, {
   message: "Please select a video model when video generation is enabled",
   path: ["videoModel"],
+}).refine((data) => {
+  if (!data.voiceAgentEnabled) {
+    return true;
+  }
+
+  return Boolean(
+    data.voiceAgentName &&
+      data.voiceSttProvider &&
+      data.voiceSttModelId &&
+      data.voiceSttModelName &&
+      data.voiceTtsProvider &&
+      data.voiceTtsModelId &&
+      data.voiceTtsModelName &&
+      typeof data.voiceConfidenceThreshold === "number"
+  );
+}, {
+  message: "Voice agent configuration is incomplete",
+  path: ["voiceAgentName"],
 });
 
 export type GptFormValues = z.infer<typeof gptSchema>;

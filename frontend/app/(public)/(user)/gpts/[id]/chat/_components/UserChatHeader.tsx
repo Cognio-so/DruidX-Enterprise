@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { Bot, MessageSquarePlus } from "lucide-react";
 import Image from "next/image";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 interface ChatHeaderProps {
   gptName?: string;
@@ -19,6 +20,7 @@ export default function ChatHeader({ gptName, gptImage, onNewChat }: ChatHeaderP
   return (
     <div className="flex items-center justify-between w-full">
       <div className="flex items-center gap-3">
+        <SidebarTrigger className="h-8 w-8 md:hidden" />
         <div className="relative w-8 h-8">
           {gptImage && gptImage !== "default-avatar.png" ? (
             <Image

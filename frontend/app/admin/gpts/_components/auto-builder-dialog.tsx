@@ -57,6 +57,15 @@ interface CollectedData {
   videoModel?: string;
   imageUrl?: string;
   kbFiles?: string[];
+  voiceAgentEnabled?: boolean;
+  voiceAgentName?: string;
+  voiceConfidenceThreshold?: number;
+  voiceSttProvider?: GptFormValues['voiceSttProvider'];
+  voiceSttModelId?: string;
+  voiceSttModelName?: string;
+  voiceTtsProvider?: GptFormValues['voiceTtsProvider'];
+  voiceTtsModelId?: string;
+  voiceTtsModelName?: string;
 }
 
 interface ChatMessage {
@@ -78,6 +87,7 @@ export function AutoBuilderDialog({
     image: false,
     video: false,
     kbFiles: [],
+    voiceAgentEnabled: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -215,6 +225,7 @@ export function AutoBuilderDialog({
         image: false,
         video: false,
         kbFiles: [],
+        voiceAgentEnabled: false,
       });
       setIsComplete(false);
       setIsLoading(false);
@@ -452,6 +463,12 @@ export function AutoBuilderDialog({
         videoEnabled = false;
       }
       
+      const voiceAgentEnabled = Boolean(
+        formData.voiceAgentEnabled ??
+          collectedData.voiceAgentEnabled ??
+          false
+      );
+
       const finalData: GptFormValues = {
         gptName,
         gptDescription,
@@ -466,6 +483,46 @@ export function AutoBuilderDialog({
         videoModel: videoEnabled ? (formData.videoModel || collectedData.videoModel) : undefined,
         imageUrl: formData.imageUrl || collectedData.imageUrl || '',
         docs: formData.docs || collectedData.kbFiles || [],
+        voiceAgentEnabled,
+        voiceAgentName: voiceAgentEnabled
+          ? formData.voiceAgentName ||
+            collectedData.voiceAgentName ||
+            undefined
+          : undefined,
+        voiceConfidenceThreshold: voiceAgentEnabled
+          ? formData.voiceConfidenceThreshold ??
+            collectedData.voiceConfidenceThreshold
+          : undefined,
+        voiceSttProvider: voiceAgentEnabled
+          ? ((formData.voiceSttProvider ||
+              collectedData.voiceSttProvider ||
+              undefined) as GptFormValues['voiceSttProvider'])
+          : undefined,
+        voiceSttModelId: voiceAgentEnabled
+          ? formData.voiceSttModelId ||
+            collectedData.voiceSttModelId ||
+            undefined
+          : undefined,
+        voiceSttModelName: voiceAgentEnabled
+          ? formData.voiceSttModelName ||
+            collectedData.voiceSttModelName ||
+            undefined
+          : undefined,
+        voiceTtsProvider: voiceAgentEnabled
+          ? ((formData.voiceTtsProvider ||
+              collectedData.voiceTtsProvider ||
+              undefined) as GptFormValues['voiceTtsProvider'])
+          : undefined,
+        voiceTtsModelId: voiceAgentEnabled
+          ? formData.voiceTtsModelId ||
+            collectedData.voiceTtsModelId ||
+            undefined
+          : undefined,
+        voiceTtsModelName: voiceAgentEnabled
+          ? formData.voiceTtsModelName ||
+            collectedData.voiceTtsModelName ||
+            undefined
+          : undefined,
       };
 
       // Submit the form

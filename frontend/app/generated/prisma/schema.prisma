@@ -79,27 +79,36 @@ model Verification {
 }
 
 model Gpt {
-  id                  String               @id @default(cuid())
-  userId              String
-  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name                String               @db.VarChar(100)
-  description         String               @db.VarChar(500)
-  model               ModelEnum
-  instruction         String               @db.Text
-  webBrowser          Boolean              @default(false)
-  hybridRag           Boolean              @default(false)
-  image               String
-  knowledgeBase       String?
-  imageEnabled        Boolean              @default(false)
-  videoEnabled        Boolean              @default(false)
-  imageModel          String?
-  videoModel          String?
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  assignedToUsers     AssignGpt[]
-  conversations       Conversation[]
-  composioConnections ComposioConnection[]
-  groupAssignments    GroupGptAssignment[]
+  id                       String               @id @default(cuid())
+  userId                   String
+  user                     User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name                     String               @db.VarChar(100)
+  description              String               @db.VarChar(500)
+  model                    ModelEnum
+  instruction              String               @db.Text
+  webBrowser               Boolean              @default(false)
+  hybridRag                Boolean              @default(false)
+  image                    String
+  knowledgeBase            String?
+  imageEnabled             Boolean              @default(false)
+  videoEnabled             Boolean              @default(false)
+  imageModel               String?
+  videoModel               String?
+  voiceAgentEnabled        Boolean              @default(false)
+  voiceAgentName           String?
+  voiceConfidenceThreshold Float?
+  voiceSttProvider         String?
+  voiceSttModelId          String?
+  voiceSttModelName        String?
+  voiceTtsProvider         String?
+  voiceTtsModelId          String?
+  voiceTtsModelName        String?
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+  assignedToUsers          AssignGpt[]
+  conversations            Conversation[]
+  composioConnections      ComposioConnection[]
+  groupAssignments         GroupGptAssignment[]
 }
 
 model ComposioConnection {

@@ -21,14 +21,15 @@ from thinking_states import send_thinking_state, RAG_THINKING_STATES
 
 QDRANT_URL = os.getenv("QDRANT_URL", ":memory:")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
+QDRANT_TIMEOUT = float(os.getenv("QDRANT_TIMEOUT", "60"))
 from llm import get_llm, stream_with_token_tracking, _extract_usage
 from embeddings import embed_chunks_parallel, embed_query
 
 try:
     if QDRANT_URL == ":memory:":
-        QDRANT_CLIENT = QdrantClient(":memory:")
+        QDRANT_CLIENT = QdrantClient(":memory:", timeout=QDRANT_TIMEOUT)
     else:
-        QDRANT_CLIENT = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
+        QDRANT_CLIENT = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY, timeout=QDRANT_TIMEOUT)
         # Test the connection
         QDRANT_CLIENT.get_collections()
         print(f"[RAG] Connected to remote Qdrant at {QDRANT_URL}")
@@ -37,6 +38,8 @@ except Exception as e:
     QDRANT_CLIENT = QdrantClient(":memory:")
 
 VECTOR_SIZE = 1536
+QDRANT_UPSERT_BATCH_SIZE = int(os.getenv("QDRANT_UPSERT_BATCH_SIZE", "64"))
+USER_DOC_TTL_SECONDS = int(os.getenv("USER_DOC_TTL_SECONDS", "86400"))
 import aiofiles
 prompt_path = os.path.join(os.path.dirname(__file__), "Rag.md")
 def load_base_prompt() -> str:
@@ -111,6 +114,38 @@ async def clear_user_doc_cache(session_id: str = None):
         if keys_to_delete:
             await redis_client.delete(*keys_to_delete)
         print("[RAG] Cleared all user document caches (embeddings, BM25)")
+
+
+async def cleanup_expired_user_docs(session_id: str) -> bool:
+    """
+    Delete user document embeddings and cache data if they have expired.
+    Returns True if cleanup was performed.
+    """
+    redis_client = await ensure_redis_client()
+    redis_client_binary = await ensure_redis_client_binary()
+    if not redis_client or not session_id:
+        return False
+
+    cache_key = f"user_doc_cache:{session_id}"
+    cache = await redis_client.hgetall(cache_key)
+    if not cache:
+        return False
+
+    expires_at = float(cache.get("expires_at", "0") or 0)
+    if expires_at and time.time() > expires_at:
+        collection_name = cache.get("collection_name")
+        if collection_name:
+            try:
+                await asyncio.to_thread(QDRANT_CLIENT.delete_collection, collection_name=collection_name)
+                print(f"[RAG] Deleted expired Qdrant collection {collection_name}")
+            except Exception as e:
+                print(f"[RAG] Error deleting expired collection {collection_name}: {e}")
+        await redis_client.delete(cache_key, f"doc_order:{session_id}")
+        if redis_client_binary and collection_name:
+            await redis_client_binary.delete(f"bm25_index:{collection_name}")
+        print(f"[RAG] Cleared expired user document cache for session {session_id}")
+        return True
+    return False
 
 
 async def clear_image_cache(session_id: str = None):
@@ -260,46 +295,36 @@ async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid
     """
     Pre-process user documents by generating embeddings and storing them in cache.
     This is called immediately after document upload to prepare for fast RAG retrieval.
+    Now accumulates documents instead of clearing old ones (similar to images).
     
     Args:
         docs: List of document dictionaries with content (ONLY the new documents)
         session_id: Session identifier for cache management
         is_hybrid: Whether to use hybrid RAG (BM25 + vector)
-        is_new_upload: Whether this is a new document upload (clears old cache and processes only new docs)
+        is_new_upload: Whether this is a new document upload (now ignored - always accumulates)
     """
     if not docs:
         return
     
+    await cleanup_expired_user_docs(session_id)
+
     collection_name = f"user_docs_{session_id}"
     cache_key = f"user_doc_cache:{session_id}"
+    order_key = f"doc_order:{session_id}"
 
     redis_client = await ensure_redis_client()
     redis_client_binary = await ensure_redis_client_binary()
-    if is_new_upload:
-        if redis_client:
-            await redis_client.delete(cache_key)
-            print(f"🔥 [CACHE-DEBUG] Cleared existing user doc cache for session {session_id}")
-            if redis_client_binary:
-                await redis_client_binary.delete(f"bm25_index:{collection_name}")
-                print(f"🔥 [CACHE-DEBUG] Cleared old BM25 index for {collection_name}")
     
-        try:
-            collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
-            collections = [c.name for c in collections_response.collections]
-            print(f"🔥 [CACHE-DEBUG] Current Qdrant collections: {collections}")
-            if collection_name in collections:
-                await asyncio.to_thread(QDRANT_CLIENT.delete_collection, collection_name=collection_name)
-                print(f"🔥 [CACHE-DEBUG] Deleted existing collection: {collection_name}")
-            else:
-                print(f"🔥 [CACHE-DEBUG] Collection {collection_name} not found in Qdrant")
-        except Exception as e:
-            print(f"🔥 [CACHE-DEBUG] Warning: Failed to clear existing collection {collection_name}: {e}")
+    # Get current document count to determine starting index
+    current_doc_index = 0
+    if redis_client:
+        current_doc_index = await redis_client.llen(order_key)
     
-    print(f"[RAG] Pre-processing {len(docs)} NEW user documents for session {session_id}")
+    print(f"[RAG] Pre-processing {len(docs)} NEW user documents for session {session_id} (accumulating, starting at index {current_doc_index + 1})")
 
     doc_texts = []
     doc_metas = []
-    for doc in docs:
+    for i, doc in enumerate(docs):
         if isinstance(doc, dict) and "content" in doc:
             doc_texts.append(doc["content"])
         else:
@@ -309,30 +334,42 @@ async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid
                 "doc_id": doc.get("id"),
                 "filename": doc.get("filename"),
                 "file_type": doc.get("file_type"),
+                "doc_index": current_doc_index + i + 1,  # 1-based index
             })
         else:
-            doc_metas.append({})
+            doc_metas.append({
+                "doc_index": current_doc_index + i + 1,
+            })
 
+    # Always accumulate - never clear existing
     await retreive_docs(
         doc_texts,
         collection_name,
         is_hybrid=is_hybrid,
-        clear_existing=is_new_upload,
+        clear_existing=False,  # Always accumulate documents
         is_user_doc=True,
         session_id=session_id,
         metadatas=doc_metas,
     )
 
+    # Store document order in Redis (similar to images)
     if redis_client:
+        for doc in docs:
+            if isinstance(doc, dict) and doc.get("id"):
+                await redis_client.rpush(order_key, doc.get("id"))
+        
+        expires_at = time.time() + USER_DOC_TTL_SECONDS
         await redis_client.hset(cache_key, mapping={
             "collection_name": collection_name,
             "is_hybrid": str(is_hybrid),
             "processed_at": str(asyncio.get_event_loop().time()),
-            "document_count": len(doc_texts)
+            "document_count": len(doc_texts) + current_doc_index,
+            "expires_at": str(expires_at)
         })
-        await redis_client.expire(cache_key, 86400) 
+        await redis_client.expire(cache_key, USER_DOC_TTL_SECONDS)
+        await redis_client.expire(order_key, USER_DOC_TTL_SECONDS)
     
-    print(f"[RAG] Pre-processed and cached {len(doc_texts)} NEW user documents for session {session_id}")
+    print(f"[RAG] Pre-processed and cached {len(doc_texts)} NEW user documents for session {session_id} (total documents in session: {len(doc_texts) + current_doc_index})")
 
 async def preprocess_images(uploaded_images: List[Dict[str, Any]], state: GraphState):
     """
@@ -518,6 +555,18 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
             field_name="file_type",
             field_schema=models.PayloadSchemaType.KEYWORD
         )
+        if is_user_doc:
+            try:
+                await asyncio.to_thread(
+                    QDRANT_CLIENT.create_payload_index,
+                    collection_name=name,
+                    field_name="doc_index",
+                    field_schema=models.PayloadSchemaType.INTEGER
+                )
+                print(f"[RAG] Created payload index for doc_index in user doc collection {name}")
+            except Exception as e:
+                if "already exists" not in str(e).lower():
+                    print(f"[RAG] Note: Could not create index for 'doc_index': {e}")
         if is_kb:
             try:
                 await asyncio.to_thread(
@@ -531,7 +580,19 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
                 if "already exists" not in str(e).lower():
                     print(f"[RAG] Note: Could not create index for 'file_url': {e}")
         else:
-            print(f"[RAG] Created payload indexes for doc_id, filename, and file_type in collection {name}")
+            print(f"[RAG] Created payload indexes for doc_id, filename, file_type, and doc_index in collection {name}")
+    elif is_user_doc:
+        try:
+            await asyncio.to_thread(
+                QDRANT_CLIENT.create_payload_index,
+                collection_name=name,
+                field_name="doc_index",
+                field_schema=models.PayloadSchemaType.INTEGER
+            )
+            print(f"[RAG] Created doc_index index for existing user doc collection {name}")
+        except Exception as e:
+            if "already exists" not in str(e).lower():
+                print(f"[RAG] Note: Could not create index for 'doc_index': {e}")
     elif is_kb:
         try:
             await asyncio.to_thread(
@@ -565,6 +626,8 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
         }
         if is_kb:
             payload["file_url"] = d.metadata.get("file_url", "")
+        if is_user_doc and d.metadata.get("doc_index"):
+            payload["doc_index"] = d.metadata.get("doc_index")
         points.append(
             models.PointStruct(
                 id=str(uuid.uuid4()),
@@ -573,11 +636,13 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
             )
         )
     
-    await asyncio.to_thread(
-        QDRANT_CLIENT.upsert,
-        collection_name=name,
-        points=points
-    )
+    for i in range(0, len(points), QDRANT_UPSERT_BATCH_SIZE):
+        batch = points[i:i + QDRANT_UPSERT_BATCH_SIZE]
+        await asyncio.to_thread(
+            QDRANT_CLIENT.upsert,
+            collection_name=name,
+            points=batch
+        )
     if is_hybrid:
         tokenized_docs = [tokenize(doc.page_content) for doc in chunked_docs]
         bm25 = await asyncio.to_thread(BM25Okapi, tokenized_docs)
@@ -1268,6 +1333,286 @@ Respond with a JSON object:
                 "selected_image_indices": [],
                 "reasoning": f"Fallback: no images available (error: {str(e)})"
             }
+async def intelligent_document_selection(
+    user_query: str,
+    newly_uploaded_docs_metadata: List[Dict[str, Any]],
+    session_id: str,
+    uploaded_docs: Optional[List[Dict[str, Any]]] = None,
+    conversation_history: Optional[List[Dict[str, Any]]] = None,
+    llm_model: str = "gpt-4o-mini"
+) -> Dict[str, Any]:
+    """
+    Use LLM to intelligently decide which documents to use based on:
+    - All available documents in the session (from Qdrant)
+    - Newly uploaded documents in metadata
+    - Previously uploaded documents from state (for follow-up queries)
+    - Conversation history (last turn)
+    - User query (semantic understanding of document references)
+    
+    Returns:
+        {
+            "use_new_docs_only": bool,
+            "selected_doc_ids": List[str],
+            "selected_doc_indices": List[int],
+            "reasoning": str
+        }
+    """
+    new_docs = [doc for doc in newly_uploaded_docs_metadata if doc.get("file_type") != "image"]
+    new_doc_ids = [doc.get("id") for doc in new_docs if doc.get("id")]
+    previously_uploaded_docs = []
+    if uploaded_docs:
+        previously_uploaded_docs = [
+            doc for doc in uploaded_docs 
+            if isinstance(doc, dict) and doc.get("file_type") != "image"
+        ]
+    all_docs_info = []
+    try:
+        collection_name = f"user_docs_{session_id}"
+        scroll_out, _ = await asyncio.to_thread(
+            QDRANT_CLIENT.scroll,
+            collection_name=collection_name,
+            limit=1000
+        )
+        # Get unique documents by doc_id
+        seen_doc_ids = set()
+        for point in scroll_out:
+            payload = point.payload or {}
+            doc_id = payload.get("doc_id")
+            if doc_id and doc_id not in seen_doc_ids:
+                seen_doc_ids.add(doc_id)
+                all_docs_info.append({
+                    "id": doc_id,
+                    "filename": payload.get("filename", "unknown"),
+                    "doc_index": payload.get("doc_index", 0),
+                    "file_type": payload.get("file_type", "unknown"),
+                    "is_newly_uploaded": doc_id in new_doc_ids if new_doc_ids else False
+                })
+        all_docs_info.sort(key=lambda x: x.get("doc_index", 0))
+    except Exception as e:
+        print(f"[DOC-ORCHESTRATOR] Error getting all documents from Qdrant: {e}")
+        all_docs_info = []
+    
+    if not all_docs_info:
+        if new_docs:
+            all_docs_info = [
+                {
+                    "id": doc.get("id", ""),
+                    "filename": doc.get("filename", "unknown"),
+                    "doc_index": i + 1,
+                    "file_type": doc.get("file_type", "unknown"),
+                    "is_newly_uploaded": True
+                }
+                for i, doc in enumerate(new_docs)
+            ]
+        elif previously_uploaded_docs:
+            all_docs_info = [
+                {
+                    "id": doc.get("id", ""),
+                    "filename": doc.get("filename", "unknown"),
+                    "doc_index": i + 1,
+                    "file_type": doc.get("file_type", "unknown"),
+                    "is_newly_uploaded": False
+                }
+                for i, doc in enumerate(previously_uploaded_docs)
+            ]
+    
+    if not all_docs_info and not new_docs and not previously_uploaded_docs:
+        return {
+            "use_new_docs_only": False,
+            "selected_doc_ids": [],
+            "selected_doc_indices": [],
+            "reasoning": "No documents found in session"
+        }
+    
+    is_followup = not new_docs and (bool(all_docs_info) or bool(previously_uploaded_docs))
+    conversation_context = ""
+    if conversation_history:
+        last_turn = []
+        for msg in conversation_history[-2:]:
+            role = (msg.get("type") or msg.get("role") or "").lower()
+            content = msg.get("content", "")
+            if content:
+                speaker = "User" if role in ("human", "user") else "Assistant"
+                if len(content) > 500:
+                    content = content[:500] + "..."
+                last_turn.append(f"{speaker}: {content}")
+        if last_turn:
+            conversation_context = "\n".join(last_turn)
+    
+    all_docs_context = ""
+    if all_docs_info:
+        all_docs_context = "\n".join([
+            f"- Document {doc['doc_index']}: {doc['filename']} ({doc['file_type']}) (ID: {doc['id']})"
+            + (" [NEWLY UPLOADED]" if doc.get("is_newly_uploaded") else "")
+            for doc in all_docs_info
+        ])
+    
+    new_docs_context = ""
+    if new_docs:
+        new_docs_context = "\n".join([
+            f"- Document {i+1}: {doc.get('filename', 'unknown')} ({doc.get('file_type', 'unknown')}) (ID: {doc.get('id', 'unknown')})"
+            for i, doc in enumerate(new_docs)
+        ])
+    
+    previously_uploaded_context = ""
+    if previously_uploaded_docs and not all_docs_info:
+        previously_uploaded_context = "\n".join([
+            f"- Document {i+1}: {doc.get('filename', 'unknown')} ({doc.get('file_type', 'unknown')}) (ID: {doc.get('id', 'unknown')})"
+            for i, doc in enumerate(previously_uploaded_docs)
+        ])
+    
+    classification_prompt = f"""You are an intelligent document selection orchestrator. Your task is to analyze the user's query and determine which documents from the session should be used to answer it.
+
+**User Query:** "{user_query}"
+
+**Is Follow-up Query:** {is_followup} (No new documents uploaded in this turn, but documents exist in session)
+
+**Previous Conversation (Last Turn):**
+{conversation_context if conversation_context else "No previous conversation in this context."}
+
+**All Available Documents in Session (ordered by upload time):**
+{all_docs_context if all_docs_context else "No documents in Qdrant collection."}
+
+**Newly Uploaded Documents (just uploaded in this turn):**
+{new_docs_context if new_docs_context else "No new documents uploaded in this turn."}
+
+**Previously Uploaded Documents (from session metadata):**
+{previously_uploaded_context if previously_uploaded_context else "No previously uploaded documents metadata available."}
+
+**Your Task:**
+Analyze the user query semantically, considering the conversation context, to understand which documents they are referring to. Consider:
+
+1. **Temporal References:**
+   - "previous document", "last document", "earlier document", "before" → refers to the document uploaded before the current/newest one
+   - "first document", "initial document" → refers to the earliest uploaded document (doc_index: 1)
+   - "latest document", "newest document", "current document", "this document" (when context suggests current upload) → refers to the most recently uploaded document
+
+2. **Ordinal References:**
+   - "first document", "document 1" → doc_index: 1
+   - "second document", "document 2" → doc_index: 2
+   - "third document", "document 3" → doc_index: 3
+   - And so on...
+
+3. **Filename References:**
+   - If the query mentions a specific filename → select that document
+   - If the query mentions file type (e.g., "the PDF", "the Word document") → select documents matching that type
+
+4. **Demonstrative References:**
+   - "this document" (when no context) → typically refers to newly uploaded documents, or the last discussed document in follow-up
+   - "that document" → may refer to a previously mentioned or uploaded document
+   - "these documents" → typically refers to multiple newly uploaded documents, or all documents in follow-up
+
+5. **Comparison Queries:**
+   - "compare this document with the previous document" → use the newest document AND the one before it
+   - "compare document 1 and document 2" → use documents with indices 1 and 2
+   - "compare the first and last documents" → use doc_index: 1 and the highest doc_index
+
+6. **Generic Queries:**
+   - "analyze this document", "summarize this document", "what's in this document" (when documents were just uploaded) → use ALL newly uploaded documents
+   - "analyze the documents", "summarize the documents" → use ALL newly uploaded documents if available, otherwise all documents
+   - For follow-up queries without explicit document reference → use documents from conversation context or all available documents
+
+7. **Follow-up Queries:**
+   - If the query is a follow-up (like "tell me more", "elaborate", "what else") AND documents were just uploaded → use the newly uploaded documents
+   - If the query is a follow-up AND no new documents were uploaded → use documents from the previous conversation context
+   - If the query explicitly references a specific document → use only that document
+   - If the query references "previous document" in a follow-up context → look at the conversation history to understand which document was discussed
+
+8. **Context-Aware Selection:**
+   - Use the previous conversation to understand what documents were discussed
+   - If the previous turn mentioned specific documents, use those for follow-up queries
+   - If the query says "compare this document with the previous document" and there's conversation context, use the documents from the conversation context
+   - For follow-up queries, prioritize documents that were mentioned in the previous conversation
+
+**Decision Logic:**
+- If the query explicitly references specific documents (by number, temporal reference, filename, or comparison), select ONLY those documents.
+- If the query is generic and documents were just uploaded, use ALL newly uploaded documents.
+- If the query is a follow-up and no new documents were uploaded, use documents from conversation context or all available documents.
+- If the query doesn't mention documents explicitly but documents were just uploaded, use ALL newly uploaded documents.
+- Always prioritize newly uploaded documents for generic queries unless the query explicitly references older documents.
+- For follow-up queries, consider the conversation context to determine which documents were previously discussed.
+
+**Output Format:**
+Respond with a JSON object:
+{{
+    "use_new_docs_only": true/false,
+    "selected_doc_ids": ["id1", "id2"] or [],
+    "selected_doc_indices": [1, 2] or [],
+    "reasoning": "Clear explanation of your decision based on the query semantics and conversation context"
+}}
+
+**Important:**
+- selected_doc_ids should contain the actual IDs from the "All Available Documents" list above, or from "Previously Uploaded Documents" if Qdrant is empty
+- selected_doc_indices should be 1-based indices (doc_index values)
+- If you want to use all newly uploaded documents, set selected_doc_ids to all new document IDs
+- If you want specific documents, set selected_doc_ids to those specific IDs only
+- Be precise: if the query says "previous document", find the document that was uploaded just before the newest one
+- Use conversation context to understand what "this document" or "that document" refers to in follow-up queries
+- For follow-up queries, if no specific document is mentioned, use documents from the conversation context
+"""
+
+    try:
+        llm = ChatGroq(
+            model="openai/gpt-oss-120b",
+            temperature=0.2,
+            groq_api_key=os.getenv("GROQ_API_KEY")
+        )
+        response = await llm.ainvoke([HumanMessage(content=classification_prompt)])
+        
+        import json
+        import re
+        content = response.content.strip()
+        if content.startswith('```json'):
+            content = re.sub(r'^```json\s*', '', content)
+        if content.endswith('```'):
+            content = re.sub(r'\s*```$', '', content)
+        
+        result = json.loads(content)
+        available_ids = {doc["id"] for doc in all_docs_info if doc.get("id")}
+
+        if not available_ids and previously_uploaded_docs:
+            available_ids = {doc.get("id") for doc in previously_uploaded_docs if doc.get("id")}
+        
+        if result.get("selected_doc_ids"):
+            result["selected_doc_ids"] = [
+                doc_id for doc_id in result["selected_doc_ids"] 
+                if doc_id in available_ids
+            ]
+        if not result.get("selected_doc_ids") and result.get("selected_doc_indices"):
+            index_to_id = {doc["doc_index"]: doc["id"] for doc in all_docs_info if doc.get("id") and doc.get("doc_index")}
+            if not index_to_id and previously_uploaded_docs:
+                index_to_id = {i + 1: doc.get("id") for i, doc in enumerate(previously_uploaded_docs) if doc.get("id")}
+            result["selected_doc_ids"] = [
+                index_to_id[idx] for idx in result["selected_doc_indices"] 
+                if idx in index_to_id
+            ]
+        
+        print(f"[DOC-ORCHESTRATOR] Decision: {result.get('reasoning', 'No reasoning provided')}")
+        return result
+    except Exception as e:
+        print(f"[DOC-ORCHESTRATOR] Parse error: {e}, defaulting to all new documents or all available documents")
+        if new_doc_ids:
+            return {
+                "use_new_docs_only": True,
+                "selected_doc_ids": new_doc_ids,
+                "selected_doc_indices": list(range(1, len(new_docs) + 1)) if new_docs else [],
+                "reasoning": f"Fallback: using all newly uploaded documents (error: {str(e)})"
+            }
+        elif all_docs_info:
+            return {
+                "use_new_docs_only": False,
+                "selected_doc_ids": [doc["id"] for doc in all_docs_info if doc.get("id")],
+                "selected_doc_indices": [doc["doc_index"] for doc in all_docs_info if doc.get("doc_index")],
+                "reasoning": f"Fallback: using all available documents (error: {str(e)})"
+            }
+        else:
+            return {
+                "use_new_docs_only": False,
+                "selected_doc_ids": [],
+                "selected_doc_indices": [],
+                "reasoning": f"Fallback: no documents available (error: {str(e)})"
+            }
+
 async def is_summarization_query(user_query: str) -> bool:
     """
     Detect if the query asks for summarization of the entire document.
@@ -1706,14 +2051,17 @@ You are writing the final comprehensive summary of a structured document.
 
 
 
-async def _process_user_docs(state, docs, user_query, rag):
+async def _process_user_docs(state, docs, user_query, rag, filter_doc_ids: Optional[List[str]] = None, filter_doc_indices: Optional[List[int]] = None):
     """
     Process user documents - ONLY vector search (embeddings pre-processed on upload)
+    Now supports intelligent filtering by document IDs or indices (similar to images)
     """
     session_id = state.get("session_id", "default")
     
     await send_status_update(state, "🔍 Searching user documents...", 50)
     
+    await cleanup_expired_user_docs(session_id)
+
     redis_client = await ensure_redis_client()
     cache_data = {}
     if redis_client:
@@ -1725,8 +2073,30 @@ async def _process_user_docs(state, docs, user_query, rag):
     collection_name = cache_data["collection_name"]
     is_hybrid = cache_data.get("is_hybrid", "False").lower() == "true"
     
+    # Map indices to IDs if needed
+    if filter_doc_indices and not filter_doc_ids:
+        try:
+            scroll_out, _ = await asyncio.to_thread(
+                QDRANT_CLIENT.scroll,
+                collection_name=collection_name,
+                limit=1000
+            )
+            index_to_id_map = {}
+            for point in scroll_out:
+                payload = point.payload or {}
+                doc_id = payload.get("doc_id")
+                doc_index = payload.get("doc_index")
+                if doc_id and doc_index:
+                    index_to_id_map[doc_index] = doc_id
+            
+            filter_doc_ids = [index_to_id_map[idx] for idx in filter_doc_indices if idx in index_to_id_map]
+            print(f"[DOC-SEARCH] Mapped indices {filter_doc_indices} to IDs: {filter_doc_ids}")
+        except Exception as e:
+            print(f"[DOC-SEARCH] Error mapping indices to IDs: {e}")
+            filter_doc_ids = None
+    
     # Diversified per-document retrieval to ensure coverage from each uploaded doc
-    async def _search_per_doc(collection_name: str, query: str, per_doc: int = 3, max_candidates: int = 200, max_docs: int = 10) -> List[Dict[str, Any]]:
+    async def _search_per_doc(collection_name: str, query: str, per_doc: int = 3, max_candidates: int = 200, max_docs: int = 10, filter_doc_ids: Optional[List[str]] = None) -> List[Dict[str, Any]]:
         # Check if collection exists before searching
         try:
             collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
@@ -1740,12 +2110,32 @@ async def _process_user_docs(state, docs, user_query, rag):
         
         try:
             query_embedding = await embed_query(query)
-            candidates = await asyncio.to_thread(
-                QDRANT_CLIENT.search,
-                collection_name=collection_name,
-                query_vector=query_embedding,
-                limit=max_candidates
-            )
+            
+            # If filtering by doc IDs, search with filter
+            if filter_doc_ids:
+                query_filter = models.Filter(
+                    must=[
+                        models.FieldCondition(
+                            key="doc_id",
+                            match=models.MatchAny(any=filter_doc_ids)
+                        )
+                    ]
+                )
+                candidates = await asyncio.to_thread(
+                    QDRANT_CLIENT.search,
+                    collection_name=collection_name,
+                    query_vector=query_embedding,
+                    limit=max_candidates,
+                    query_filter=query_filter
+                )
+                print(f"[PER-DOC-SEARCH] Filtered search by doc_ids: {filter_doc_ids}")
+            else:
+                candidates = await asyncio.to_thread(
+                    QDRANT_CLIENT.search,
+                    collection_name=collection_name,
+                    query_vector=query_embedding,
+                    limit=max_candidates
+                )
         except Exception as e:
             print(f"[PER-DOC-SEARCH] Error searching collection: {e}")
             return []
@@ -1758,6 +2148,9 @@ async def _process_user_docs(state, docs, user_query, rag):
             if did in seen:
                 continue
             seen.add(did)
+            # If filtering, only include selected docs
+            if filter_doc_ids and did not in filter_doc_ids:
+                continue
             doc_keys.append((did, pl.get("filename") or "unknown", pl.get("file_type") or "unknown"))
             if len(doc_keys) >= max_docs:
                 break
@@ -1782,13 +2175,52 @@ async def _process_user_docs(state, docs, user_query, rag):
         per_doc_results = await asyncio.gather(*[fetch_for_doc(*t) for t in doc_keys])
         return [r for r in per_doc_results if r.get("chunks")]
 
-    per_doc_sets = await _search_per_doc(collection_name, user_query, per_doc=3, max_candidates=200, max_docs=10)
+    per_doc_sets = await _search_per_doc(collection_name, user_query, per_doc=3, max_candidates=200, max_docs=10, filter_doc_ids=filter_doc_ids)
     if not per_doc_sets:
-        # Fallback to previous behavior
-        if is_hybrid:
-            res = await _hybrid_search_rrf(collection_name, user_query, limit=20, k=60)
+        # Fallback to previous behavior with filtering
+        if filter_doc_ids:
+            query_filter = models.Filter(
+                must=[
+                    models.FieldCondition(
+                        key="doc_id",
+                        match=models.MatchAny(any=filter_doc_ids)
+                    )
+                ]
+            )
+            if is_hybrid:
+                # For hybrid, we need to search with filter
+                try:
+                    query_embedding = await embed_query(user_query)
+                    vector_results = await asyncio.to_thread(
+                        QDRANT_CLIENT.search,
+                        collection_name=collection_name,
+                        query_vector=query_embedding,
+                        limit=20,
+                        query_filter=query_filter
+                    )
+                    res = [result.payload["text"] for result in vector_results]
+                except Exception as e:
+                    print(f"[DOC-SEARCH] Error in filtered hybrid search: {e}")
+                    res = []
+            else:
+                try:
+                    query_embedding = await embed_query(user_query)
+                    search_results = await asyncio.to_thread(
+                        QDRANT_CLIENT.search,
+                        collection_name=collection_name,
+                        query_vector=query_embedding,
+                        limit=20,
+                        query_filter=query_filter
+                    )
+                    res = [result.payload["text"] for result in search_results]
+                except Exception as e:
+                    print(f"[DOC-SEARCH] Error in filtered search: {e}")
+                    res = []
         else:
-            res = await _search_collection(collection_name, user_query, limit=20)
+            if is_hybrid:
+                res = await _hybrid_search_rrf(collection_name, user_query, limit=20, k=60)
+            else:
+                res = await _search_collection(collection_name, user_query, limit=20)
         return ("user", res)
 
     # Build grouped blocks with filename/type headers
@@ -1959,12 +2391,21 @@ async def Rag(state: GraphState) -> GraphState:
             )
         )
         parallel_tasks.append(("image_selection", image_selection_task))
-
+        
+        # Add document selection task (similar to image selection)
+        doc_selection_task = None
         if has_user_docs:
-            user_search_task = asyncio.create_task(
-                _process_user_docs(state, docs, user_query, rag)
+            doc_selection_task = asyncio.create_task(
+                intelligent_document_selection(
+                    user_query=user_query,
+                    newly_uploaded_docs_metadata=newly_uploaded_docs_metadata,
+                    session_id=session_id,
+                    uploaded_docs=state.get("uploaded_docs", []),  # Pass previously uploaded docs
+                    conversation_history=conversation_history,  # Pass conversation history
+                    llm_model=llm_model
+                )
             )
-            parallel_tasks.append(("user_search", user_search_task))
+            parallel_tasks.append(("doc_selection", doc_selection_task))
 
         if has_kb:
             kb_search_task = asyncio.create_task(
@@ -1977,6 +2418,7 @@ async def Rag(state: GraphState) -> GraphState:
 
         source_decision = None
         image_selection_result = None
+        doc_selection_result = None
         user_result = []
         kb_result = []
         images_result = []
@@ -1991,10 +2433,57 @@ async def Rag(state: GraphState) -> GraphState:
                 source_decision = result
             elif task_name == "image_selection":
                 image_selection_result = result
-            elif task_name == "user_search" and isinstance(result, tuple) and len(result) == 2:
-                user_result = result[1]
+            elif task_name == "doc_selection":
+                doc_selection_result = result
             elif task_name == "kb_search" and isinstance(result, tuple) and len(result) == 2:
                 kb_result = result[1]
+        
+        # Now process user docs with intelligent filtering (after selection is done)
+        if has_user_docs and doc_selection_result:
+            filter_doc_ids = doc_selection_result.get("selected_doc_ids", [])
+            filter_doc_indices = doc_selection_result.get("selected_doc_indices", [])
+            print(f"[RAG] Document orchestrator decision: {doc_selection_result.get('reasoning')}")
+            print(f"[RAG] Filtering documents by IDs: {filter_doc_ids}, Indices: {filter_doc_indices}")
+            
+            # Map indices to IDs if needed
+            if not filter_doc_ids and filter_doc_indices:
+                try:
+                    collection_name = f"user_docs_{session_id}"
+                    scroll_out, _ = await asyncio.to_thread(
+                        QDRANT_CLIENT.scroll,
+                        collection_name=collection_name,
+                        limit=1000
+                    )
+                    index_to_id_map = {}
+                    for point in scroll_out:
+                        payload = point.payload or {}
+                        doc_id = payload.get("doc_id")
+                        doc_index = payload.get("doc_index")
+                        if doc_id and doc_index:
+                            index_to_id_map[doc_index] = doc_id
+                    
+                    for idx in filter_doc_indices:
+                        if idx in index_to_id_map:
+                            filter_doc_ids.append(index_to_id_map[idx])
+                    
+                    print(f"[RAG] Mapped document indices {filter_doc_indices} to IDs from Qdrant: {filter_doc_ids}")
+                except Exception as e:
+                    print(f"[RAG] Error mapping document indices to IDs from Qdrant: {e}")
+            
+            # Search with filters
+            user_search_result = await _process_user_docs(
+                state, docs, user_query, rag,
+                filter_doc_ids=filter_doc_ids if filter_doc_ids else None,
+                filter_doc_indices=filter_doc_indices if filter_doc_indices else None
+            )
+            if isinstance(user_search_result, tuple) and len(user_search_result) == 2:
+                user_result = user_search_result[1]
+        elif has_user_docs:
+            # Fallback: search all documents if selection failed
+            print(f"[RAG] Document selection failed or not available, searching all documents")
+            user_search_result = await _process_user_docs(state, docs, user_query, rag)
+            if isinstance(user_search_result, tuple) and len(user_search_result) == 2:
+                user_result = user_search_result[1]
 
         if image_selection_result:
             filter_ids = image_selection_result.get("selected_image_ids", [])

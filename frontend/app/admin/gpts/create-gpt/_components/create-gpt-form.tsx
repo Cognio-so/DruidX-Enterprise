@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTransition, useState } from "react";
-import { Loader2, Sparkle } from "lucide-react";
+import { AudioLines, Loader2, Sparkle, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -36,10 +36,17 @@ import DocsUploader from "./DocsUploader";
 import { PreviewGpt } from "./preview-gpt";
 import { ImageModelDialog } from "./ImageModelDialog";
 import { VideoModelDialog } from "./VideoModelDialog";
+import {
+  VoiceConfigDialog,
+  STT_PROVIDER_LABELS,
+  TTS_PROVIDER_LABELS,
+  type VoiceAgentConfig,
+} from "@/components/voice/voice-config-dialog";
 import { GptFormValues, gptSchema } from "@/lib/zodSchema";
 import { createGpt } from "../action";
 import { KnowledgeBase } from "@/data/get-knowledge-base";
 import { getModelIcon } from "@/components/brand-icons";
+import { usePromptEnhancer } from "@/hooks/usePromptEnhancer";
 
 interface CreateGptFormProps {
   knowledgeBases?: KnowledgeBase[];
@@ -69,6 +76,8 @@ export function CreateGptForm({ knowledgeBases = [] }: CreateGptFormProps) {
   const router = useRouter();
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const [videoDialogOpen, setVideoDialogOpen] = useState(false);
+  const [voiceDialogOpen, setVoiceDialogOpen] = useState(false);
+  const { enhanceInstructions, isEnhancing, cancelEnhancement } = usePromptEnhancer();
 
   const form = useForm<GptFormValues>({
     resolver: zodResolver(gptSchema),
@@ -85,11 +94,78 @@ export function CreateGptForm({ knowledgeBases = [] }: CreateGptFormProps) {
       video: false,
       imageModel: undefined,
       videoModel: undefined,
+      voiceAgentEnabled: false,
+      voiceAgentName: "",
+      voiceConfidenceThreshold: 0.4,
+      voiceSttProvider: undefined,
+      voiceSttModelId: undefined,
+      voiceSttModelName: undefined,
+      voiceTtsProvider: undefined,
+      voiceTtsModelId: undefined,
+      voiceTtsModelName: undefined,
     },
   });
 
   // Watch all form values for preview
   const formData = form.watch();
+  const voiceAgentEnabled = form.watch("voiceAgentEnabled");
+  const voiceAgentName = form.watch("voiceAgentName");
+  const voiceSttProvider = form.watch("voiceSttProvider");
+  const voiceSttModelId = form.watch("voiceSttModelId");
+  const voiceSttModelName = form.watch("voiceSttModelName");
+  const voiceTtsProvider = form.watch("voiceTtsProvider");
+  const voiceTtsModelId = form.watch("voiceTtsModelId");
+  const voiceTtsModelName = form.watch("voiceTtsModelName");
+  const voiceConfidenceThreshold = form.watch("voiceConfidenceThreshold");
+
+  const handleVoiceSave = (config: VoiceAgentConfig) => {
+    form.setValue("voiceAgentEnabled", true);
+    form.setValue("voiceAgentName", config.voiceAgentName);
+    form.setValue("voiceConfidenceThreshold", config.voiceConfidenceThreshold);
+    form.setValue("voiceSttProvider", config.voiceSttProvider ?? undefined);
+    form.setValue("voiceSttModelId", config.voiceSttModelId ?? undefined);
+    form.setValue("voiceSttModelName", config.voiceSttModelName ?? undefined);
+    form.setValue("voiceTtsProvider", config.voiceTtsProvider ?? undefined);
+    form.setValue("voiceTtsModelId", config.voiceTtsModelId ?? undefined);
+    form.setValue("voiceTtsModelName", config.voiceTtsModelName ?? undefined);
+  };
+
+  const handleVoiceReset = () => {
+    form.setValue("voiceAgentEnabled", false);
+    form.setValue("voiceAgentName", "");
+    form.setValue("voiceConfidenceThreshold", 0.4);
+    form.setValue("voiceSttProvider", undefined);
+    form.setValue("voiceSttModelId", undefined);
+    form.setValue("voiceSttModelName", undefined);
+    form.setValue("voiceTtsProvider", undefined);
+    form.setValue("voiceTtsModelId", undefined);
+    form.setValue("voiceTtsModelName", undefined);
+  };
+
+  const handleEnhanceInstructions = async () => {
+    try {
+      const currentInstructions = form.getValues("instructions");
+      await enhanceInstructions({
+        instructions: currentInstructions,
+        gptName: form.getValues("gptName"),
+        gptDescription: form.getValues("gptDescription"),
+        onChunk: (value) => {
+          form.setValue("instructions", value, {
+            shouldDirty: true,
+            shouldTouch: true,
+          });
+        },
+      });
+      toast.success("Instructions enhanced successfully.");
+    } catch (error: any) {
+      if (error?.name === "AbortError") {
+        toast("Prompt enhancement cancelled.");
+        return;
+      }
+      console.error("Prompt enhancement error:", error);
+      toast.error(error?.message || "Failed to enhance instructions.");
+    }
+  };
 
   const onSubmit = async (data: GptFormValues) => {
     startTransition(async () => {
@@ -176,33 +252,94 @@ export function CreateGptForm({ knowledgeBases = [] }: CreateGptFormProps) {
                   name="model"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Select Model</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <div className="flex items-center gap-2">
-                              {field.value && getModelIcon(field.value, "flex-shrink-0")}
-                              <SelectValue placeholder="Choose a model">
-                                {field.value 
-                                  ? GptModels.find(m => m.id === field.value)?.name || field.value
-                                  : "Choose a model"}
-                              </SelectValue>
-                            </div>
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-[400px] overflow-y-auto">
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 p-2">
-                            {GptModels.map((model) => (
-                              <SelectItem key={model.id} value={model.id} className="text-sm">
+                      <FormLabel className="m-0">Select Model</FormLabel>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                        <div className="flex-1">
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
                                 <div className="flex items-center gap-2">
-                                  {getModelIcon(model.id, "flex-shrink-0")}
-                                  <span>{model.name}</span>
+                                  {field.value && getModelIcon(field.value, "flex-shrink-0")}
+                                  <SelectValue placeholder="Choose a model">
+                                    {field.value 
+                                      ? GptModels.find(m => m.id === field.value)?.name || field.value
+                                      : "Choose a model"}
+                                  </SelectValue>
                                 </div>
-                              </SelectItem>
-                            ))}
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="max-h-[400px] overflow-y-auto">
+                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 p-2">
+                                {GptModels.map((model) => (
+                                  <SelectItem key={model.id} value={model.id} className="text-sm">
+                                    <div className="flex items-center gap-2">
+                                      {getModelIcon(model.id, "flex-shrink-0")}
+                                      <span>{model.name}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </div>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Button
+                          type="button"
+                          aria-label="Configure voice agent"
+                          onClick={() => setVoiceDialogOpen(true)}
+                          className="bg-[conic-gradient(at_top,_#22d3ee,_#a855f7,_#f97316,_#22d3ee)] px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:scale-[1.01] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/50 sm:w-auto"
+                        >
+                          <span className="flex items-center gap-2">
+                            <AudioLines className="size-4" />
+                            Voice-Agent
+                          </span>
+                        </Button>
+                      </div>
+                      {voiceAgentEnabled ? (
+                        <div className="mt-3 space-y-2 rounded-md border border-dashed p-3 text-xs text-muted-foreground">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-semibold text-primary">
+                              {voiceAgentName || "Voice Agent"}
+                            </span>
+                            {voiceSttProvider && voiceSttModelName && (
+                              <span>
+                                · STT{" "}
+                                {STT_PROVIDER_LABELS[
+                                  voiceSttProvider as keyof typeof STT_PROVIDER_LABELS
+                                ] || "—"}{" "}
+                                ({voiceSttModelName})
+                              </span>
+                            )}
+                            {voiceTtsProvider && voiceTtsModelName && (
+                              <span>
+                                · TTS{" "}
+                                {TTS_PROVIDER_LABELS[
+                                  voiceTtsProvider as keyof typeof TTS_PROVIDER_LABELS
+                                ] || "—"}{" "}
+                                ({voiceTtsModelName})
+                              </span>
+                            )}
                           </div>
-                        </SelectContent>
-                      </Select>
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span>
+                              Confidence:{" "}
+                              {(voiceConfidenceThreshold ?? 0.4).toFixed(2)}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleVoiceReset}
+                            >
+                              Clear voice agent
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="mt-3 text-xs text-muted-foreground">
+                          Configure the voice agent to pair STT and TTS providers
+                          for live calls.
+                        </p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -214,7 +351,36 @@ export function CreateGptForm({ knowledgeBases = [] }: CreateGptFormProps) {
                   name="instructions"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Instructions</FormLabel>
+                      <div className="flex items-center justify-between gap-3">
+                        <FormLabel className="mb-0">Instructions</FormLabel>
+                        <div className="flex items-center gap-2">
+                          {isEnhancing && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              onClick={cancelEnhancement}
+                            >
+                              Cancel
+                            </Button>
+                          )}
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={isEnhancing || isPending}
+                            onClick={handleEnhanceInstructions}
+                            className="bg-[conic-gradient(at_top,_#6ee7b7,_#3b82f6,_#9333ea,_#6ee7b7)] px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:scale-[1.01] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/50 sm:w-auto"
+                          >
+                            {isEnhancing ? (
+                              <Loader2 className="mr-2 size-4 animate-spin" />
+                            ) : (
+                              <Sparkles className="mr-2 size-4" />
+                            )}
+                            {isEnhancing ? "Enhancing..." : "Enhance Prompt"}
+                          </Button>
+                        </div>
+                      </div>
                       <FormControl>
                         <RichTextEditor
                           field={{
@@ -223,6 +389,11 @@ export function CreateGptForm({ knowledgeBases = [] }: CreateGptFormProps) {
                           }}
                         />
                       </FormControl>
+                      {isEnhancing && (
+                        <p className="text-xs text-muted-foreground">
+                          Enhancing instructions with GPT-4o mini...
+                        </p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -398,6 +569,23 @@ export function CreateGptForm({ knowledgeBases = [] }: CreateGptFormProps) {
             onSelect={(modelId) => {
               form.setValue("videoModel", modelId);
             }}
+          />
+
+          <VoiceConfigDialog
+            open={voiceDialogOpen}
+            onOpenChange={setVoiceDialogOpen}
+            value={{
+              voiceAgentEnabled: Boolean(voiceAgentEnabled),
+              voiceAgentName: voiceAgentName || "",
+              voiceConfidenceThreshold: voiceConfidenceThreshold ?? 0.4,
+              voiceSttProvider: (voiceSttProvider ?? null) as VoiceAgentConfig["voiceSttProvider"],
+              voiceSttModelId: voiceSttModelId ?? null,
+              voiceSttModelName: voiceSttModelName ?? null,
+              voiceTtsProvider: (voiceTtsProvider ?? null) as VoiceAgentConfig["voiceTtsProvider"],
+              voiceTtsModelId: voiceTtsModelId ?? null,
+              voiceTtsModelName: voiceTtsModelName ?? null,
+            }}
+            onSave={handleVoiceSave}
           />
         </form>
       </Form>

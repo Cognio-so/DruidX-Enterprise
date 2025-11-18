@@ -74,6 +74,15 @@ export async function getGptById(id: string) {
         videoEnabled: true,
         imageModel: true,
         videoModel: true,
+        voiceAgentEnabled: true,
+        voiceAgentName: true,
+        voiceConfidenceThreshold: true,
+        voiceSttProvider: true,
+        voiceSttModelId: true,
+        voiceSttModelName: true,
+        voiceTtsProvider: true,
+        voiceTtsModelId: true,
+        voiceTtsModelName: true,
         knowledgeBase: true,
         createdAt: true,
         updatedAt: true,
@@ -97,6 +106,15 @@ export async function getGptById(id: string) {
       videoEnabled: gpt.videoEnabled ?? false,
       imageModel: gpt.imageModel ?? null,
       videoModel: gpt.videoModel ?? null,
+      voiceAgentEnabled: gpt.voiceAgentEnabled ?? false,
+      voiceAgentName: gpt.voiceAgentName ?? null,
+      voiceConfidenceThreshold: gpt.voiceConfidenceThreshold ?? 0.4,
+      voiceSttProvider: gpt.voiceSttProvider ?? null,
+      voiceSttModelId: gpt.voiceSttModelId ?? null,
+      voiceSttModelName: gpt.voiceSttModelName ?? null,
+      voiceTtsProvider: gpt.voiceTtsProvider ?? null,
+      voiceTtsModelId: gpt.voiceTtsModelId ?? null,
+      voiceTtsModelName: gpt.voiceTtsModelName ?? null,
     };
 
     return {
@@ -126,6 +144,15 @@ export async function editGpt(data: {
   video: boolean;
   imageModel?: string;
   videoModel?: string;
+  voiceAgentEnabled?: boolean;
+  voiceAgentName?: string;
+  voiceConfidenceThreshold?: number;
+  voiceSttProvider?: string;
+  voiceSttModelId?: string;
+  voiceSttModelName?: string;
+  voiceTtsProvider?: string;
+  voiceTtsModelId?: string;
+  voiceTtsModelName?: string;
 }) {
   const session = await requireAdmin();
 
@@ -177,13 +204,21 @@ export async function editGpt(data: {
       videoEnabled: validatedData.video,
       imageModel: validatedData.imageModel || null,
       videoModel: validatedData.videoModel || null,
+      voiceAgentEnabled: validatedData.voiceAgentEnabled,
+      voiceAgentName: validatedData.voiceAgentName || null,
+      voiceConfidenceThreshold: validatedData.voiceConfidenceThreshold ?? null,
+      voiceSttProvider: validatedData.voiceSttProvider || null,
+      voiceSttModelId: validatedData.voiceSttModelId || null,
+      voiceSttModelName: validatedData.voiceSttModelName || null,
+      voiceTtsProvider: validatedData.voiceTtsProvider || null,
+      voiceTtsModelId: validatedData.voiceTtsModelId || null,
+      voiceTtsModelName: validatedData.voiceTtsModelName || null,
       knowledgeBase:
         validatedData.docs.length > 0
           ? JSON.stringify(validatedData.docs)
           : null,
     };
 
-    // Update by id only (we already verified ownership above)
     const gpt = await prisma.gpt.update({
       where: {
         id: data.id,

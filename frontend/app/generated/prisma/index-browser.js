@@ -187,6 +187,15 @@ exports.Prisma.GptScalarFieldEnum = {
   videoEnabled: 'videoEnabled',
   imageModel: 'imageModel',
   videoModel: 'videoModel',
+  voiceAgentEnabled: 'voiceAgentEnabled',
+  voiceAgentName: 'voiceAgentName',
+  voiceConfidenceThreshold: 'voiceConfidenceThreshold',
+  voiceSttProvider: 'voiceSttProvider',
+  voiceSttModelId: 'voiceSttModelId',
+  voiceSttModelName: 'voiceSttModelName',
+  voiceTtsProvider: 'voiceTtsProvider',
+  voiceTtsModelId: 'voiceTtsModelId',
+  voiceTtsModelName: 'voiceTtsModelName',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

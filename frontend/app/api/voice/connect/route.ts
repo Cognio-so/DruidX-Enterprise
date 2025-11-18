@@ -5,7 +5,7 @@ const BACKEND_URL = process.env.BACKEND_URL;
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { sessionId, gptId } = body;
+    const { sessionId, gptId, voiceConfig } = body;
 
     if (!sessionId) {
       return NextResponse.json(
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ sessionId, gptId }),
+        body: JSON.stringify({ sessionId, gptId, voiceConfig }),
       }
     );
 
