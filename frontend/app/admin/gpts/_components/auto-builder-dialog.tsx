@@ -477,7 +477,7 @@ export function AutoBuilderDialog({
         router.push('/admin/gpts');
         router.refresh();
       } else {
-        toast.error(result.error || 'Failed to create GPT');
+        toast.error(result.error || 'Failed to Create Agent');
       }
     } catch (error: any) {
       console.error('Error submitting form:', error);

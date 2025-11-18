@@ -31,22 +31,35 @@ export async function POST(req: NextRequest) {
       fileType.startsWith("application/msword") || 
       fileType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document") || 
       fileType.startsWith("text/markdown") || 
-      fileType.startsWith("application/json")
+      fileType.startsWith("application/json") ||
+      fileType.startsWith("text/plain") ||
+      fileType.startsWith("text/javascript") ||
+      fileType.startsWith("application/javascript") ||
+      fileType.startsWith("text/x-python") ||
+      fileType.startsWith("text/typescript") ||
+      fileType.startsWith("text/x-c++src") ||
+      fileType.startsWith("text/x-csrc") ||
+      fileType.startsWith("text/x-c") ||
+      fileType.startsWith("text/html") ||
+      fileType.startsWith("text/css")
     );
 
     // Check file extension as fallback (for files with empty or unrecognized MIME types)
     const fileNameLower = fileName.toLowerCase();
+    const codeExtensions = [".py", ".js", ".ts", ".tsx", ".jsx", ".cpp", ".c", ".cc", ".cxx", ".h", ".hpp", ".java", ".rb", ".go", ".rs", ".php", ".swift", ".kt", ".scala", ".sh", ".bash", ".zsh", ".fish", ".ps1", ".bat", ".cmd", ".html", ".htm", ".css"];
     const hasValidExtension = fileNameLower.endsWith(".md") ||
       fileNameLower.endsWith(".markdown") ||
       fileNameLower.endsWith(".pdf") ||
       fileNameLower.endsWith(".doc") ||
       fileNameLower.endsWith(".docx") ||
       fileNameLower.endsWith(".json") ||
+      fileNameLower.endsWith(".txt") ||
+      codeExtensions.some(ext => fileNameLower.endsWith(ext)) ||
       /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(fileName);
 
     if (!hasValidMimeType && !hasValidExtension) {
       return NextResponse.json(
-        { error: "Only images, PDFs, Word docs, Markdown, and JSON files allowed" },
+        { error: "Only images, PDFs, Word docs, Markdown, JSON, text files, code files (including HTML/CSS) allowed" },
         { status: 400 }
       );
     }
@@ -64,6 +77,22 @@ export async function POST(req: NextRequest) {
         contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
       } else if (fileNameLower.endsWith(".json")) {
         contentType = "application/json";
+      } else if (fileNameLower.endsWith(".txt")) {
+        contentType = "text/plain";
+      } else if (fileNameLower.endsWith(".html") || fileNameLower.endsWith(".htm")) {
+        contentType = "text/html";
+      } else if (fileNameLower.endsWith(".css")) {
+        contentType = "text/css";
+      } else if (fileNameLower.endsWith(".py")) {
+        contentType = "text/x-python";
+      } else if (fileNameLower.endsWith(".js") || fileNameLower.endsWith(".jsx")) {
+        contentType = "text/javascript";
+      } else if (fileNameLower.endsWith(".ts") || fileNameLower.endsWith(".tsx")) {
+        contentType = "text/typescript";
+      } else if (fileNameLower.endsWith(".cpp") || fileNameLower.endsWith(".cc") || fileNameLower.endsWith(".cxx") || fileNameLower.endsWith(".hpp")) {
+        contentType = "text/x-c++src";
+      } else if (fileNameLower.endsWith(".c") || fileNameLower.endsWith(".h")) {
+        contentType = "text/x-csrc";
       } else if (/\.(jpg|jpeg)$/i.test(fileName)) {
         contentType = "image/jpeg";
       } else if (fileNameLower.endsWith(".png")) {
@@ -74,6 +103,9 @@ export async function POST(req: NextRequest) {
         contentType = "image/webp";
       } else if (fileNameLower.endsWith(".svg")) {
         contentType = "image/svg+xml";
+      } else {
+        // Default to text/plain for other code files
+        contentType = "text/plain";
       }
     }
 

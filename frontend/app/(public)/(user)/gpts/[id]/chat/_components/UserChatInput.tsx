@@ -107,10 +107,10 @@ export default function ChatInput({
   const [composioTools, setComposioTools] = useState<string[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFileState[]>([]);
   const hasActiveUploads = uploadingFiles.some(
-    (file) => file.stage === "uploading" || file.stage === "processing"
+    (file) => file.stage === "processing"
   );
   const visibleUploadingFiles = uploadingFiles.filter(
-    (file) => file.stage === "uploading" || file.stage === "error"
+    (file) => file.stage === "processing" || file.stage === "error"
   );
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -194,7 +194,7 @@ export default function ChatInput({
     }
   };
 
-  const uploadToS3 = async (file: File, onProgress?: (progress: number) => void): Promise<string> => {
+  const uploadToS3 = async (file: File): Promise<string> => {
     const response = await fetch("/api/s3/upload", {
       method: "POST",
       headers: {
@@ -213,34 +213,20 @@ export default function ChatInput({
 
     const { uploadUrl, fileUrl } = await response.json();
 
-    // Use XMLHttpRequest for progress tracking
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-
-      xhr.upload.addEventListener("progress", (event) => {
-        if (event.lengthComputable && onProgress) {
-          const progress = Math.round((event.loaded / event.total) * 100);
-          onProgress(Math.min(progress, 95));
-        }
-      });
-
-      xhr.addEventListener("load", () => {
-        if (xhr.status === 200) {
-          if (onProgress) onProgress(100);
-          resolve(fileUrl);
-        } else {
-          reject(new Error("Upload failed"));
-        }
-      });
-
-      xhr.addEventListener("error", () => {
-        reject(new Error("Upload failed"));
-      });
-
-      xhr.open("PUT", uploadUrl);
-      xhr.setRequestHeader("Content-Type", file.type);
-      xhr.send(file);
+    // Upload to S3 without progress tracking
+    const uploadResponse = await fetch(uploadUrl, {
+      method: "PUT",
+      body: file,
+      headers: {
+        "Content-Type": file.type,
+      },
     });
+
+    if (!uploadResponse.ok) {
+      throw new Error("Upload failed");
+    }
+
+    return fileUrl;
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -254,7 +240,20 @@ export default function ChatInput({
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "text/markdown",
       "application/json",
+      "text/plain",
+      "text/javascript",
+      "application/javascript",
+      "text/x-python",
+      "text/typescript",
+      "text/x-c++src",
+      "text/x-csrc",
+      "text/x-c",
+      "text/html",
+      "text/css",
     ];
+
+    // Code file extensions including HTML and CSS
+    const codeExtensions = [".py", ".js", ".ts", ".tsx", ".jsx", ".cpp", ".c", ".cc", ".cxx", ".h", ".hpp", ".java", ".rb", ".go", ".rs", ".php", ".swift", ".kt", ".scala", ".sh", ".bash", ".zsh", ".fish", ".ps1", ".bat", ".cmd", ".html", ".htm", ".css"];
 
     // Check if total files exceed 5 (including already uploaded)
     const totalFiles = uploadedDocs.length + files.length;
@@ -271,8 +270,14 @@ export default function ChatInput({
     const validFiles: File[] = [];
 
     Array.from(files).forEach((file) => {
-      const isAllowed = allowedTypes.some(type => file.type.startsWith(type));
-      if (!isAllowed) {
+      const fileName = file.name.toLowerCase();
+      const isAllowedByType = allowedTypes.some(type => file.type.startsWith(type));
+      const isAllowedByExtension = codeExtensions.some(ext => fileName.endsWith(ext)) ||
+        fileName.endsWith(".md") || fileName.endsWith(".markdown") ||
+        fileName.endsWith(".pdf") || fileName.endsWith(".doc") || fileName.endsWith(".docx") ||
+        fileName.endsWith(".json") || fileName.endsWith(".txt");
+      
+      if (!isAllowedByType && !isAllowedByExtension) {
         invalidFiles.push(file.name);
       } else {
         validFiles.push(file);
@@ -280,7 +285,7 @@ export default function ChatInput({
     });
 
     if (invalidFiles.length > 0) {
-      toast.error(`The following files are not supported: ${invalidFiles.join(", ")}\n\nPlease upload PDF, Word document, Markdown, JSON, or image files only.`);
+      toast.error(`The following files are not supported: ${invalidFiles.join(", ")}\n\nPlease upload PDF, Word document, Markdown, JSON, code files (including HTML/CSS), or image files only.`);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -293,79 +298,104 @@ export default function ChatInput({
     const errors: string[] = [];
     const shouldAwaitBackend = typeof onDocumentUploaded === "function";
 
-    // Create uploading files state with unique IDs
-    const newUploadingFiles: UploadingFileState[] = validFiles.map((file) => ({
-      id: `${file.name}-${Date.now()}-${Math.random()}`,
-      file,
-      fileName: file.name,
-      fileType: file.type,
-      progress: 0,
-      stage: "uploading" as const,
-    }));
+    // Add files to uploading state immediately so they're visible
+    const newUploadingFiles: UploadingFileState[] = validFiles.map((file) => {
+      const uploadingFileId = `${file.name}-${Date.now()}-${Math.random()}`;
+      if (shouldAwaitBackend) {
+        successfulUploadIds.add(uploadingFileId);
+      }
+      return {
+        id: uploadingFileId,
+        fileName: file.name,
+        fileType: file.type,
+        progress: 0,
+        stage: "processing" as const,
+      };
+    });
 
-    setUploadingFiles(prev => [...prev, ...newUploadingFiles]);
+    if (shouldAwaitBackend) {
+      setUploadingFiles(prev => [...prev, ...newUploadingFiles]);
+    }
 
     try {
       // Upload files sequentially to avoid overwhelming the server
-      for (const uploadingFile of newUploadingFiles) {
+      for (let i = 0; i < validFiles.length; i++) {
+        const file = validFiles[i];
+        const uploadingFile = newUploadingFiles[i];
+        
         try {
-          const fileUrl = await uploadToS3(uploadingFile.file!, (progress) => {
-            setUploadingFiles(prev =>
-              prev.map(f =>
-                f.id === uploadingFile.id ? { ...f, progress } : f
-              )
-            );
-          });
+          // Upload to S3 without progress tracking
+          const fileUrl = await uploadToS3(file);
 
           const newDoc: UploadedDoc = {
             url: fileUrl,
-            filename: uploadingFile.fileName,
-            type: uploadingFile.fileType
+            filename: file.name,
+            type: file.type
           };
           uploadedDocsList.push(newDoc);
-          successfulUploadIds.add(uploadingFile.id);
 
-          setUploadingFiles(prev =>
-            prev.map(f =>
-              f.id === uploadingFile.id
-                ? {
-                    ...f,
-                    file: undefined,
-                    progress: shouldAwaitBackend ? Math.max(f.progress, 95) : 100,
-                    stage: shouldAwaitBackend ? "processing" : "completed",
-                  }
-                : f
-            )
-          );
-
-          if (!shouldAwaitBackend) {
-            setTimeout(() => {
-              setUploadingFiles(prev =>
-                prev.filter(f => f.id !== uploadingFile.id)
-              );
-            }, 1000);
-          }
+          // File is already in uploadingFiles state, just keep it in processing stage
         } catch (error) {
-          errors.push(uploadingFile.fileName);
-          console.error(`Failed to upload ${uploadingFile.fileName}:`, error);
-          setUploadingFiles(prev =>
-            prev.map(f =>
-              f.id === uploadingFile.id
-                ? { ...f, stage: "error" }
-                : f
-            )
-          );
+          errors.push(file.name);
+          console.error(`Failed to upload ${file.name}:`, error);
+          // Update error state for the file
+          if (shouldAwaitBackend && uploadingFile) {
+            setUploadingFiles(prev =>
+              prev.map(f =>
+                f.id === uploadingFile.id
+                  ? { ...f, stage: "error" as const }
+                  : f
+              )
+            );
+          }
         }
       }
 
       if (uploadedDocsList.length > 0) {
         if (shouldAwaitBackend) {
-          await onDocumentUploaded?.(uploadedDocsList);
+          // Simulate progress updates during backend processing
+          const progressSteps = [20, 50, 70];
+          let currentStep = 0;
+          let progressInterval: NodeJS.Timeout | null = null;
+          
+          // Start progress simulation
+          const startProgressSimulation = () => {
+            progressInterval = setInterval(() => {
+              if (currentStep < progressSteps.length) {
+                const progress = progressSteps[currentStep];
+                setUploadingFiles(prev =>
+                  prev.map(f =>
+                    successfulUploadIds.has(f.id)
+                      ? { ...f, progress }
+                      : f
+                  )
+                );
+                currentStep++;
+              } else {
+                // If we've reached the last step, keep it at 70% until backend completes
+                if (progressInterval) {
+                  clearInterval(progressInterval);
+                  progressInterval = null;
+                }
+              }
+            }, 600); // Update every 600ms
+          };
+
+          startProgressSimulation();
+
+          try {
+            await onDocumentUploaded?.(uploadedDocsList);
+          } finally {
+            if (progressInterval) {
+              clearInterval(progressInterval);
+            }
+          }
         }
 
         setUploadedDocs(prev => mergeUploadedDocs(prev, uploadedDocsList));
 
         if (shouldAwaitBackend) {
+          // Set to 100% when processing completes
           setUploadingFiles(prev =>
             prev.map(f =>
               successfulUploadIds.has(f.id)
@@ -409,7 +439,17 @@ export default function ChatInput({
     if (type === 'application/pdf') return '📄';
     if (type.includes('word') || type.includes('document')) return '📝';
     if (type === 'text/markdown') return '📋';
-    if (type === 'application/json') return '📊';
+    if (type === 'application/json') return '��';
+    if (type === 'text/plain') return '��';
+    if (type === 'text/javascript') return '��';
+    if (type === 'application/javascript') return '��';
+    if (type === 'text/x-python') return '��';
+    if (type === 'text/typescript') return '��';
+    if (type === 'text/x-c++src') return '��';
+    if (type === 'text/x-csrc') return '��';
+    if (type === 'text/x-c') return '��';
+    if (type === 'text/html') return '��';
+    if (type === 'text/css') return '��';
     return '📄';
   };
 
@@ -419,6 +459,16 @@ export default function ChatInput({
     if (type.includes('word') || type.includes('document')) return 'Word';
     if (type === 'text/markdown') return 'Markdown';
     if (type === 'application/json') return 'JSON';
+    if (type === 'text/plain') return 'Plain Text';
+    if (type === 'text/javascript') return 'JavaScript';
+    if (type === 'application/javascript') return 'JavaScript';
+    if (type === 'text/x-python') return 'Python';
+    if (type === 'text/typescript') return 'TypeScript';
+    if (type === 'text/x-c++src') return 'C++';
+    if (type === 'text/x-csrc') return 'C';
+    if (type === 'text/x-c') return 'C';
+    if (type === 'text/html') return 'HTML';
+    if (type === 'text/css') return 'CSS';
     return 'File';
   };
 
@@ -462,7 +512,7 @@ export default function ChatInput({
                     />
                   </div>
                   <span className="text-xs text-muted-foreground min-w-[35px]">
-                    {uploadingFile.stage === "uploading"
+                    {uploadingFile.stage === "processing"
                       ? `${uploadingFile.progress}%`
                       : getUploadStatusLabel(uploadingFile.stage)}
                   </span>
@@ -606,7 +656,7 @@ export default function ChatInput({
               ref={fileInputRef}
               type="file"
               multiple
-              accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,application/json"
+              accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,application/json,text/plain,text/javascript,application/javascript,text/x-python,text/typescript,text/x-c++src,text/x-csrc,text/x-c,text/html,text/css,.py,.js,.ts,.tsx,.jsx,.cpp,.c,.cc,.cxx,.h,.hpp,.java,.rb,.go,.rs,.php,.swift,.kt,.scala,.sh,.bash,.zsh,.fish,.ps1,.bat,.cmd,.html,.htm,.css"
               onChange={handleFileUpload}
               className="hidden"
             />
