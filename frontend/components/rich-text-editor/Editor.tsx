@@ -1,11 +1,30 @@
 "use client";
 
+import { useEffect } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StaterKit from "@tiptap/starter-kit";
 import { MenuBar } from "./MenuBar";
 import TextAlign from "@tiptap/extension-text-align";
 
-export function RichTextEditor({ field }: { field: { value?: string; onChange: (value: string) => void } }) {
+function toHtmlContent(value?: string) {
+  if (!value) {
+    return "<p></p>";
+  }
+
+  const sanitized = value
+    .split("\n")
+    .map((line) => line || "&nbsp;")
+    .map((line) => `<p>${line}</p>`)
+    .join("");
+
+  return sanitized || "<p></p>";
+}
+
+export function RichTextEditor({
+  field,
+}: {
+  field: { value?: string; onChange: (value: string) => void };
+}) {
   const editor = useEditor({
     extensions: [
       StaterKit,
@@ -26,9 +45,23 @@ export function RichTextEditor({ field }: { field: { value?: string; onChange: (
       field.onChange(plainText);
     },
 
-    content: field.value || "<p>Hello World!</p>",
+    content: toHtmlContent(field.value),
     immediatelyRender: false,
   });
+
+  useEffect(() => {
+    if (!editor) return;
+
+    const incoming = field.value ?? "";
+    const current = editor.getText();
+
+    if (incoming === current) {
+      return;
+    }
+
+    editor.commands.setContent(toHtmlContent(incoming));
+
+  }, [editor, field.value]);
 
   return (
     <div className="w-full border border-input rounded-lg overflow-hidden dark:bg-input/30">

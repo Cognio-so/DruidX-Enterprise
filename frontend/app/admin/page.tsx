@@ -1,9 +1,9 @@
 import { buttonVariants } from "@/components/ui/button";
-import { PlusIcon, SparkleIcon } from "lucide-react";
 import Link from "next/link";
 import { DashboardOverviewSSR } from "./_components/dashboard-overview-ssr";
 import { getAdminDashboardSSR } from "@/data/get-admin-dashboard-ssr";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { BsStars } from "react-icons/bs";
 
 export default async function AdminPage() {
   const data = await getAdminDashboardSSR();
@@ -24,7 +24,7 @@ export default async function AdminPage() {
               className: "inline-flex items-center gap-2 w-full sm:w-auto justify-center md:flex-shrink-0",
             })}
           >
-            <SparkleIcon className="w-4 h-4  text-white" />
+            <BsStars className="size-4" />
             Create Agent
           </Link>
         </div>
