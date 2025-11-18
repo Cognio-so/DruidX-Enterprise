@@ -38,7 +38,7 @@ export function GptsPageClient() {
             variant="outline"
             className="w-full sm:w-auto"
           >
-            <Sparkles className="w-4 h-4 mr-2" />
+            <Sparkles className="w-4 h-4 mr-2 text-primary" />
             <span className="hidden sm:inline">Auto-Build Agents</span>
             <span className="sm:hidden">Auto-Build</span>
           </Button>
