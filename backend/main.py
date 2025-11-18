@@ -1316,8 +1316,9 @@ async def voice_connect(request: dict):
     gpt_id = request.get("gptId")
 
     gpt_config=session.get("gpt_config", {}) if session_id else {}
-    tts=gpt_config.get("voiceTtsModelId", "nova-3")
-    stt=gpt_config.get("voiceSttModelId", "aura-2-ophelia-en")
+    tts=gpt_config.get("voiceTtsModelId", "aura-2-ophelia-en")
+    stt=gpt_config.get("voiceSttModelId", "nova-3")
+    activationThreshold=gpt_config.get("voiceConfidenceThreshold", 0.5)
     openai_model = "gpt-4.1-nano"
     stt_model = stt
     tts_model = tts
@@ -1339,6 +1340,7 @@ async def voice_connect(request: dict):
                 "stt_model": stt_model,
                 "tts_model": tts_model,
                 "instructions": instructions,
+                "activation_threshold": activationThreshold
             }
             config_key = f"voice_config:{session_id}"
             await redis_client.set(config_key, json.dumps(voice_config), ex=3600) # 1-hour expiry

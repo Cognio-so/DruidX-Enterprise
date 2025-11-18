@@ -135,9 +135,10 @@ class VoiceAssistant:
         tools: List[Callable] = None,
         openai_model: str = "gpt-4.1-nano",
         stt_model: str = "nova-3",
-        tts_model: str = "f786b574-daa5-4673-aa0c-cbe3e8534c02", 
+        tts_model: str = "aura-2-ophelia-en", 
         initial_greeting: str = "Greet the user warmly, introduce yourself as a voice assistant, and offer your assistance.",
         enable_parallel_tts: bool = False,
+        activation_threshold: float = 0.5,
     ):
         if instructions is None:
             current_date = date.today().strftime("%B %d, %Y")
@@ -154,6 +155,7 @@ class VoiceAssistant:
         self.tts_model = tts_model
         self.initial_greeting = initial_greeting
         self.enable_parallel_tts = enable_parallel_tts
+        self.activation_threshold = activation_threshold
 
         current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -312,19 +314,19 @@ class VoiceAssistant:
             tts_plugin = hume.TTS(voice=hume.VoiceByName(name=self.tts_model, provider=hume.VoiceProvider.hume), api_key=os.getenv("HUME_API_KEY"))
             logger.info(f"Using Hume TTS plugin with voice from main.py: {self.tts_model}")
         else:
-            logger.warning(f"TTS model '{self.tts_model}' from main.py not in recognized lists. Using Cartesia TTS as fallback.")
+            logger.warning(f"TTS model '{self.tts_model}' from main.py not in recognized lists. Using Deepgram TTS as fallback.")
             try:
-                tts_plugin = cartesia.TTS(model="sonic-3", voice=self.tts_model, api_key=os.getenv("CARTESIA_API_KEY"))
-                logger.info(f"Using Cartesia TTS plugin with model from main.py: {self.tts_model}")
+                tts_plugin = deepgram.TTS(model=self.tts_model, api_key=os.getenv("DEEPGRAM_API_KEY"))
+                logger.info(f"Using Deepgram TTS plugin with model from main.py: {self.tts_model}")
             except Exception as e:
-                logger.warning(f"Failed to use '{self.tts_model}' as Cartesia model: {e}. Defaulting to Cartesia Sonic-3 model and voice: f786b574-daa5-4673-aa0c-cbe3e8534c02.")
-                tts_plugin = cartesia.TTS(model="sonic-3", voice="f786b574-daa5-4673-aa0c-cbe3e8534c02", api_key=os.getenv("CARTESIA_API_KEY"))
-                logger.info("Using Cartesia TTS plugin with default model: sonic-3 and default voice ID: f786b574-daa5-4673-aa0c-cbe3e8534c02")
+                logger.warning(f"Failed to use '{self.tts_model}' as Deepgram model: {e}. Defaulting to Deepgram aura-2-ophelia-en model.")
+                tts_plugin = deepgram.TTS(model="aura-2-ophelia-en", api_key=os.getenv("DEEPGRAM_API_KEY"))
+                logger.info("Using Deepgram TTS plugin with default model: aura-2-ophelia-en")
 
         self.session = AgentSession(
             vad=silero.VAD.load(
                 force_cpu=False,
-                activation_threshold=0.5,
+                activation_threshold=self.activation_threshold or 0.5,
                 min_silence_duration=0.7,
                 sample_rate=16000,),
             stt=stt_plugin,
@@ -334,7 +336,7 @@ class VoiceAssistant:
         )
 
         logger.info("AgentSession initialized with the following models:")
-        logger.info(f"  - VAD: Silero VAD")
+        logger.info(f"  - VAD: Silero VAD (Activation Threshold: {self.activation_threshold or 0.5})")
         logger.info(f"  - STT: {stt_plugin.__class__.__module__} (Model: {self.stt_model})")
         logger.info(f"  - LLM: OpenAI (Model: {self.openai_model})")
         logger.info(f"  - TTS: {tts_plugin.__class__.__module__} (Model: {self.tts_model})")
@@ -611,7 +613,7 @@ async def entrypoint(ctx: agents.JobContext):
         # These defaults will be overridden by values from Redis if available (set in main.py)
         openai_model = "gpt-4.1-nano"
         stt_model = "nova-3"
-        tts_model = "f786b574-daa5-4673-aa0c-cbe3e8534c02"  # Default TTS model (matches main.py default, can be overridden via Redis)
+        tts_model = "aura-2-ophelia-en"  # Default TTS model (matches main.py default, can be overridden via Redis)
         instructions = None  # Default to None, letting VoiceAssistant use its internal default
 
         # Try to extract session_id from room name
@@ -634,6 +636,7 @@ async def entrypoint(ctx: agents.JobContext):
                         stt_model = config.get("stt_model") or stt_model
                         tts_model = config.get("tts_model") or tts_model
                         instructions = config.get("instructions") or instructions
+                        activation_threshold = config.get("activation_threshold") or 0.5
                     else:
                         logger.info(f"No voice config found in Redis for key '{config_key}'. Using default models.")
                 except Exception as e:
@@ -648,12 +651,13 @@ async def entrypoint(ctx: agents.JobContext):
         logger.info(f"  - STT Model: {stt_model}")
         logger.info(f"  - TTS Model: {tts_model}")
         logger.info(f"  - Instructions: {'Custom' if instructions else 'Default'}")
-
+        logger.info(f"  - Activation Threshold: {activation_threshold}")
         assistant = VoiceAssistant(
             instructions=instructions,
             openai_model=openai_model,
             stt_model=stt_model,
             tts_model=tts_model,
+            activation_threshold=activation_threshold,
         )
         logger.info("VoiceAssistant created, starting run()...")
         await assistant.run(ctx)
