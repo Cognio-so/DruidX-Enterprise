@@ -18,6 +18,19 @@ interface ChatSessionHook {
   uploadDocument: (docs: UploadedDoc[]) => Promise<void>;
   loadGPTKnowledgeBase: (gptId: string) => Promise<void>;
   updateGPTConfig: (model: string) => Promise<void>;
+  updateVoiceSettings: (voiceConfig: Partial<VoiceSettingsPayload>) => Promise<void>;
+}
+
+interface VoiceSettingsPayload {
+  voiceAgentEnabled?: boolean;
+  voiceAgentName?: string | null;
+  voiceConfidenceThreshold?: number | null;
+  voiceSttProvider?: string | null;
+  voiceSttModelId?: string | null;
+  voiceSttModelName?: string | null;
+  voiceTtsProvider?: string | null;
+  voiceTtsModelId?: string | null;
+  voiceTtsModelName?: string | null;
 }
 
 export function useChatSession(): ChatSessionHook {
@@ -52,21 +65,21 @@ export function useChatSession(): ChatSessionHook {
   }, []);
 
   // Update GPT config with new model
-  const updateGPTConfig = useCallback(
-    async (model: string) => {
+  const syncGptConfig = useCallback(
+    async (partialConfig: Record<string, any>) => {
       if (!sessionId || !gptConfig) {
         return;
       }
 
+      const updatedConfig = {
+        ...gptConfig,
+        ...partialConfig,
+      };
+
+      setGptConfig(updatedConfig);
+
       try {
-        const updatedConfig = {
-          ...gptConfig,
-          model: model,
-        };
-
-        
-
-        const configResponse = await fetch(
+        await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/sessions/${sessionId}/gpt-config`,
           {
             method: "POST",
@@ -76,15 +89,25 @@ export function useChatSession(): ChatSessionHook {
             body: JSON.stringify(updatedConfig),
           }
         );
-
-        if (!configResponse.ok) {
-          const errorText = await configResponse.text();
-        }
       } catch (backendError) {
-        // Handle error silently
+        // Swallow config sync errors to avoid interrupting chat flow
       }
     },
     [sessionId, gptConfig]
+  );
+
+  const updateGPTConfig = useCallback(
+    async (model: string) => {
+      await syncGptConfig({ model });
+    },
+    [syncGptConfig]
+  );
+
+  const updateVoiceSettings = useCallback(
+    async (voiceConfig: Partial<VoiceSettingsPayload>) => {
+      await syncGptConfig(voiceConfig);
+    },
+    [syncGptConfig]
   );
 
   // Load GPT configuration and knowledge base
@@ -122,6 +145,15 @@ export function useChatSession(): ChatSessionHook {
           video: gpt.videoEnabled || false,
           imageModel: gpt.imageModel || undefined,
           videoModel: gpt.videoModel || undefined,
+          voiceAgentEnabled: gpt.voiceAgentEnabled || false,
+          voiceAgentName: gpt.voiceAgentName || null,
+          voiceConfidenceThreshold: gpt.voiceConfidenceThreshold ?? 0.4,
+          voiceSttProvider: gpt.voiceSttProvider || null,
+          voiceSttModelId: gpt.voiceSttModelId || null,
+          voiceSttModelName: gpt.voiceSttModelName || null,
+          voiceTtsProvider: gpt.voiceTtsProvider || null,
+          voiceTtsModelId: gpt.voiceTtsModelId || null,
+          voiceTtsModelName: gpt.voiceTtsModelName || null,
         };
 
         setGptConfig(gptConfigData);
@@ -330,5 +362,6 @@ export function useChatSession(): ChatSessionHook {
     loadGPTKnowledgeBase: (gptId: string) =>
       loadGPTKnowledgeBase(gptId, sessionId!),
     updateGPTConfig,
+    updateVoiceSettings,
   };
 }

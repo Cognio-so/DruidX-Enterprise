@@ -94,6 +94,15 @@ model Gpt {
   videoEnabled Boolean  @default(false)
   imageModel   String?
   videoModel   String?
+  voiceAgentEnabled Boolean @default(false)
+  voiceAgentName String?
+  voiceConfidenceThreshold Float?
+  voiceSttProvider String?
+  voiceSttModelId String?
+  voiceSttModelName String?
+  voiceTtsProvider String?
+  voiceTtsModelId String?
+  voiceTtsModelName String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   assignedToUsers AssignGpt[]

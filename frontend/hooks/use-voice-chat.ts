@@ -16,11 +16,22 @@ interface UseVoiceChatProps {
   onMessage?: (message: VoiceMessage) => void;
 }
 
+export interface VoiceConnectOverrides {
+  voiceAgentName?: string;
+  voiceConfidenceThreshold?: number | null;
+  voiceSttProvider?: string | null;
+  voiceSttModelId?: string | null;
+  voiceSttModelName?: string | null;
+  voiceTtsProvider?: string | null;
+  voiceTtsModelId?: string | null;
+  voiceTtsModelName?: string | null;
+}
+
 interface UseVoiceChatReturn {
   connected: boolean;
   connecting: boolean;
   error: string | null;
-  connect: () => Promise<void>;
+  connect: (overrides?: VoiceConnectOverrides) => Promise<void>;
   disconnect: () => Promise<void>;
   room: Room | null;
   audioStream: MediaStream | null;
@@ -60,7 +71,7 @@ export function useVoiceChat({
     [onMessage]
   );
 
-  const connect = useCallback(async () => {
+  const connect = useCallback(async (overrides?: VoiceConnectOverrides) => {
     if (!sessionId || connecting || connected) return;
 
     setConnecting(true);
@@ -72,7 +83,11 @@ export function useVoiceChat({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ sessionId, gptId }),
+        body: JSON.stringify({
+          sessionId,
+          gptId,
+          voiceConfig: overrides,
+        }),
       });
 
       if (!response.ok) {
