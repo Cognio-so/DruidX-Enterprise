@@ -185,7 +185,7 @@ async def set_gpt_config(session_id: str, gpt_config: dict):
     session["gpt_config"] = gpt_config
     mcp_connections = gpt_config.get("mcpConnections", [])
     session["mcp_connections"] = mcp_connections
-    # print(f"gpt_config-----------------//: {gpt_config}")
+    print(f"gpt_config-----------------//: {gpt_config}")
     session["instruction"]=gpt_config["instruction"]
     print(f". instruction",  session["instruction"])
 
@@ -1310,21 +1310,24 @@ async def voice_connect(request: dict):
     """Create LiveKit room and generate access token for voice connection"""
     if not LIVEKIT_AVAILABLE:
         raise HTTPException(status_code=503, detail="LiveKit package not installed. Please install livekit-api.")
-    
     session_id = request.get("sessionId")
+    session = await SessionManager.get_session(session_id)
+    
     gpt_id = request.get("gptId")
 
-    
+    gpt_config=session.get("gpt_config", {}) if session_id else {}
+    tts=gpt_config.get("voiceTtsModelId", "nova-3")
+    stt=gpt_config.get("voiceSttModelId", "aura-2-ophelia-en")
     openai_model = "gpt-4.1-nano"
-    stt_model = "nova-3"
-    tts_model = "aura-2-ophelia-en"
-    
+    stt_model = stt
+    tts_model = tts
+    print(f"Voice connect requested with session_id: {session_id}, gpt_id: {gpt_id}, openai_model: {openai_model}, stt_model: {stt_model}, tts_model: {tts_model}")
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID is required")
     
     try:
         # Get the full session to access gpt_config
-        session = await SessionManager.get_session(session_id)
+        # session = await SessionManager.get_session(session_id)
         instructions =  session["instruction"]
         print(f"instuction/////////////", instructions)
 
