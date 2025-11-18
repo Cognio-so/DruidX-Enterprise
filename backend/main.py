@@ -185,7 +185,7 @@ async def set_gpt_config(session_id: str, gpt_config: dict):
     session["gpt_config"] = gpt_config
     mcp_connections = gpt_config.get("mcpConnections", [])
     session["mcp_connections"] = mcp_connections
-    # print(f"gpt_config-----------------//: {gpt_config}")
+    print(f"gpt_config-----------------//: {gpt_config}")
     session["instruction"]=gpt_config["instruction"]
     print(f". instruction",  session["instruction"])
 
@@ -431,14 +431,14 @@ async def add_documents_by_url(session_id: str, request: dict):
             
             if image_count > 0:
                 print(f"[MAIN] Skipping {image_count} image(s) from embedding preprocessing")
-            replace=bool(session.get("doc_embeddings",False))
+            # replace=bool(session.get("doc_embeddings",False))
             if non_image_docs:
                 hybrid_rag = session.get("gpt_config", {}).get("hybridRag", False)
                 await preprocess_user_documents(
                     non_image_docs,  
                     session_id, 
                     is_hybrid=hybrid_rag,
-                    is_new_upload=replace
+                    is_new_upload=False 
                 )
                 session["doc_embeddings"]=False
                 print(f"✅ [MAIN] Pre-processed {len(non_image_docs)} non-image documents with embeddings")
@@ -1310,27 +1310,25 @@ async def voice_connect(request: dict):
     """Create LiveKit room and generate access token for voice connection"""
     if not LIVEKIT_AVAILABLE:
         raise HTTPException(status_code=503, detail="LiveKit package not installed. Please install livekit-api.")
-    
     session_id = request.get("sessionId")
+    session = await SessionManager.get_session(session_id)
+    
     gpt_id = request.get("gptId")
-    # Get model configuration from request body
-    # openai_model = request.get("openai_model")
-    # stt_model = request.get("stt_model")
-    # tts_model = request.get("tts_model")
-    
+
+    gpt_config=session.get("gpt_config", {}) if session_id else {}
+    tts=gpt_config.get("voiceTtsModelId", "aura-2-ophelia-en")
+    stt=gpt_config.get("voiceSttModelId", "nova-3")
+    activationThreshold=gpt_config.get("voiceConfidenceThreshold", 0.5)
     openai_model = "gpt-4.1-nano"
-    stt_model = "nova-3"
-    tts_model = "f786b574-daa5-4673-aa0c-cbe3e8534c02"
-    
+    stt_model = stt
+    tts_model = tts
+    print(f"Voice connect requested with session_id: {session_id}, gpt_id: {gpt_id}, openai_model: {openai_model}, stt_model: {stt_model}, tts_model: {tts_model}")
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID is required")
     
     try:
         # Get the full session to access gpt_config
-        session = await SessionManager.get_session(session_id)
-        
-        # FIX: Ensure gpt_config is a dictionary, even if it's None in the session
-        # gpt_config = session.get("gpt_config")
+        # session = await SessionManager.get_session(session_id)
         instructions =  session["instruction"]
         print(f"instuction/////////////", instructions)
 
@@ -1342,6 +1340,7 @@ async def voice_connect(request: dict):
                 "stt_model": stt_model,
                 "tts_model": tts_model,
                 "instructions": instructions,
+                "activation_threshold": activationThreshold
             }
             config_key = f"voice_config:{session_id}"
             await redis_client.set(config_key, json.dumps(voice_config), ex=3600) # 1-hour expiry
