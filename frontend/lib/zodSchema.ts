@@ -64,7 +64,8 @@ export const gptSchema = z.object({
     .string()
     .min(2, { message: "Voice agent name must be at least 2 characters long" })
     .max(80, { message: "Voice agent name must not exceed 80 characters" })
-    .optional(),
+    .optional()
+    .or(z.literal("")),
   voiceConfidenceThreshold: z
     .number()
     .min(0, { message: "Confidence must be >= 0" })
