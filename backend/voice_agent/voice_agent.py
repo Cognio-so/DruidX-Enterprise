@@ -139,6 +139,9 @@ class VoiceAssistant:
         initial_greeting: str = "Greet the user warmly, introduce yourself as a voice assistant, and offer your assistance.",
         enable_parallel_tts: bool = False,
         activation_threshold: float = 0.5,
+        min_silence_duration: float = 0.5,
+        min_speech_duration: float = 0.05,
+        max_buffered_speech: float = 60.0,
     ):
         if instructions is None:
             current_date = date.today().strftime("%B %d, %Y")
@@ -156,6 +159,9 @@ class VoiceAssistant:
         self.initial_greeting = initial_greeting
         self.enable_parallel_tts = enable_parallel_tts
         self.activation_threshold = activation_threshold
+        self.min_silence_duration = min_silence_duration
+        self.min_speech_duration = min_speech_duration
+        self.max_buffered_speech = max_buffered_speech
 
         current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -327,7 +333,9 @@ class VoiceAssistant:
             vad=silero.VAD.load(
                 force_cpu=False,
                 activation_threshold=self.activation_threshold or 0.5,
-                min_silence_duration=0.7,
+                min_silence_duration=self.min_silence_duration or 0.7,
+                min_speech_duration=self.min_speech_duration or 0.05,
+                max_buffered_speech=self.max_buffered_speech or 60.0,
                 sample_rate=16000,),
             stt=stt_plugin,
             llm=openai.LLM(model=self.openai_model),
@@ -337,6 +345,9 @@ class VoiceAssistant:
 
         logger.info("AgentSession initialized with the following models:")
         logger.info(f"  - VAD: Silero VAD (Activation Threshold: {self.activation_threshold or 0.5})")
+        logger.info(f"    Min Silence Duration: {self.min_silence_duration or 0.7}s")
+        logger.info(f"    Min Speech Duration: {self.min_speech_duration or 0.05}s")
+        logger.info(f"    Max Buffered Speech: {self.max_buffered_speech or 60.0}s")
         logger.info(f"  - STT: {stt_plugin.__class__.__module__} (Model: {self.stt_model})")
         logger.info(f"  - LLM: OpenAI (Model: {self.openai_model})")
         logger.info(f"  - TTS: {tts_plugin.__class__.__module__} (Model: {self.tts_model})")
@@ -637,6 +648,9 @@ async def entrypoint(ctx: agents.JobContext):
                         tts_model = config.get("tts_model") or tts_model
                         instructions = config.get("instructions") or instructions
                         activation_threshold = config.get("activation_threshold") or 0.5
+                        min_silence_duration = config.get("min_silence_duration") or 0.5
+                        min_speech_duration = config.get("min_speech_duration") or 0.05
+                        max_buffered_speech = config.get("max_buffered_speech") or 60.0
                     else:
                         logger.info(f"No voice config found in Redis for key '{config_key}'. Using default models.")
                 except Exception as e:
@@ -652,12 +666,18 @@ async def entrypoint(ctx: agents.JobContext):
         logger.info(f"  - TTS Model: {tts_model}")
         logger.info(f"  - Instructions: {'Custom' if instructions else 'Default'}")
         logger.info(f"  - Activation Threshold: {activation_threshold}")
+        logger.info(f"  - Min Silence Duration: {min_silence_duration}")
+        logger.info(f"  - Min Speech Duration: {min_speech_duration}")
+        logger.info(f"  - Max Buffered Speech: {max_buffered_speech}")
         assistant = VoiceAssistant(
             instructions=instructions,
             openai_model=openai_model,
             stt_model=stt_model,
             tts_model=tts_model,
             activation_threshold=activation_threshold,
+            min_silence_duration=min_silence_duration,
+            min_speech_duration=min_speech_duration,
+            max_buffered_speech=max_buffered_speech,
         )
         logger.info("VoiceAssistant created, starting run()...")
         await assistant.run(ctx)
