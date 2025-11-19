@@ -7002,10 +7002,16 @@ export namespace Prisma {
 
   export type GptAvgAggregateOutputType = {
     voiceConfidenceThreshold: number | null
+    minSilenceDuration: number | null
+    minSpeechDuration: number | null
+    maxBufferedSpeech: number | null
   }
 
   export type GptSumAggregateOutputType = {
     voiceConfidenceThreshold: number | null
+    minSilenceDuration: number | null
+    minSpeechDuration: number | null
+    maxBufferedSpeech: number | null
   }
 
   export type GptMinAggregateOutputType = {
@@ -7032,6 +7038,9 @@ export namespace Prisma {
     voiceTtsProvider: string | null
     voiceTtsModelId: string | null
     voiceTtsModelName: string | null
+    minSilenceDuration: number | null
+    minSpeechDuration: number | null
+    maxBufferedSpeech: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -7060,6 +7069,9 @@ export namespace Prisma {
     voiceTtsProvider: string | null
     voiceTtsModelId: string | null
     voiceTtsModelName: string | null
+    minSilenceDuration: number | null
+    minSpeechDuration: number | null
+    maxBufferedSpeech: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -7088,6 +7100,9 @@ export namespace Prisma {
     voiceTtsProvider: number
     voiceTtsModelId: number
     voiceTtsModelName: number
+    minSilenceDuration: number
+    minSpeechDuration: number
+    maxBufferedSpeech: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -7096,10 +7111,16 @@ export namespace Prisma {
 
   export type GptAvgAggregateInputType = {
     voiceConfidenceThreshold?: true
+    minSilenceDuration?: true
+    minSpeechDuration?: true
+    maxBufferedSpeech?: true
   }
 
   export type GptSumAggregateInputType = {
     voiceConfidenceThreshold?: true
+    minSilenceDuration?: true
+    minSpeechDuration?: true
+    maxBufferedSpeech?: true
   }
 
   export type GptMinAggregateInputType = {
@@ -7126,6 +7147,9 @@ export namespace Prisma {
     voiceTtsProvider?: true
     voiceTtsModelId?: true
     voiceTtsModelName?: true
+    minSilenceDuration?: true
+    minSpeechDuration?: true
+    maxBufferedSpeech?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -7154,6 +7178,9 @@ export namespace Prisma {
     voiceTtsProvider?: true
     voiceTtsModelId?: true
     voiceTtsModelName?: true
+    minSilenceDuration?: true
+    minSpeechDuration?: true
+    maxBufferedSpeech?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -7182,6 +7209,9 @@ export namespace Prisma {
     voiceTtsProvider?: true
     voiceTtsModelId?: true
     voiceTtsModelName?: true
+    minSilenceDuration?: true
+    minSpeechDuration?: true
+    maxBufferedSpeech?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -7297,6 +7327,9 @@ export namespace Prisma {
     voiceTtsProvider: string | null
     voiceTtsModelId: string | null
     voiceTtsModelName: string | null
+    minSilenceDuration: number | null
+    minSpeechDuration: number | null
+    maxBufferedSpeech: number | null
     createdAt: Date
     updatedAt: Date
     _count: GptCountAggregateOutputType | null
@@ -7344,6 +7377,9 @@ export namespace Prisma {
     voiceTtsProvider?: boolean
     voiceTtsModelId?: boolean
     voiceTtsModelName?: boolean
+    minSilenceDuration?: boolean
+    minSpeechDuration?: boolean
+    maxBufferedSpeech?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -7378,6 +7414,9 @@ export namespace Prisma {
     voiceTtsProvider?: boolean
     voiceTtsModelId?: boolean
     voiceTtsModelName?: boolean
+    minSilenceDuration?: boolean
+    minSpeechDuration?: boolean
+    maxBufferedSpeech?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -7407,6 +7446,9 @@ export namespace Prisma {
     voiceTtsProvider?: boolean
     voiceTtsModelId?: boolean
     voiceTtsModelName?: boolean
+    minSilenceDuration?: boolean
+    minSpeechDuration?: boolean
+    maxBufferedSpeech?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -7436,11 +7478,14 @@ export namespace Prisma {
     voiceTtsProvider?: boolean
     voiceTtsModelId?: boolean
     voiceTtsModelName?: boolean
+    minSilenceDuration?: boolean
+    minSpeechDuration?: boolean
+    maxBufferedSpeech?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type GptOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "description" | "model" | "instruction" | "webBrowser" | "hybridRag" | "image" | "knowledgeBase" | "imageEnabled" | "videoEnabled" | "imageModel" | "videoModel" | "voiceAgentEnabled" | "voiceAgentName" | "voiceConfidenceThreshold" | "voiceSttProvider" | "voiceSttModelId" | "voiceSttModelName" | "voiceTtsProvider" | "voiceTtsModelId" | "voiceTtsModelName" | "createdAt" | "updatedAt", ExtArgs["result"]["gpt"]>
+  export type GptOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "description" | "model" | "instruction" | "webBrowser" | "hybridRag" | "image" | "knowledgeBase" | "imageEnabled" | "videoEnabled" | "imageModel" | "videoModel" | "voiceAgentEnabled" | "voiceAgentName" | "voiceConfidenceThreshold" | "voiceSttProvider" | "voiceSttModelId" | "voiceSttModelName" | "voiceTtsProvider" | "voiceTtsModelId" | "voiceTtsModelName" | "minSilenceDuration" | "minSpeechDuration" | "maxBufferedSpeech" | "createdAt" | "updatedAt", ExtArgs["result"]["gpt"]>
   export type GptInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     assignedToUsers?: boolean | Gpt$assignedToUsersArgs<ExtArgs>
@@ -7489,6 +7534,9 @@ export namespace Prisma {
       voiceTtsProvider: string | null
       voiceTtsModelId: string | null
       voiceTtsModelName: string | null
+      minSilenceDuration: number | null
+      minSpeechDuration: number | null
+      maxBufferedSpeech: number | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["gpt"]>
@@ -7942,6 +7990,9 @@ export namespace Prisma {
     readonly voiceTtsProvider: FieldRef<"Gpt", 'String'>
     readonly voiceTtsModelId: FieldRef<"Gpt", 'String'>
     readonly voiceTtsModelName: FieldRef<"Gpt", 'String'>
+    readonly minSilenceDuration: FieldRef<"Gpt", 'Float'>
+    readonly minSpeechDuration: FieldRef<"Gpt", 'Float'>
+    readonly maxBufferedSpeech: FieldRef<"Gpt", 'Float'>
     readonly createdAt: FieldRef<"Gpt", 'DateTime'>
     readonly updatedAt: FieldRef<"Gpt", 'DateTime'>
   }
@@ -19288,6 +19339,9 @@ export namespace Prisma {
     voiceTtsProvider: 'voiceTtsProvider',
     voiceTtsModelId: 'voiceTtsModelId',
     voiceTtsModelName: 'voiceTtsModelName',
+    minSilenceDuration: 'minSilenceDuration',
+    minSpeechDuration: 'minSpeechDuration',
+    maxBufferedSpeech: 'maxBufferedSpeech',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -19934,6 +19988,9 @@ export namespace Prisma {
     voiceTtsProvider?: StringNullableFilter<"Gpt"> | string | null
     voiceTtsModelId?: StringNullableFilter<"Gpt"> | string | null
     voiceTtsModelName?: StringNullableFilter<"Gpt"> | string | null
+    minSilenceDuration?: FloatNullableFilter<"Gpt"> | number | null
+    minSpeechDuration?: FloatNullableFilter<"Gpt"> | number | null
+    maxBufferedSpeech?: FloatNullableFilter<"Gpt"> | number | null
     createdAt?: DateTimeFilter<"Gpt"> | Date | string
     updatedAt?: DateTimeFilter<"Gpt"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -19967,6 +20024,9 @@ export namespace Prisma {
     voiceTtsProvider?: SortOrderInput | SortOrder
     voiceTtsModelId?: SortOrderInput | SortOrder
     voiceTtsModelName?: SortOrderInput | SortOrder
+    minSilenceDuration?: SortOrderInput | SortOrder
+    minSpeechDuration?: SortOrderInput | SortOrder
+    maxBufferedSpeech?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     user?: UserOrderByWithRelationInput
@@ -20003,6 +20063,9 @@ export namespace Prisma {
     voiceTtsProvider?: StringNullableFilter<"Gpt"> | string | null
     voiceTtsModelId?: StringNullableFilter<"Gpt"> | string | null
     voiceTtsModelName?: StringNullableFilter<"Gpt"> | string | null
+    minSilenceDuration?: FloatNullableFilter<"Gpt"> | number | null
+    minSpeechDuration?: FloatNullableFilter<"Gpt"> | number | null
+    maxBufferedSpeech?: FloatNullableFilter<"Gpt"> | number | null
     createdAt?: DateTimeFilter<"Gpt"> | Date | string
     updatedAt?: DateTimeFilter<"Gpt"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -20036,6 +20099,9 @@ export namespace Prisma {
     voiceTtsProvider?: SortOrderInput | SortOrder
     voiceTtsModelId?: SortOrderInput | SortOrder
     voiceTtsModelName?: SortOrderInput | SortOrder
+    minSilenceDuration?: SortOrderInput | SortOrder
+    minSpeechDuration?: SortOrderInput | SortOrder
+    maxBufferedSpeech?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: GptCountOrderByAggregateInput
@@ -20072,6 +20138,9 @@ export namespace Prisma {
     voiceTtsProvider?: StringNullableWithAggregatesFilter<"Gpt"> | string | null
     voiceTtsModelId?: StringNullableWithAggregatesFilter<"Gpt"> | string | null
     voiceTtsModelName?: StringNullableWithAggregatesFilter<"Gpt"> | string | null
+    minSilenceDuration?: FloatNullableWithAggregatesFilter<"Gpt"> | number | null
+    minSpeechDuration?: FloatNullableWithAggregatesFilter<"Gpt"> | number | null
+    maxBufferedSpeech?: FloatNullableWithAggregatesFilter<"Gpt"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"Gpt"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Gpt"> | Date | string
   }
@@ -21138,6 +21207,9 @@ export namespace Prisma {
     voiceTtsProvider?: string | null
     voiceTtsModelId?: string | null
     voiceTtsModelName?: string | null
+    minSilenceDuration?: number | null
+    minSpeechDuration?: number | null
+    maxBufferedSpeech?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutGptInput
@@ -21171,6 +21243,9 @@ export namespace Prisma {
     voiceTtsProvider?: string | null
     voiceTtsModelId?: string | null
     voiceTtsModelName?: string | null
+    minSilenceDuration?: number | null
+    minSpeechDuration?: number | null
+    maxBufferedSpeech?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
@@ -21202,6 +21277,9 @@ export namespace Prisma {
     voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    minSilenceDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    minSpeechDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxBufferedSpeech?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutGptNestedInput
@@ -21235,6 +21313,9 @@ export namespace Prisma {
     voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    minSilenceDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    minSpeechDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxBufferedSpeech?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
@@ -21267,6 +21348,9 @@ export namespace Prisma {
     voiceTtsProvider?: string | null
     voiceTtsModelId?: string | null
     voiceTtsModelName?: string | null
+    minSilenceDuration?: number | null
+    minSpeechDuration?: number | null
+    maxBufferedSpeech?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -21294,6 +21378,9 @@ export namespace Prisma {
     voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    minSilenceDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    minSpeechDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxBufferedSpeech?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -21322,6 +21409,9 @@ export namespace Prisma {
     voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    minSilenceDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    minSpeechDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxBufferedSpeech?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -22437,12 +22527,18 @@ export namespace Prisma {
     voiceTtsProvider?: SortOrder
     voiceTtsModelId?: SortOrder
     voiceTtsModelName?: SortOrder
+    minSilenceDuration?: SortOrder
+    minSpeechDuration?: SortOrder
+    maxBufferedSpeech?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
   export type GptAvgOrderByAggregateInput = {
     voiceConfidenceThreshold?: SortOrder
+    minSilenceDuration?: SortOrder
+    minSpeechDuration?: SortOrder
+    maxBufferedSpeech?: SortOrder
   }
 
   export type GptMaxOrderByAggregateInput = {
@@ -22469,6 +22565,9 @@ export namespace Prisma {
     voiceTtsProvider?: SortOrder
     voiceTtsModelId?: SortOrder
     voiceTtsModelName?: SortOrder
+    minSilenceDuration?: SortOrder
+    minSpeechDuration?: SortOrder
+    maxBufferedSpeech?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -22497,12 +22596,18 @@ export namespace Prisma {
     voiceTtsProvider?: SortOrder
     voiceTtsModelId?: SortOrder
     voiceTtsModelName?: SortOrder
+    minSilenceDuration?: SortOrder
+    minSpeechDuration?: SortOrder
+    maxBufferedSpeech?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
   export type GptSumOrderByAggregateInput = {
     voiceConfidenceThreshold?: SortOrder
+    minSilenceDuration?: SortOrder
+    minSpeechDuration?: SortOrder
+    maxBufferedSpeech?: SortOrder
   }
 
   export type EnumModelEnumWithAggregatesFilter<$PrismaModel = never> = {
@@ -24076,6 +24181,9 @@ export namespace Prisma {
     voiceTtsProvider?: string | null
     voiceTtsModelId?: string | null
     voiceTtsModelName?: string | null
+    minSilenceDuration?: number | null
+    minSpeechDuration?: number | null
+    maxBufferedSpeech?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptCreateNestedManyWithoutGptInput
@@ -24107,6 +24215,9 @@ export namespace Prisma {
     voiceTtsProvider?: string | null
     voiceTtsModelId?: string | null
     voiceTtsModelName?: string | null
+    minSilenceDuration?: number | null
+    minSpeechDuration?: number | null
+    maxBufferedSpeech?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
@@ -24344,6 +24455,9 @@ export namespace Prisma {
     voiceTtsProvider?: StringNullableFilter<"Gpt"> | string | null
     voiceTtsModelId?: StringNullableFilter<"Gpt"> | string | null
     voiceTtsModelName?: StringNullableFilter<"Gpt"> | string | null
+    minSilenceDuration?: FloatNullableFilter<"Gpt"> | number | null
+    minSpeechDuration?: FloatNullableFilter<"Gpt"> | number | null
+    maxBufferedSpeech?: FloatNullableFilter<"Gpt"> | number | null
     createdAt?: DateTimeFilter<"Gpt"> | Date | string
     updatedAt?: DateTimeFilter<"Gpt"> | Date | string
   }
@@ -24965,6 +25079,9 @@ export namespace Prisma {
     voiceTtsProvider?: string | null
     voiceTtsModelId?: string | null
     voiceTtsModelName?: string | null
+    minSilenceDuration?: number | null
+    minSpeechDuration?: number | null
+    maxBufferedSpeech?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutGptInput
@@ -24997,6 +25114,9 @@ export namespace Prisma {
     voiceTtsProvider?: string | null
     voiceTtsModelId?: string | null
     voiceTtsModelName?: string | null
+    minSilenceDuration?: number | null
+    minSpeechDuration?: number | null
+    maxBufferedSpeech?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
@@ -25043,6 +25163,9 @@ export namespace Prisma {
     voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    minSilenceDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    minSpeechDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxBufferedSpeech?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutGptNestedInput
@@ -25075,6 +25198,9 @@ export namespace Prisma {
     voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    minSilenceDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    minSpeechDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxBufferedSpeech?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
@@ -25150,6 +25276,9 @@ export namespace Prisma {
     voiceTtsProvider?: string | null
     voiceTtsModelId?: string | null
     voiceTtsModelName?: string | null
+    minSilenceDuration?: number | null
+    minSpeechDuration?: number | null
+    maxBufferedSpeech?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutGptInput
@@ -25182,6 +25311,9 @@ export namespace Prisma {
     voiceTtsProvider?: string | null
     voiceTtsModelId?: string | null
     voiceTtsModelName?: string | null
+    minSilenceDuration?: number | null
+    minSpeechDuration?: number | null
+    maxBufferedSpeech?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     conversations?: ConversationUncheckedCreateNestedManyWithoutGptInput
@@ -25279,6 +25411,9 @@ export namespace Prisma {
     voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    minSilenceDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    minSpeechDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxBufferedSpeech?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutGptNestedInput
@@ -25311,6 +25446,9 @@ export namespace Prisma {
     voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    minSilenceDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    minSpeechDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxBufferedSpeech?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     conversations?: ConversationUncheckedUpdateManyWithoutGptNestedInput
@@ -25386,6 +25524,9 @@ export namespace Prisma {
     voiceTtsProvider?: string | null
     voiceTtsModelId?: string | null
     voiceTtsModelName?: string | null
+    minSilenceDuration?: number | null
+    minSpeechDuration?: number | null
+    maxBufferedSpeech?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutGptInput
@@ -25418,6 +25559,9 @@ export namespace Prisma {
     voiceTtsProvider?: string | null
     voiceTtsModelId?: string | null
     voiceTtsModelName?: string | null
+    minSilenceDuration?: number | null
+    minSpeechDuration?: number | null
+    maxBufferedSpeech?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
@@ -25545,6 +25689,9 @@ export namespace Prisma {
     voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    minSilenceDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    minSpeechDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxBufferedSpeech?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutGptNestedInput
@@ -25577,6 +25724,9 @@ export namespace Prisma {
     voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    minSilenceDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    minSpeechDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxBufferedSpeech?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
@@ -26052,6 +26202,9 @@ export namespace Prisma {
     voiceTtsProvider?: string | null
     voiceTtsModelId?: string | null
     voiceTtsModelName?: string | null
+    minSilenceDuration?: number | null
+    minSpeechDuration?: number | null
+    maxBufferedSpeech?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutGptInput
@@ -26084,6 +26237,9 @@ export namespace Prisma {
     voiceTtsProvider?: string | null
     voiceTtsModelId?: string | null
     voiceTtsModelName?: string | null
+    minSilenceDuration?: number | null
+    minSpeechDuration?: number | null
+    maxBufferedSpeech?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     assignedToUsers?: AssignGptUncheckedCreateNestedManyWithoutGptInput
@@ -26163,6 +26319,9 @@ export namespace Prisma {
     voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    minSilenceDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    minSpeechDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxBufferedSpeech?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutGptNestedInput
@@ -26195,6 +26354,9 @@ export namespace Prisma {
     voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    minSilenceDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    minSpeechDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxBufferedSpeech?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
@@ -26251,6 +26413,9 @@ export namespace Prisma {
     voiceTtsProvider?: string | null
     voiceTtsModelId?: string | null
     voiceTtsModelName?: string | null
+    minSilenceDuration?: number | null
+    minSpeechDuration?: number | null
+    maxBufferedSpeech?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -26388,6 +26553,9 @@ export namespace Prisma {
     voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    minSilenceDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    minSpeechDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxBufferedSpeech?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUpdateManyWithoutGptNestedInput
@@ -26419,6 +26587,9 @@ export namespace Prisma {
     voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    minSilenceDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    minSpeechDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxBufferedSpeech?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     assignedToUsers?: AssignGptUncheckedUpdateManyWithoutGptNestedInput
@@ -26450,6 +26621,9 @@ export namespace Prisma {
     voiceTtsProvider?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelId?: NullableStringFieldUpdateOperationsInput | string | null
     voiceTtsModelName?: NullableStringFieldUpdateOperationsInput | string | null
+    minSilenceDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    minSpeechDuration?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxBufferedSpeech?: NullableFloatFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

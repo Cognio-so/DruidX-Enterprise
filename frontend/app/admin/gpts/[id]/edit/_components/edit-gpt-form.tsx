@@ -91,6 +91,9 @@ interface EditGptFormProps {
     voiceTtsProvider?: string | null;
     voiceTtsModelId?: string | null;
     voiceTtsModelName?: string | null;
+    minSilenceDuration?: number | null;
+    minSpeechDuration?: number | null;
+    maxBufferedSpeech?: number | null;
   };
 }
 
@@ -129,6 +132,9 @@ export function EditGptForm({ gptId, initialData }: EditGptFormProps) {
         undefined) as GptFormValues["voiceTtsProvider"],
       voiceTtsModelId: initialData.voiceTtsModelId ?? undefined,
       voiceTtsModelName: initialData.voiceTtsModelName ?? undefined,
+      minSilenceDuration: initialData.minSilenceDuration ?? 0.5,
+      minSpeechDuration: initialData.minSpeechDuration ?? 0.05,
+      maxBufferedSpeech: initialData.maxBufferedSpeech ?? 60.0,
     },
   });
 
@@ -154,6 +160,9 @@ export function EditGptForm({ gptId, initialData }: EditGptFormProps) {
     form.setValue("voiceTtsProvider", config.voiceTtsProvider ?? undefined);
     form.setValue("voiceTtsModelId", config.voiceTtsModelId ?? undefined);
     form.setValue("voiceTtsModelName", config.voiceTtsModelName ?? undefined);
+    form.setValue("minSilenceDuration", config.minSilenceDuration);
+    form.setValue("minSpeechDuration", config.minSpeechDuration);
+    form.setValue("maxBufferedSpeech", config.maxBufferedSpeech);
   };
 
   const handleVoiceReset = () => {
@@ -166,6 +175,9 @@ export function EditGptForm({ gptId, initialData }: EditGptFormProps) {
     form.setValue("voiceTtsProvider", undefined);
     form.setValue("voiceTtsModelId", undefined);
     form.setValue("voiceTtsModelName", undefined);
+    form.setValue("minSilenceDuration", 0.5);
+    form.setValue("minSpeechDuration", 0.05);
+    form.setValue("maxBufferedSpeech", 60.0);
   };
 
   const handleEnhanceInstructions = async () => {
@@ -619,6 +631,9 @@ export function EditGptForm({ gptId, initialData }: EditGptFormProps) {
                 null) as VoiceAgentConfig["voiceTtsProvider"],
               voiceTtsModelId: voiceTtsModelId ?? null,
               voiceTtsModelName: voiceTtsModelName ?? null,
+              minSilenceDuration: form.watch("minSilenceDuration") ?? 0.5,
+              minSpeechDuration: form.watch("minSpeechDuration") ?? 0.05,
+              maxBufferedSpeech: form.watch("maxBufferedSpeech") ?? 60.0,
             }}
             onSave={handleVoiceSave}
           />

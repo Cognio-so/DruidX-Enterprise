@@ -31,6 +31,9 @@ interface VoiceSettingsPayload {
   voiceTtsProvider?: string | null;
   voiceTtsModelId?: string | null;
   voiceTtsModelName?: string | null;
+  minSilenceDuration?: number;
+  minSpeechDuration?: number;
+  maxBufferedSpeech?: number;
 }
 
 export function useChatSession(): ChatSessionHook {
@@ -154,6 +157,9 @@ export function useChatSession(): ChatSessionHook {
           voiceTtsProvider: gpt.voiceTtsProvider || null,
           voiceTtsModelId: gpt.voiceTtsModelId || null,
           voiceTtsModelName: gpt.voiceTtsModelName || null,
+          minSilenceDuration: gpt.minSilenceDuration ?? 0.5,
+          minSpeechDuration: gpt.minSpeechDuration ?? 0.05,
+          maxBufferedSpeech: gpt.maxBufferedSpeech ?? 60.0,
         };
 
         setGptConfig(gptConfigData);

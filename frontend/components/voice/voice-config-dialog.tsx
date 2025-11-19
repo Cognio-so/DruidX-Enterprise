@@ -86,6 +86,9 @@ export interface VoiceAgentConfig {
   voiceTtsProvider: keyof typeof TTS_PROVIDER_LABELS | null
   voiceTtsModelId: string | null
   voiceTtsModelName: string | null
+  minSilenceDuration: number
+  minSpeechDuration: number
+  maxBufferedSpeech: number
 }
 
 interface VoiceConfigDialogProps {
@@ -105,11 +108,21 @@ export function VoiceConfigDialog({
   title = "Configure Voice Agent",
   description = "Pick STT and TTS providers, assign friendly names, and set the confidence threshold used to filter transcripts.",
 }: VoiceConfigDialogProps) {
-  const [draft, setDraft] = useState<VoiceAgentConfig>(value)
+  const [draft, setDraft] = useState<VoiceAgentConfig>({
+    ...value,
+    minSilenceDuration: value.minSilenceDuration ?? 0.5,
+    minSpeechDuration: value.minSpeechDuration ?? 0.05,
+    maxBufferedSpeech: value.maxBufferedSpeech ?? 60.0,
+  })
 
   useEffect(() => {
     if (open) {
-      setDraft(value)
+      setDraft({
+        ...value,
+        minSilenceDuration: value.minSilenceDuration ?? 0.5,
+        minSpeechDuration: value.minSpeechDuration ?? 0.05,
+        maxBufferedSpeech: value.maxBufferedSpeech ?? 60.0,
+      })
     }
   }, [open, value])
 
@@ -129,7 +142,10 @@ export function VoiceConfigDialog({
     draft.voiceSttModelId &&
     draft.voiceTtsProvider &&
     draft.voiceTtsModelId &&
-    typeof draft.voiceConfidenceThreshold === "number"
+    typeof draft.voiceConfidenceThreshold === "number" &&
+    typeof draft.minSilenceDuration === "number" &&
+    typeof draft.minSpeechDuration === "number" &&
+    typeof draft.maxBufferedSpeech === "number"
 
   const handleSave = () => {
     if (!isValid) return
@@ -325,6 +341,84 @@ export function VoiceConfigDialog({
                   setDraft((prev) => ({
                     ...prev,
                     voiceConfidenceThreshold: values[0] ?? 0.4,
+                  }))
+                }
+              />
+            </div>
+
+            <div className="space-y-3 rounded-lg border p-4">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <Label>Speech Silence Duration (seconds)</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Duration of silence to wait after speech ends to determine if the user has finished speaking.
+                  </p>
+                </div>
+                <span className="text-sm font-semibold">
+                  {(draft.minSilenceDuration ?? 0.5).toFixed(2)}
+                </span>
+              </div>
+              <Slider
+                min={0}
+                max={5}
+                step={0.1}
+                value={[draft.minSilenceDuration ?? 0.5]}
+                onValueChange={(values) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    minSilenceDuration: values[0] ?? 0.5,
+                  }))
+                }
+              />
+            </div>
+
+            <div className="space-y-3 rounded-lg border p-4">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <Label>Minimum Speech Duration (seconds)</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Minimum duration of speech required to start a new speech chunk.
+                  </p>
+                </div>
+                <span className="text-sm font-semibold">
+                  {(draft.minSpeechDuration ?? 0.05).toFixed(2)}
+                </span>
+              </div>
+              <Slider
+                min={0}
+                max={1}
+                step={0.01}
+                value={[draft.minSpeechDuration ?? 0.05]}
+                onValueChange={(values) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    minSpeechDuration: values[0] ?? 0.05,
+                  }))
+                }
+              />
+            </div>
+
+            <div className="space-y-3 rounded-lg border p-4">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <Label>Max Buffer (seconds)</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Maximum duration of speech to keep in the buffer.
+                  </p>
+                </div>
+                <span className="text-sm font-semibold">
+                  {(draft.maxBufferedSpeech ?? 60.0).toFixed(1)}
+                </span>
+              </div>
+              <Slider
+                min={10}
+                max={120}
+                step={5}
+                value={[draft.maxBufferedSpeech ?? 60.0]}
+                onValueChange={(values) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    maxBufferedSpeech: values[0] ?? 60.0,
                   }))
                 }
               />

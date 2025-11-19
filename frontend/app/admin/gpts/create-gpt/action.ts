@@ -45,6 +45,9 @@ export async function createGpt(data: {
   voiceTtsProvider?: string;
   voiceTtsModelId?: string;
   voiceTtsModelName?: string;
+  minSilenceDuration?: number;
+  minSpeechDuration?: number;
+  maxBufferedSpeech?: number;
 }) {
   const session = await requireAdmin();
 
@@ -89,6 +92,9 @@ export async function createGpt(data: {
       voiceTtsProvider: validatedData.voiceTtsProvider || null,
       voiceTtsModelId: validatedData.voiceTtsModelId || null,
       voiceTtsModelName: validatedData.voiceTtsModelName || null,
+      minSilenceDuration: validatedData.minSilenceDuration ?? 0.5,
+      minSpeechDuration: validatedData.minSpeechDuration ?? 0.05,
+      maxBufferedSpeech: validatedData.maxBufferedSpeech ?? 60.0,
       knowledgeBase:
         validatedData.docs.length > 0
           ? JSON.stringify(validatedData.docs)

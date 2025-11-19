@@ -196,6 +196,9 @@ exports.Prisma.GptScalarFieldEnum = {
   voiceTtsProvider: 'voiceTtsProvider',
   voiceTtsModelId: 'voiceTtsModelId',
   voiceTtsModelName: 'voiceTtsModelName',
+  minSilenceDuration: 'minSilenceDuration',
+  minSpeechDuration: 'minSpeechDuration',
+  maxBufferedSpeech: 'maxBufferedSpeech',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

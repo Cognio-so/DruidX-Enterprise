@@ -76,6 +76,21 @@ export const gptSchema = z.object({
   voiceTtsProvider: z.enum(ttsProviders).optional(),
   voiceTtsModelId: z.string().optional(),
   voiceTtsModelName: z.string().optional(),
+  minSilenceDuration: z
+    .number()
+    .min(0, { message: "Min silence duration must be >= 0" })
+    .max(10, { message: "Min silence duration must be <= 10" })
+    .optional(),
+  minSpeechDuration: z
+    .number()
+    .min(0, { message: "Min speech duration must be >= 0" })
+    .max(5, { message: "Min speech duration must be <= 5" })
+    .optional(),
+  maxBufferedSpeech: z
+    .number()
+    .min(10, { message: "Max buffered speech must be >= 10" })
+    .max(300, { message: "Max buffered speech must be <= 300" })
+    .optional(),
 }).refine((data) => {
   if (data.image && !data.imageModel) {
     return false;

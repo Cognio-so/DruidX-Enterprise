@@ -103,6 +103,9 @@ model Gpt {
   voiceTtsProvider String?
   voiceTtsModelId String?
   voiceTtsModelName String?
+  minSilenceDuration Float? @default(0.5)
+  minSpeechDuration Float? @default(0.05)
+  maxBufferedSpeech Float? @default(60.0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   assignedToUsers AssignGpt[]

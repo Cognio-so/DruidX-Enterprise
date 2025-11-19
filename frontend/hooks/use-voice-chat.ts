@@ -25,6 +25,9 @@ export interface VoiceConnectOverrides {
   voiceTtsProvider?: string | null;
   voiceTtsModelId?: string | null;
   voiceTtsModelName?: string | null;
+  minSilenceDuration?: number;
+  minSpeechDuration?: number;
+  maxBufferedSpeech?: number;
 }
 
 interface UseVoiceChatReturn {
