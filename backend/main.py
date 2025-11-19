@@ -185,9 +185,9 @@ async def set_gpt_config(session_id: str, gpt_config: dict):
     session["gpt_config"] = gpt_config
     mcp_connections = gpt_config.get("mcpConnections", [])
     session["mcp_connections"] = mcp_connections
-    print(f"gpt_config-----------------//: {gpt_config}")
+    # print(f"gpt_config-----------------//: {gpt_config}")
     session["instruction"]=gpt_config["instruction"]
-    print(f". instruction",  session["instruction"])
+    # print(f". instruction",  session["instruction"])
 
     if session.get("kb"):
         try:
@@ -649,9 +649,11 @@ async def stream_chat(session_id: str, request: ChatRequest):
             try:
                 print("=== STARTING DIRECT GRAPH STREAMING ===")
                 final_state = None
+                stream_error_message = None
                 
                 async def run_graph():
                     nonlocal final_state
+                    nonlocal stream_error_message
                     try:
                         print("🔥 STARTING DIRECT GRAPH EXECUTION")
                         async for node_result in graph.astream(state):
@@ -660,21 +662,32 @@ async def stream_chat(session_id: str, request: ChatRequest):
                             final_state = node_result
                     except Exception as e:
                         print(f"--- ERROR in direct graph execution: {e}")
+                        if isinstance(e, asyncio.CancelledError):
+                            # Treat cancellations as interruptions rather than fatal errors
+                            stream_error_message = "Response stream was interrupted."
+                        else:
+                            stream_error_message = str(e) or "Unexpected error"
                         await queue.put({
                             "type": "error",
-                            "data": {"error": str(e)}
+                            "data": {"error": stream_error_message}
                         })
                     finally:
                         print("🔥 DIRECT GRAPH EXECUTION COMPLETED")
                         await queue.put(None)  # Signal completion
                 
                 async def consume_and_yield():
+                    nonlocal stream_error_message
                     while True:
                         item = await queue.get()
                         if item is None:
                             break
                         if item.get("type") == "error":
-                            raise Exception(item["data"]["error"])
+                            stream_error_message = item["data"].get("error") or "Unexpected error"
+                            print(f"🔥 STREAM ERROR CAPTURED: {stream_error_message}")
+                            continue
+                        if stream_error_message:
+                            # If an error was already captured, drain the queue without yielding more chunks
+                            continue
                         
                         # Log status updates for debugging
                         if item.get("type") == "status":
@@ -708,7 +721,8 @@ async def stream_chat(session_id: str, request: ChatRequest):
                         "full_response": full_response,
                         "img_urls": state.get("img_urls", []),
                         "video_urls": state.get("video_urls", []),
-                        "token_usage": token_usage
+                        "token_usage": token_usage,
+                        "error_message": stream_error_message
                     }
                 }
                 
@@ -717,6 +731,14 @@ async def stream_chat(session_id: str, request: ChatRequest):
                 print(f"🔥 Token usage: {token_usage}")
                 yield f"data: {json.dumps(final_chunk)}\n\n"
                 
+                if stream_error_message:
+                    error_chunk = {
+                        "type": "error",
+                        "data": {"error": stream_error_message}
+                    }
+                    yield f"data: {json.dumps(error_chunk)}\n\n"
+                    # Skip further session updates and done events on error
+                    return
                 
                 if state.get("img_urls"):
                         print(f"Storing img_urls in session: {state.get('img_urls')}")
@@ -916,9 +938,11 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
             try:
                 print("=== STARTING DEEP RESEARCH GRAPH STREAMING ===")
                 final_state = None
+                stream_error_message = None
                 
                 async def run_deep_research_graph():
                     nonlocal final_state
+                    nonlocal stream_error_message
                     try:
                         print("🔥 STARTING DEEP RESEARCH GRAPH EXECUTION")
                         async for node_result in deep_research_graph.astream(state):
@@ -955,21 +979,30 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
                                 await queue.put(approval_event)
                     except Exception as e:
                         print(f"--- ERROR in deep research graph execution: {e}")
+                        if isinstance(e, asyncio.CancelledError):
+                            stream_error_message = "Deep research stream was interrupted."
+                        else:
+                            stream_error_message = str(e) or "Unexpected error"
                         await queue.put({
                             "type": "error",
-                            "data": {"error": str(e)}
+                            "data": {"error": stream_error_message}
                         })
                     finally:
                         print("🔥 DEEP RESEARCH GRAPH EXECUTION COMPLETED")
                         await queue.put(None)  
                 
                 async def consume_and_yield():
+                    nonlocal stream_error_message
                     while True:
                         item = await queue.get()
                         if item is None:
                             break
                         if item.get("type") == "error":
-                            raise Exception(item["data"]["error"])
+                            stream_error_message = item["data"].get("error") or "Unexpected error"
+                            print(f"🔥 DEEP RESEARCH STREAM ERROR: {stream_error_message}")
+                            continue
+                        if stream_error_message:
+                            continue
                         
                         yield item
                 
@@ -1000,7 +1033,8 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
                         "full_response": full_response,
                         "img_urls": state.get("img_urls", []),
                         "video_urls": state.get("video_urls", []),
-                        "token_usage": token_usage
+                        "token_usage": token_usage,
+                        "error_message": stream_error_message
                     }
                 }
                 
@@ -1008,6 +1042,14 @@ async def stream_deep_research(session_id: str, request: ChatRequest):
                 print(f"🔥 Final deep research chunk video_urls: {final_chunk['data']['video_urls']}")
                 print(f"🔥 Token usage: {token_usage}")
                 yield f"data: {json.dumps(final_chunk)}\n\n"
+                
+                if stream_error_message:
+                    error_chunk = {
+                        "type": "error",
+                        "data": {"error": stream_error_message}
+                    }
+                    yield f"data: {json.dumps(error_chunk)}\n\n"
+                    return
                 
                 if full_response:
                     session["messages"].append({"role": "assistant", "content": full_response})
