@@ -180,6 +180,141 @@ async def is_folloup(user_query: str,
     return obj
 
 
+# async def analyze_query(
+#     user_message: str,
+#     prompt_template: str,
+#     llm: str,
+#     *,
+#     recent_messages_text: str,
+#     session_summary: str,
+#     last_route: str | None,
+#     available_composio_tools: List[str] = None,  # Add this parameter
+#     is_image: bool = False,
+#     is_video: bool = False,
+#     uploaded_images: List[str] = None,  # List of image URLs from new_uploaded_docs
+#     new_uploaded_docs: List[dict] = None,  # Full list of newly uploaded documents
+#     custom_instruction: str = "",  # Custom GPT instruction from gpt_config
+#     is_websearch: bool = False,  # WebSearch enabled flag from gpt_config.webBrowser
+# ) -> Optional[Dict[str, Any]]:
+#     """
+#     Analyze the user's message in context (conversation, summary, last route, custom instruction)
+#     to decide the next node (RAG, WebSearch, SimpleLLM, Image, MCP).
+
+#     Rules enforced:
+#     - Routing based on query content, conversation context, last route, and custom instruction
+#     - Custom instruction takes priority when query is ambiguous
+#     - If no docs uploaded and query relates to custom instruction → follow custom instruction strictly
+#     - If custom instruction mentions websearch AND is_websearch is true → route to WebSearch
+#     - If custom instruction mentions writing prompts or LLM tasks → route to SimpleLLM
+#     - No active_docs dependency - analyze based on query patterns and follow-up detection
+#     - WebSearch routing requires is_websearch flag to be true
+#     """
+
+#     try:
+#         # Add available composio tools to the prompt
+#         composio_tools_text = ""
+#         if available_composio_tools and len(available_composio_tools) > 0:
+#             composio_tools_text = f"\nAvailable Composio Tools: {', '.join(available_composio_tools)}"
+#         else:
+#             composio_tools_text = "\nAvailable Composio Tools: None"
+        
+#         prompt = (
+#             prompt_template
+#             .replace("{user_message}", user_message)
+#             .replace("{recent_messages}", recent_messages_text or "(none)")
+#             .replace("{session_summary}", session_summary or "(none)")
+#             .replace("{last_route}", str(last_route or "None"))
+#         )
+#         system_msg = SystemMessage(content=STATIC_SYS)
+        
+#         # Create dynamic text separately (NOT part of system prompt)
+#         uploaded_images_text = ""
+#         if uploaded_images and len(uploaded_images) > 0:
+#             uploaded_images_text = f"\nUploaded Images: {len(uploaded_images)} image URL(s) available in session"
+        
+#         # Build document context from new_uploaded_docs
+#         doc_context_text = ""
+#         if new_uploaded_docs and len(new_uploaded_docs) > 0:
+#             doc_types = {}
+#             for doc in new_uploaded_docs:
+#                 if isinstance(doc, dict):
+#                     file_type = doc.get("file_type", "unknown")
+#                     doc_types[file_type] = doc_types.get(file_type, 0) + 1
+            
+#             doc_summary = []
+#             for doc_type, count in doc_types.items():
+#                 doc_summary.append(f"{count} {doc_type}(s)")
+            
+#             doc_context_text = f"\nNewly Uploaded Documents: {', '.join(doc_summary)}"
+        
+#         # Add custom instruction context with routing guidance
+#         custom_instruction_text = ""
+#         routing_guidance = ""
+#         if custom_instruction and custom_instruction.strip():
+#             # Truncate to first 2000 chars to avoid token limits
+#             instruction_preview = custom_instruction[:2000] + ("..." if len(custom_instruction) > 2000 else "")
+#             custom_instruction_text = f"\nCustom GPT Instruction: {instruction_preview}"
+            
+#             # Add routing guidance based on custom instruction
+#             routing_guidance = """
+        
+#         ROUTING GUIDANCE FOR CUSTOM INSTRUCTION:
+#         - If user query is CLEAR and NOT related to custom instruction → Follow user query COMPLETELY, ignore custom instruction
+#         - CRITICAL: If custom instruction describes a workflow like "first write prompts, then generate" or "write prompts, wait for approval, then generate" → Route to SimpleLLM first to write prompts. Only route to Image node if user EXPLICITLY requests image generation (explicit verbs like "generate image", "create image", "make image", "generate now", "create it") OR if it's a follow-up after prompts were written (last_route=SimpleLLM and user approves/selects a prompt). Simple queries like "girl in traditional dress" without explicit generation request should route to SimpleLLM to write prompts first.
+#         - If user query is AMBIGUOUS AND custom instruction is related to image editing AND images are uploaded AND is_image is true → Route to Image node (only if user explicitly requests generation)
+#         - If user query is AMBIGUOUS AND custom instruction is related to video editing AND videos are uploaded AND is_video is true → Route to Video node (only if user explicitly requests generation)
+#         - If user query is AMBIGUOUS AND custom instruction involves websearch AND is_websearch is true → Route to WebSearch
+#         - If user query relates to custom instruction AND custom instruction requires multi-node execution (workflow patterns like "first...then...", "after...do...", sequential actions) → Create perfect execution_order array
+#         - Analyze custom instruction for workflow patterns and create appropriate execution_order when multi-step is needed
+#         - If custom instruction is related to image/video editing and relevant content is uploaded, route to Image/Video node only if user explicitly requests generation
+#         """
+        
+#         dynamic_context = f"""
+#         User Message:
+#         {user_message}
+
+#         Recent Messages:
+#         {recent_messages_text[:300] or '(none)'}
+
+#         Last Route: {last_route or 'None'}{composio_tools_text}
+#         Image Intent Flag: {is_image}
+#         Video Intent Flag: {is_video}
+#         WebSearch Enabled: {is_websearch}{uploaded_images_text}{doc_context_text}{custom_instruction_text}{routing_guidance}
+#         """
+
+#         messages = [system_msg, HumanMessage(content=dynamic_context)]
+
+#         # google_api_key = os.getenv("GOOGLE_API_KEY", "")
+#         # chat = ChatGoogleGenerativeAI(
+#         #     model="gemini-2.5-flash-lite",
+#         #     temperature=0.3,
+#         #     api_key=google_api_key,
+#         # )
+
+#         chat = ChatGroq(
+#         model="openai/gpt-oss-120b",  
+#         temperature=0.4,
+#         groq_api_key=os.getenv("GROQ_API_KEY")
+#     )
+#         # chat= get_llm("google/gemini-2.5-flash-lite", 0.3)
+#         response = await chat.ainvoke(messages)
+#         content = (response.content or "").strip()
+#         print(f"[Analyzer Raw Output] {content}")
+
+#         import re, json
+#         json_match = re.search(r"\{[\s\S]*\}", content)
+#         if json_match:
+#             json_str = json_match.group(0).replace("{{", "{").replace("}}", "}")
+#             print(f"[Analyzer Extracted JSON] {json_str}")
+#             return json.loads(json_str)
+#         return json.loads(content)
+
+#     except Exception as e:
+#         print(f"[Analyzer Error] {e}")
+#         import traceback
+#         traceback.print_exc()
+#         return None
+
 async def analyze_query(
     user_message: str,
     prompt_template: str,
@@ -192,26 +327,23 @@ async def analyze_query(
     is_image: bool = False,
     is_video: bool = False,
     uploaded_images: List[str] = None,  # List of image URLs from new_uploaded_docs
-    new_uploaded_docs: List[dict] = None,  # Full list of newly uploaded documents
+    new_uploaded_docs: List[dict] = None,
     custom_instruction: str = "",  # Custom GPT instruction from gpt_config
-    is_websearch: bool = False,  # WebSearch enabled flag from gpt_config.webBrowser
+    is_websearch: bool = False,  # Full list of newly uploaded documents
 ) -> Optional[Dict[str, Any]]:
     """
-    Analyze the user's message in context (conversation, summary, last route, custom instruction)
+    Analyze the user's message in context (conversation, summary, last route)
     to decide the next node (RAG, WebSearch, SimpleLLM, Image, MCP).
 
     Rules enforced:
-    - Routing based on query content, conversation context, last route, and custom instruction
-    - Custom instruction takes priority when query is ambiguous
-    - If no docs uploaded and query relates to custom instruction → follow custom instruction strictly
-    - If custom instruction mentions websearch AND is_websearch is true → route to WebSearch
-    - If custom instruction mentions writing prompts or LLM tasks → route to SimpleLLM
+    - Routing based purely on query content, conversation context, and last route
     - No active_docs dependency - analyze based on query patterns and follow-up detection
-    - WebSearch routing requires is_websearch flag to be true
+    - WebSearch and Image detection are purely query-driven
+    - MCP routing requires analyzing query for action patterns and matching available tools
     """
 
     try:
-        # Add available composio tools to the prompt
+        
         composio_tools_text = ""
         if available_composio_tools and len(available_composio_tools) > 0:
             composio_tools_text = f"\nAvailable Composio Tools: {', '.join(available_composio_tools)}"
@@ -246,40 +378,23 @@ async def analyze_query(
                 doc_summary.append(f"{count} {doc_type}(s)")
             
             doc_context_text = f"\nNewly Uploaded Documents: {', '.join(doc_summary)}"
-        
-        # Add custom instruction context with routing guidance
-        custom_instruction_text = ""
+        custom_instruction = ""
         routing_guidance = ""
         if custom_instruction and custom_instruction.strip():
             # Truncate to first 2000 chars to avoid token limits
             instruction_preview = custom_instruction[:2000] + ("..." if len(custom_instruction) > 2000 else "")
-            custom_instruction_text = f"\nCustom GPT Instruction: {instruction_preview}"
-            
-            # Add routing guidance based on custom instruction
-            routing_guidance = """
-        
-        ROUTING GUIDANCE FOR CUSTOM INSTRUCTION:
-        - If user query is CLEAR and NOT related to custom instruction → Follow user query COMPLETELY, ignore custom instruction
-        - CRITICAL: If custom instruction describes a workflow like "first write prompts, then generate" or "write prompts, wait for approval, then generate" → Route to SimpleLLM first to write prompts. Only route to Image node if user EXPLICITLY requests image generation (explicit verbs like "generate image", "create image", "make image", "generate now", "create it") OR if it's a follow-up after prompts were written (last_route=SimpleLLM and user approves/selects a prompt). Simple queries like "girl in traditional dress" without explicit generation request should route to SimpleLLM to write prompts first.
-        - If user query is AMBIGUOUS AND custom instruction is related to image editing AND images are uploaded AND is_image is true → Route to Image node (only if user explicitly requests generation)
-        - If user query is AMBIGUOUS AND custom instruction is related to video editing AND videos are uploaded AND is_video is true → Route to Video node (only if user explicitly requests generation)
-        - If user query is AMBIGUOUS AND custom instruction involves websearch AND is_websearch is true → Route to WebSearch
-        - If user query relates to custom instruction AND custom instruction requires multi-node execution (workflow patterns like "first...then...", "after...do...", sequential actions) → Create perfect execution_order array
-        - Analyze custom instruction for workflow patterns and create appropriate execution_order when multi-step is needed
-        - If custom instruction is related to image/video editing and relevant content is uploaded, route to Image/Video node only if user explicitly requests generation
-        """
-        
+            custom_instruction = f"\nCustom GPT Instruction: {instruction_preview}"
         dynamic_context = f"""
         User Message:
         {user_message}
 
         Recent Messages:
-        {recent_messages_text[:300] or '(none)'}
+        {recent_messages_text[:1000] or '(none)'}
 
         Last Route: {last_route or 'None'}{composio_tools_text}
         Image Intent Flag: {is_image}
-        Video Intent Flag: {is_video}
-        WebSearch Enabled: {is_websearch}{uploaded_images_text}{doc_context_text}{custom_instruction_text}{routing_guidance}
+        Video Intent Flag: {is_video}{uploaded_images_text}{doc_context_text}
+        WebSearch Enabled: {is_websearch}{doc_context_text}{custom_instruction}
         """
 
         messages = [system_msg, HumanMessage(content=dynamic_context)]
@@ -314,7 +429,6 @@ async def analyze_query(
         import traceback
         traceback.print_exc()
         return None
-
 
 def _get_last_output(state: GraphState) -> dict | None:
     """Helper to safely get the last intermediate result."""
