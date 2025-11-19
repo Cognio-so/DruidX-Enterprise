@@ -33,6 +33,9 @@ interface GptData {
   voiceTtsProvider?: string | null;
   voiceTtsModelId?: string | null;
   voiceTtsModelName?: string | null;
+  minSilenceDuration?: number | null;
+  minSpeechDuration?: number | null;
+  maxBufferedSpeech?: number | null;
 }
 
 export default function ChatGptById() {
@@ -246,6 +249,9 @@ export default function ChatGptById() {
               voiceTtsProvider: gpt.voiceTtsProvider,
               voiceTtsModelId: gpt.voiceTtsModelId,
               voiceTtsModelName: gpt.voiceTtsModelName,
+              minSilenceDuration: gpt.minSilenceDuration,
+              minSpeechDuration: gpt.minSpeechDuration,
+              maxBufferedSpeech: gpt.maxBufferedSpeech,
             });
           } else {
             console.error("Failed to fetch GPT data:", response.status);
@@ -287,6 +293,9 @@ export default function ChatGptById() {
           null) as VoiceAgentConfig["voiceTtsProvider"],
         voiceTtsModelId: gptData.voiceTtsModelId ?? null,
         voiceTtsModelName: gptData.voiceTtsModelName ?? null,
+        minSilenceDuration: gptData.minSilenceDuration ?? 0.5,
+        minSpeechDuration: gptData.minSpeechDuration ?? 0.05,
+        maxBufferedSpeech: gptData.maxBufferedSpeech ?? 60.0,
       }
     : undefined;
 

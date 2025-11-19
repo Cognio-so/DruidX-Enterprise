@@ -154,6 +154,9 @@ export default function ChatInput({
       voiceTtsProvider: sanitizeProvider(config?.voiceTtsProvider, TTS_PROVIDER_LABELS),
       voiceTtsModelId: config?.voiceTtsModelId ?? null,
       voiceTtsModelName: config?.voiceTtsModelName ?? null,
+      minSilenceDuration: config?.minSilenceDuration ?? 0.5,
+      minSpeechDuration: config?.minSpeechDuration ?? 0.05,
+      maxBufferedSpeech: config?.maxBufferedSpeech ?? 60.0,
     }),
     [sanitizeProvider]
   );
@@ -209,6 +212,9 @@ export default function ChatInput({
         voiceTtsProvider: config.voiceTtsProvider,
         voiceTtsModelId: config.voiceTtsModelId,
         voiceTtsModelName: config.voiceTtsModelName,
+        minSilenceDuration: config.minSilenceDuration,
+        minSpeechDuration: config.minSpeechDuration,
+        maxBufferedSpeech: config.maxBufferedSpeech,
       });
     } catch (err) {
       console.error("Voice connection failed:", err);

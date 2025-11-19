@@ -83,6 +83,9 @@ export async function getGptById(id: string) {
         voiceTtsProvider: true,
         voiceTtsModelId: true,
         voiceTtsModelName: true,
+        minSilenceDuration: true,
+        minSpeechDuration: true,
+        maxBufferedSpeech: true,
         knowledgeBase: true,
         createdAt: true,
         updatedAt: true,
@@ -115,6 +118,9 @@ export async function getGptById(id: string) {
       voiceTtsProvider: gpt.voiceTtsProvider ?? null,
       voiceTtsModelId: gpt.voiceTtsModelId ?? null,
       voiceTtsModelName: gpt.voiceTtsModelName ?? null,
+      minSilenceDuration: gpt.minSilenceDuration ?? 0.5,
+      minSpeechDuration: gpt.minSpeechDuration ?? 0.05,
+      maxBufferedSpeech: gpt.maxBufferedSpeech ?? 60.0,
     };
 
     return {
@@ -153,6 +159,9 @@ export async function editGpt(data: {
   voiceTtsProvider?: string;
   voiceTtsModelId?: string;
   voiceTtsModelName?: string;
+  minSilenceDuration?: number;
+  minSpeechDuration?: number;
+  maxBufferedSpeech?: number;
 }) {
   const session = await requireAdmin();
 
@@ -213,6 +222,9 @@ export async function editGpt(data: {
       voiceTtsProvider: validatedData.voiceTtsProvider || null,
       voiceTtsModelId: validatedData.voiceTtsModelId || null,
       voiceTtsModelName: validatedData.voiceTtsModelName || null,
+      minSilenceDuration: validatedData.minSilenceDuration ?? 0.5,
+      minSpeechDuration: validatedData.minSpeechDuration ?? 0.05,
+      maxBufferedSpeech: validatedData.maxBufferedSpeech ?? 60.0,
       knowledgeBase:
         validatedData.docs.length > 0
           ? JSON.stringify(validatedData.docs)
