@@ -133,7 +133,7 @@ class VoiceAssistant:
         self,
         instructions: str = None,
         tools: List[Callable] = None,
-        openai_model: str = "gpt-4.1-nano",
+        llm_model: str = "gpt-4.1-nano",
         stt_model: str = "nova-3",
         tts_model: str = "aura-2-ophelia-en", 
         initial_greeting: str = "Greet the user warmly, introduce yourself as a voice assistant, and offer your assistance.",
@@ -153,7 +153,7 @@ class VoiceAssistant:
                 Summarize search results into a natural, conversational response."""
         else:
             self.instructions = instructions
-        self.openai_model = openai_model
+        self.llm_model = llm_model
         self.stt_model = stt_model
         self.tts_model = tts_model
         self.initial_greeting = initial_greeting
@@ -270,6 +270,7 @@ class VoiceAssistant:
             "LIVEKIT_API_SECRET": os.getenv("LIVEKIT_API_SECRET"),
             "LIVEKIT_URL": os.getenv("LIVEKIT_URL"),
             "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
+            "OPENROUTER_API_KEY": os.getenv("OPENROUTER_API_KEY"),
             "DEEPGRAM_API_KEY": os.getenv("DEEPGRAM_API_KEY"),
             "TAVILY_API_KEY": os.getenv("TAVILY_API_KEY"),
             "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),
@@ -338,7 +339,7 @@ class VoiceAssistant:
                 max_buffered_speech=self.max_buffered_speech or 60.0,
                 sample_rate=16000,),
             stt=stt_plugin,
-            llm=openai.LLM(model=self.openai_model),
+            llm=openai.LLM.with_openrouter(model=self.llm_model, api_key=os.getenv("OPENROUTER_API_KEY")),
             tts=tts_plugin,
             use_tts_aligned_transcript=True,
         )
@@ -349,7 +350,7 @@ class VoiceAssistant:
         logger.info(f"    Min Speech Duration: {self.min_speech_duration or 0.05}s")
         logger.info(f"    Max Buffered Speech: {self.max_buffered_speech or 60.0}s")
         logger.info(f"  - STT: {stt_plugin.__class__.__module__} (Model: {self.stt_model})")
-        logger.info(f"  - LLM: OpenAI (Model: {self.openai_model})")
+        logger.info(f"  - LLM: (Model: {self.llm_model})")
         logger.info(f"  - TTS: {tts_plugin.__class__.__module__} (Model: {self.tts_model})")
 
 
@@ -622,7 +623,7 @@ async def entrypoint(ctx: agents.JobContext):
         # Define default models and instructions
         #--------------------------------------------------------------
         # These defaults will be overridden by values from Redis if available (set in main.py)
-        openai_model = "gpt-4.1-nano"
+        llm_model = "gpt-4.1-nano"
         stt_model = "nova-3"
         tts_model = "aura-2-ophelia-en"  # Default TTS model (matches main.py default, can be overridden via Redis)
         instructions = None  # Default to None, letting VoiceAssistant use its internal default
@@ -643,7 +644,7 @@ async def entrypoint(ctx: agents.JobContext):
                         logger.info(f"Found voice config in Redis for session {session_id}: {config}")
                         
                         # Override defaults with values from Redis if they are not None/empty
-                        openai_model = config.get("openai_model") or openai_model
+                        llm_model = config.get("llm_model") or llm_model
                         stt_model = config.get("stt_model") or stt_model
                         tts_model = config.get("tts_model") or tts_model
                         instructions = config.get("instructions") or instructions
@@ -661,7 +662,7 @@ async def entrypoint(ctx: agents.JobContext):
             logger.warning("Could not determine session_id from room name. Using default models.")
 
         logger.info("Initializing VoiceAssistant with the following config:")
-        logger.info(f"  - OpenAI LLM Model: {openai_model}")
+        logger.info(f"  - LLM Model: {llm_model}")
         logger.info(f"  - STT Model: {stt_model}")
         logger.info(f"  - TTS Model: {tts_model}")
         logger.info(f"  - Instructions: {'Custom' if instructions else 'Default'}")
@@ -671,7 +672,7 @@ async def entrypoint(ctx: agents.JobContext):
         logger.info(f"  - Max Buffered Speech: {max_buffered_speech}")
         assistant = VoiceAssistant(
             instructions=instructions,
-            openai_model=openai_model,
+            llm_model=llm_model,
             stt_model=stt_model,
             tts_model=tts_model,
             activation_threshold=activation_threshold,
