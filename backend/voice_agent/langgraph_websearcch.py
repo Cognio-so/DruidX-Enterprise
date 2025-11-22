@@ -132,52 +132,53 @@ class TavilyWebSearchTool:
         """
         return llm.bind_tools([self.search_tool])
 
-def get_llm(model_name: str, temperature: float = 0.5):
+def get_llm(model_name: str = None, temperature: float = 0.5):
     """
     Get an LLM instance based on the model name.
+    Prioritizes OpenRouter for broad model support (including Google, Anthropic, etc.).
     
     Args:
-        model_name: Name of the LLM to use
+        model_name: Name of the LLM to use (e.g., 'google/gemini-2.5-flash', 'gpt-4o-mini')
         temperature: Temperature setting for the LLM
         
     Returns:
-        LLM instance
+        ChatOpenAI instance configured for OpenRouter or OpenAI
     """
+    # Fallback default model if None or empty string provided
+    if not model_name:
+        model_name = "gpt-4o-mini"
+
     try:
-        if "gpt" in model_name.lower():
-            openai_api_key = os.getenv("OPENAI_API_KEY")
-            if not openai_api_key:
-                raise ValueError("OpenAI API key is required for GPT models.")
+        openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
+        openai_api_key = os.getenv("OPENAI_API_KEY")
+
+        # Priority 1: Use OpenRouter (Allows using any model provided in gpt_config like 'google/gemini-2.5-flash')
+        if openrouter_api_key:
+            logger.info(f"Initializing LLM '{model_name}' via OpenRouter")
             return ChatOpenAI(
-                model="gpt-4o-mini",
+                model="openai/gpt-4o-mini",
+                temperature=temperature,
+                api_key=openrouter_api_key,
+                base_url="https://openrouter.ai/api/v1"
+            )
+
+            print(f"Using OpenRouter with model '{model_name}'")
+        
+        # Priority 2: Fallback to standard OpenAI (Only works for GPT models)
+        elif openai_api_key:
+            # Warn if trying to use a non-GPT model with standard OpenAI endpoint
+            if "gpt" not in model_name.lower():
+                logger.warning(f"Using standard OpenAI API with model '{model_name}'. This may fail if it's not an OpenAI model.")
+            
+            logger.info(f"Initializing LLM '{model_name}' via OpenAI Standard")
+            return ChatOpenAI(
+                model=model_name,
                 temperature=temperature,
                 api_key=openai_api_key
             )
-
-        # elif "gemini" in model_name.lower():
-        #     google_api_key = os.getenv("GOOGLE_API_KEY")
-        #     if not google_api_key:
-        #         raise ValueError("Google API key is required for Gemini models.")
-        #     return ChatGoogleGenerativeAI(
-        #         model="gemini-2.5-flash-lite-preview-06-17",
-        #         temperature=temperature,
-        #         google_api_key=google_api_key
-        #     )
-
-
-        # elif "claude" in model_name.lower():
-        #     anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
-        #     if not anthropic_api_key:
-        #         raise ValueError("Anthropic API key is required for Claude models.")
-        #     return ChatAnthropic(
-        #         model="claude-3-5-sonnet-20240620",
-        #         temperature=temperature,
-        #         api_key=anthropic_api_key
-        #     )
-        
         
         else:
-            raise ValueError(f"Unsupported model: {model_name}")
+            raise ValueError("No API key found. Please set OPENROUTER_API_KEY (preferred) or OPENAI_API_KEY.")
     
     except Exception as e:
         logger.error(f"Error initializing language model: {str(e)}")

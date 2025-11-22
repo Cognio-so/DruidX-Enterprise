@@ -1364,10 +1364,11 @@ async def voice_connect(request: dict):
     min_silence_duration =gpt_config.get("minSilenceDuration", 0.5)
     min_speech_duration =gpt_config.get("minSpeechDuration", 0.05)
     max_buffered_speech =gpt_config.get("maxBufferedSpeech", 60)
-    openai_model = "gpt-4.1-nano"
+    voice_llm_model = gpt_config.get("model", "openai/gpt-4.1-nano")
+    llm_model = voice_llm_model
     stt_model = stt
     tts_model = tts
-    print(f"Voice connect requested with session_id: {session_id}, gpt_id: {gpt_id}, openai_model: {openai_model}, stt_model: {stt_model}, tts_model: {tts_model}")
+    print(f"Voice connect requested with session_id: {session_id}, gpt_id: {gpt_id}, llm_model: {llm_model}, stt_model: {stt_model}, tts_model: {tts_model}")
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID is required")
     
@@ -1381,7 +1382,7 @@ async def voice_connect(request: dict):
         redis_client = await ensure_redis_client()
         if redis_client:
             voice_config = {
-                "openai_model": openai_model,
+                "llm_model": llm_model,
                 "stt_model": stt_model,
                 "tts_model": tts_model,
                 "instructions": instructions,
