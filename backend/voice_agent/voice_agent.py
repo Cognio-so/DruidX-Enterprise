@@ -40,6 +40,7 @@ from livekit.plugins import (
     elevenlabs,
     cartesia,
     hume,
+    sarvam
 )
 
 # Import the web search tool
@@ -127,6 +128,8 @@ ELEVENLABS_TTS_MODELS = ("ODq5zmih8GrVes37Dizd","Xb7hH8MSUJpSbSDYk0k2", "iP95p4x
 CARTESIA_TTS_MODELS = ("f786b574-daa5-4673-aa0c-cbe3e8534c02", "9626c31c-bec5-4cca-baa8-f8ba9e84c8bc")
 CARTESIA_SONI3_MODEL = "sonic-3"
 HUME_TTS_MODELS = ("Colton Rivers", "Ava Song","Priya","Suresh")
+SARVAM_STT_MODEL = ("saarika:v2.5")
+SARVAM_TTS_VOICE = ("anushka", "vidya", "manisha", "Arya", "karun", "hitesh")
 
 class VoiceAssistant:
     def __init__(
@@ -276,6 +279,7 @@ class VoiceAssistant:
             "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),
             "CARTESIA_API_KEY": os.getenv("CARTESIA_API_KEY"),
             "HUME_API_KEY": os.getenv("HUME_API_KEY"),
+            "SARVAM_API_KEY": os.getenv("SARVAM_API_KEY"),
         }
 
         missing_keys = [key for key, value in required_keys.items() if not value]
@@ -302,6 +306,9 @@ class VoiceAssistant:
         elif self.stt_model in CARTESIA_STT_MODELS:
             stt_plugin = cartesia.STT(model=self.stt_model, api_key=os.getenv("CARTESIA_API_KEY"))
             logger.info("Using Cartesia STT plugin.")
+        elif self.stt_model in SARVAM_STT_MODEL:
+            stt_plugin=sarvam.STT(language="unknown", model=self.stt_model, api_key=os.getenv("SARVAM_API_KEY"))
+            logger.info("Using Sarvam STT plugin.")
         else:
             logger.warning(f"STT model '{self.stt_model}' not recognized. Defaulting to Deepgram's 'nova-3'.")
             stt_plugin = deepgram.STT(model="nova-3")
@@ -317,6 +324,10 @@ class VoiceAssistant:
         elif self.tts_model in ELEVENLABS_TTS_MODELS:
             tts_plugin = elevenlabs.TTS(voice_id=self.tts_model, model="eleven_turbo_v2_5", api_key=os.getenv("ELEVENLABS_API_KEY"))
             logger.info(f"Using ElevenLabs TTS plugin with voice ID from main.py: {self.tts_model}")
+        elif self.tts_model in SARVAM_TTS_VOICE:
+            # tts_plugin = sarvam.TTS(target_language_code="hi-IN", model="bulbul:v2" speaker="anushka",)
+            tts_plugin = sarvam.TTS(target_language_code="hi-IN", model="bulbul:v2", speaker="anushka",)
+            logger.info(f"Using Sarvam TTS plugin with voice from main.py: {self.tts_model}")
         elif self.tts_model in HUME_TTS_MODELS:
             tts_plugin = hume.TTS(voice=hume.VoiceByName(name=self.tts_model, provider=hume.VoiceProvider.hume), api_key=os.getenv("HUME_API_KEY"))
             logger.info(f"Using Hume TTS plugin with voice from main.py: {self.tts_model}")
