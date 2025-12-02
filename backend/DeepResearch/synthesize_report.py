@@ -66,7 +66,9 @@ async def synthesize_report_node(state: GraphState) -> GraphState:
     #     temperature=0.3,
     #     google_api_key=google_api_key,
     # )
-    llm2=get_reasoning_llm(llm_model)
+    from api_keys_util import get_api_keys_from_session
+    api_keys = await get_api_keys_from_session(state.get("session_id")) if state else {}
+    llm2=get_reasoning_llm(llm_model, api_keys=api_keys)
     _, _ = await stream_with_token_tracking(
         llm2,
         [HumanMessage(content=synthesis_prompt)],

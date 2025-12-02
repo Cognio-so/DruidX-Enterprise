@@ -316,7 +316,9 @@ async def execute_research_node(state: GraphState) -> GraphState:
         return state
     extractor = WebPageExtractor()
     llm_model=state.get("deep_research_llm_model")
-    llm=get_reasoning_llm(llm_model)
+    from api_keys_util import get_api_keys_from_session
+    api_keys = await get_api_keys_from_session(state.get("session_id")) if state else {}
+    llm=get_reasoning_llm(llm_model, api_keys=api_keys)
     
     findings = []
     full_response = ""
@@ -327,7 +329,7 @@ async def execute_research_node(state: GraphState) -> GraphState:
         try:
             
             print(f"[DeepResearch] → Phase 1: Web search...")
-            search_results = await web_search(query, max_results=5, search_depth="advanced")
+            search_results = await web_search(query, max_results=5, search_depth="advanced", api_keys=api_keys)
             
             if not search_results:
                 print(f"[DeepResearch] ✗ No search results found")
@@ -504,7 +506,9 @@ async def execute_research_node_simple(state: GraphState) -> GraphState:
     for query in queries_to_research:
         print(f"[DeepResearch] Researching: {query}")
         try:
-            web_results = await web_search(query, max_results=5, search_depth="advanced")
+            from api_keys_util import get_api_keys_from_session
+            api_keys = await get_api_keys_from_session(state.get("session_id")) if state else {}
+            web_results = await web_search(query, max_results=5, search_depth="advanced", api_keys=api_keys)
             if web_results:
                 findings.append({
                     "query": query,

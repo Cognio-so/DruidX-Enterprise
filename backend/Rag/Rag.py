@@ -469,7 +469,9 @@ async def preprocess_images(uploaded_images: List[Dict[str, Any]], state: GraphS
             if collection_is_new:
                 print(f"[ImagePreprocessor] Created new collection with payload indexes for id, image_index, and filename")
             
-            embs = await embed_chunks_parallel([analysis], batch_size=1)
+            from api_keys_util import get_api_keys_from_session
+            api_keys = await get_api_keys_from_session(session_id) if session_id else {}
+            embs = await embed_chunks_parallel([analysis], batch_size=1, api_keys=api_keys)
             payload = {
                 "text": analysis,
                 "filename": filename,
@@ -521,7 +523,9 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
     else:
         chunked_docs = text_splitter.create_documents(doc)
     chunk_texts = [doc.page_content for doc in chunked_docs]
-    embeddings = await embed_chunks_parallel(chunk_texts, batch_size=200)
+    from api_keys_util import get_api_keys_from_session
+    api_keys = await get_api_keys_from_session(session_id) if session_id and session_id != "default" else {}
+    embeddings = await embed_chunks_parallel(chunk_texts, batch_size=200, api_keys=api_keys)
     
     collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
     collections = [c.name for c in collections_response.collections]
@@ -667,7 +671,7 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
 def tokenize(text: str):
     tokens = re.findall(r"\w+", text.lower())
     return [t for t in tokens if t not in ENGLISH_STOP_WORDS]
-async def _search_collection(collection_name: str, query: str, limit: int) -> List[str]:
+async def _search_collection(collection_name: str, query: str, limit: int, api_keys: dict = None) -> List[str]:
     """
     Helper function to perform a semantic search on a Qdrant collection and return the text of the top results.
     """
@@ -682,7 +686,7 @@ async def _search_collection(collection_name: str, query: str, limit: int) -> Li
         return []
     
     try:
-        query_embedding = await embed_query(query)
+        query_embedding = await embed_query(query, api_keys=api_keys)
         
         search_results = await asyncio.to_thread(
             QDRANT_CLIENT.search,
@@ -734,7 +738,8 @@ async def _search_image_collection(
     query: str, 
     limit: int = 8,
     filter_image_ids: Optional[List[str]] = None,
-    filter_image_indices: Optional[List[int]] = None
+    filter_image_indices: Optional[List[int]] = None,
+    api_keys: dict = None
 ) -> List[str]:
     """
     Semantic search over embedded image analyses for this session.
@@ -758,7 +763,7 @@ async def _search_image_collection(
         return []
     
     try:
-        query_embedding = await embed_query(query)
+        query_embedding = await embed_query(query, api_keys=api_keys)
         query_filter = None
         if filter_image_ids:
             query_filter = models.Filter(
@@ -804,7 +809,7 @@ async def _search_image_collection(
     
     return blocks
 
-async def _hybrid_search_rrf(collection_name: str, query: str, limit: int, k: int = 60) -> List[str]:
+async def _hybrid_search_rrf(collection_name: str, query: str, limit: int, k: int = 60, api_keys: dict = None) -> List[str]:
     """
     Hybrid RAG with RRF: Combines vector search (semantic) and BM25 (keyword) using RRF.
     
@@ -839,7 +844,7 @@ async def _hybrid_search_rrf(collection_name: str, query: str, limit: int, k: in
         return []
     
     try:
-        query_embedding = await embed_query(query)
+        query_embedding = await embed_query(query, api_keys=api_keys)
         vector_results = await asyncio.to_thread(
             QDRANT_CLIENT.search,
             collection_name=collection_name,
@@ -889,7 +894,7 @@ async def _hybrid_search_rrf(collection_name: str, query: str, limit: int, k: in
     except Exception as e:
         print(f"[HYBRID-RRF] Error during hybrid search: {e}")
         return []
-async def _hybrid_search_intersection(collection_name: str, query: str, limit: int = 5) -> List[str]:
+async def _hybrid_search_intersection(collection_name: str, query: str, limit: int = 5, api_keys: dict = None) -> List[str]:
     """
     Hybrid RAG with Intersection: returns only documents present in BOTH
     vector search and BM25 results.
@@ -909,7 +914,7 @@ async def _hybrid_search_intersection(collection_name: str, query: str, limit: i
         return []
     
     try:
-        query_embedding = await embed_query(query)
+        query_embedding = await embed_query(query, api_keys=api_keys)
         vector_results = await asyncio.to_thread(
             QDRANT_CLIENT.search,
             collection_name=collection_name,
@@ -977,7 +982,8 @@ async def intelligent_source_selection(
     has_user_docs: bool,
     has_kb: bool,
     custom_prompt: str = "",
-    llm_model: str = "gpt-4o-mini"
+    llm_model: str = "gpt-4o-mini",
+    session_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Use LLM to intelligently decide which knowledge sources to use.
@@ -1035,11 +1041,16 @@ You **MUST** respond with a single, valid JSON object and nothing else.
     "reasoning": "Brief explanation of decision"
 }}
 """ 
-    llm = ChatGroq(
-        model="openai/gpt-oss-120b",  
-        temperature=0.2,
-        groq_api_key=os.getenv("GROQ_API_KEY")
-    )
+    from api_keys_util import get_groq_api_key, get_api_keys_from_session
+    api_keys = await get_api_keys_from_session(session_id) if session_id else {}
+    groq_key = get_groq_api_key(api_keys)
+    llm_kwargs = {
+        "model": "openai/gpt-oss-120b",
+        "temperature": 0.2
+    }
+    if groq_key:
+        llm_kwargs["groq_api_key"] = groq_key
+    llm = ChatGroq(**llm_kwargs)
     response = await llm.ainvoke([HumanMessage(content=classification_prompt)])
 
     
@@ -1273,11 +1284,16 @@ Respond with a JSON object:
 """
 
     try:
-        llm = ChatGroq(
-            model="openai/gpt-oss-120b",
-            temperature=0.2,
-            groq_api_key=os.getenv("GROQ_API_KEY")
-        )
+        from api_keys_util import get_groq_api_key, get_api_keys_from_session
+        api_keys = await get_api_keys_from_session(session_id) if session_id else {}
+        groq_key = get_groq_api_key(api_keys)
+        llm_kwargs = {
+            "model": "openai/gpt-oss-120b",
+            "temperature": 0.2
+        }
+        if groq_key:
+            llm_kwargs["groq_api_key"] = groq_key
+        llm = ChatGroq(**llm_kwargs)
         response = await llm.ainvoke([HumanMessage(content=classification_prompt)])
         
         import json
@@ -1552,11 +1568,16 @@ Respond with a JSON object:
 """
 
     try:
-        llm = ChatGroq(
-            model="openai/gpt-oss-120b",
-            temperature=0.2,
-            groq_api_key=os.getenv("GROQ_API_KEY")
-        )
+        from api_keys_util import get_groq_api_key, get_api_keys_from_session
+        api_keys = await get_api_keys_from_session(session_id) if session_id else {}
+        groq_key = get_groq_api_key(api_keys)
+        llm_kwargs = {
+            "model": "openai/gpt-oss-120b",
+            "temperature": 0.2
+        }
+        if groq_key:
+            llm_kwargs["groq_api_key"] = groq_key
+        llm = ChatGroq(**llm_kwargs)
         response = await llm.ainvoke([HumanMessage(content=classification_prompt)])
         
         import json
@@ -1670,7 +1691,9 @@ async def extract_text_from_image(file_content: bytes, filename: str = "", state
                 }
             ]
         )
-        llm = get_llm(llm_model, temperature=0.5)
+        from api_keys_util import get_api_keys_from_session
+        api_keys = await get_api_keys_from_session(state.get("session_id")) if state else {}
+        llm = get_llm(llm_model, temperature=0.5, api_keys=api_keys)
         response = await llm.ainvoke([message])
         if state is not None:
             token_usage = _extract_usage(response)
@@ -1731,8 +1754,10 @@ async def hierarchical_summarize(state, batch_size: int = 10):
     gpt_config = state.get("gpt_config", {})
     custom_prompt = gpt_config.get("instruction", "").strip()
 
-    map_llm = get_llm("google/gemini-2.5-flash-lite", 0.2)
-    reduce_llm = get_llm(llm_model, 0.3)
+    from api_keys_util import get_api_keys_from_session
+    api_keys = await get_api_keys_from_session(state.get("session_id")) if state else {}
+    map_llm = get_llm("google/gemini-2.5-flash-lite", 0.2, api_keys=api_keys)
+    reduce_llm = get_llm(llm_model, 0.3, api_keys=api_keys)
     total_tokens = sum(len(c["text"].split()) for c in chunks)
     if total_tokens < 1200:
         mode = "brief"
@@ -2096,7 +2121,7 @@ async def _process_user_docs(state, docs, user_query, rag, filter_doc_ids: Optio
             filter_doc_ids = None
     
     # Diversified per-document retrieval to ensure coverage from each uploaded doc
-    async def _search_per_doc(collection_name: str, query: str, per_doc: int = 3, max_candidates: int = 200, max_docs: int = 10, filter_doc_ids: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+    async def _search_per_doc(collection_name: str, query: str, per_doc: int = 3, max_candidates: int = 200, max_docs: int = 10, filter_doc_ids: Optional[List[str]] = None, api_keys: dict = None) -> List[Dict[str, Any]]:
         # Check if collection exists before searching
         try:
             collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
@@ -2109,7 +2134,7 @@ async def _process_user_docs(state, docs, user_query, rag, filter_doc_ids: Optio
             return []
         
         try:
-            query_embedding = await embed_query(query)
+            query_embedding = await embed_query(query, api_keys=api_keys)
             
             # If filtering by doc IDs, search with filter
             if filter_doc_ids:
@@ -2175,7 +2200,9 @@ async def _process_user_docs(state, docs, user_query, rag, filter_doc_ids: Optio
         per_doc_results = await asyncio.gather(*[fetch_for_doc(*t) for t in doc_keys])
         return [r for r in per_doc_results if r.get("chunks")]
 
-    per_doc_sets = await _search_per_doc(collection_name, user_query, per_doc=3, max_candidates=200, max_docs=10, filter_doc_ids=filter_doc_ids)
+    from api_keys_util import get_api_keys_from_session
+    api_keys = await get_api_keys_from_session(session_id) if session_id else {}
+    per_doc_sets = await _search_per_doc(collection_name, user_query, per_doc=3, max_candidates=200, max_docs=10, filter_doc_ids=filter_doc_ids, api_keys=api_keys)
     if not per_doc_sets:
         # Fallback to previous behavior with filtering
         if filter_doc_ids:
@@ -2190,7 +2217,7 @@ async def _process_user_docs(state, docs, user_query, rag, filter_doc_ids: Optio
             if is_hybrid:
                 # For hybrid, we need to search with filter
                 try:
-                    query_embedding = await embed_query(user_query)
+                    query_embedding = await embed_query(user_query, api_keys=api_keys)
                     vector_results = await asyncio.to_thread(
                         QDRANT_CLIENT.search,
                         collection_name=collection_name,
@@ -2204,7 +2231,7 @@ async def _process_user_docs(state, docs, user_query, rag, filter_doc_ids: Optio
                     res = []
             else:
                 try:
-                    query_embedding = await embed_query(user_query)
+                    query_embedding = await embed_query(user_query, api_keys=api_keys)
                     search_results = await asyncio.to_thread(
                         QDRANT_CLIENT.search,
                         collection_name=collection_name,
@@ -2218,9 +2245,9 @@ async def _process_user_docs(state, docs, user_query, rag, filter_doc_ids: Optio
                     res = []
         else:
             if is_hybrid:
-                res = await _hybrid_search_rrf(collection_name, user_query, limit=20, k=60)
+                res = await _hybrid_search_rrf(collection_name, user_query, limit=20, k=60, api_keys=api_keys)
             else:
-                res = await _search_collection(collection_name, user_query, limit=20)
+                res = await _search_collection(collection_name, user_query, limit=20, api_keys=api_keys)
         return ("user", res)
 
     # Build grouped blocks with filename/type headers
@@ -2258,10 +2285,14 @@ async def _process_kb_docs(state, kb_docs, user_query, rag):
     
     print(f"[RAG] Using pre-processed KB embeddings from collection: {collection_name}")
     
+    from api_keys_util import get_api_keys_from_session
+    session_id = state.get("session_id")
+    api_keys = await get_api_keys_from_session(session_id) if session_id else {}
+    
     if is_hybrid:
-        res = await _hybrid_search_intersection(collection_name, user_query, limit=5)
+        res = await _hybrid_search_intersection(collection_name, user_query, limit=5, api_keys=api_keys)
     else:
-        res = await _hybrid_search_rrf(collection_name, user_query, limit=5, k=60)
+        res = await _hybrid_search_rrf(collection_name, user_query, limit=5, k=60, api_keys=api_keys)
     
     print(f"[RAG] Retrieved {len(res)} chunks from KB")
     return ("kb", res)
@@ -2376,7 +2407,8 @@ async def Rag(state: GraphState) -> GraphState:
                 has_user_docs=has_user_docs,
                 has_kb=has_kb,
                 custom_prompt=custom_system_prompt,
-                llm_model=llm_model
+                llm_model=llm_model,
+                session_id=session_id
             )
         )
         parallel_tasks.append(("intelligence", intelligence_task))
@@ -2536,16 +2568,21 @@ async def Rag(state: GraphState) -> GraphState:
                     print(f"[RAG] Error getting actual indices from Qdrant: {e}")
                     actual_indices = filter_indices if filter_indices else []
             
+            from api_keys_util import get_api_keys_from_session
+            api_keys = await get_api_keys_from_session(session_id) if session_id else {}
             images_result = await _search_image_collection(
                 session_id, 
                 user_query, 
                 limit=8,
                 filter_image_ids=filter_ids if filter_ids else None,
-                filter_image_indices=actual_indices if actual_indices else (filter_indices if filter_indices else None)
+                filter_image_indices=actual_indices if actual_indices else (filter_indices if filter_indices else None),
+                api_keys=api_keys
             )
         else:
             # Fallback: search all images
-            images_result = await _search_image_collection(session_id, user_query, limit=8)
+            from api_keys_util import get_api_keys_from_session
+            api_keys = await get_api_keys_from_session(session_id) if session_id else {}
+            images_result = await _search_image_collection(session_id, user_query, limit=8, api_keys=api_keys)
 
         if not source_decision:
             print(f"[RAG] Intelligence failed, defaulting to all sources")
@@ -2679,7 +2716,9 @@ async def Rag(state: GraphState) -> GraphState:
             HumanMessage(content=dynamic_prompt)
         ]
 
-        llm=get_llm(llm_model,0.8)
+        from api_keys_util import get_api_keys_from_session
+        api_keys = await get_api_keys_from_session(state.get("session_id")) if state else {}
+        llm=get_llm(llm_model,0.8, api_keys=api_keys)
         await send_status_update(state, "🤖 Generating response from retrieved information...", 90)
        
         print(f"model named used in rag.....", llm_model)

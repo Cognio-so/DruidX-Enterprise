@@ -48,7 +48,9 @@ async def analyze_gaps_node(state: GraphState) -> GraphState:
         max_iterations=research_state_dict["max_iterations"],
         info_summary=info_summary_text
     )
-    llm2 = get_reasoning_llm(llm_model)
+    from api_keys_util import get_api_keys_from_session
+    api_keys = await get_api_keys_from_session(state.get("session_id")) if state else {}
+    llm2 = get_reasoning_llm(llm_model, api_keys=api_keys)
     
     # Don't stream gap analysis content - only status events
     llm_response, _ = await stream_with_token_tracking(

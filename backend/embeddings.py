@@ -14,10 +14,10 @@ _persistent_http_client = httpx.Client(
     },
 )
 
-_cached_embedding_model: OpenAIEmbeddings = None
+_cached_embedding_models: dict = {}
 
 
-def get_embedding_model(model: str = "text-embedding-3-small") -> OpenAIEmbeddings:
+def get_embedding_model(model: str = "text-embedding-3-small", api_keys: dict = None) -> OpenAIEmbeddings:
     """
     Get or create cached OpenAIEmbeddings instance with shared HTTP client.
     
@@ -33,23 +33,33 @@ def get_embedding_model(model: str = "text-embedding-3-small") -> OpenAIEmbeddin
     Returns:
         Cached OpenAIEmbeddings instance
     """
-    global _cached_embedding_model
+    global _cached_embedding_models
     
-    if _cached_embedding_model is None:
-        _cached_embedding_model = OpenAIEmbeddings(
-            model=model,
-            http_client=_persistent_http_client,
-            show_progress_bar=False
-        )
-        print(f"[Embeddings] ✅ Initialized cached embedding model: {model}")
+    from api_keys_util import get_openai_api_key
     
-    return _cached_embedding_model
+    # Create cache key based on model and API key (to support different sessions)
+    api_key = get_openai_api_key(api_keys) if api_keys else None
+    cache_key = f"{model}_{api_key if api_key else 'env'}"
+    
+    if cache_key not in _cached_embedding_models:
+        embedding_kwargs = {
+            "model": model,
+            "http_client": _persistent_http_client,
+            "show_progress_bar": False
+        }
+        if api_key:
+            embedding_kwargs["openai_api_key"] = api_key
+        _cached_embedding_models[cache_key] = OpenAIEmbeddings(**embedding_kwargs)
+        print(f"[Embeddings] ✅ Initialized cached embedding model: {model} (cache_key: {cache_key[:20]}...)")
+    
+    return _cached_embedding_models[cache_key]
 
 
 async def embed_chunks_parallel(
     texts: List[str], 
     batch_size: int = 200,
-    model: str = "text-embedding-3-small"
+    model: str = "text-embedding-3-small",
+    api_keys: dict = None
 ) -> List[List[float]]:
     """
     Process embeddings in parallel batches for maximum efficiency.
@@ -77,7 +87,7 @@ async def embed_chunks_parallel(
     if not texts:
         return []
 
-    embedding_model = get_embedding_model(model)
+    embedding_model = get_embedding_model(model, api_keys=api_keys)
     batches = [texts[i:i + batch_size] for i in range(0, len(texts), batch_size)]
     
     if len(batches) == 1:
@@ -113,7 +123,8 @@ async def embed_chunks_parallel(
 
 async def embed_query(
     query: str,
-    model: str = "text-embedding-3-small"
+    model: str = "text-embedding-3-small",
+    api_keys: dict = None
 ) -> List[float]:
     """
     Embed a single query string (optimized wrapper).
@@ -125,6 +136,6 @@ async def embed_query(
     Returns:
         Embedding vector as list of floats
     """
-    embedding_model = get_embedding_model(model)
+    embedding_model = get_embedding_model(model, api_keys=api_keys)
     return await embedding_model.aembed_query(query)
 

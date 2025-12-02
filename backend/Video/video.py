@@ -12,6 +12,7 @@ from langchain_groq import ChatGroq
 async def _enhance_prompt_with_context(
     query: str,
     conversation: List[Dict[str, Any]],
+    state: GraphState = None,
 ) -> str:
     """
     Uses an LLM to generate an enhanced, detailed prompt for video generation
@@ -60,13 +61,17 @@ Current User Query: "{query}"
 Generate the optimal video generation prompt:"""
 
     try:
-        import os
-        
-        llm = ChatGroq(
-            model="openai/gpt-oss-120b",  
-            temperature=0.7,  
-            groq_api_key=os.getenv("GROQ_API_KEY")
-        )   
+        from api_keys_util import get_groq_api_key, get_api_keys_from_session
+        session_id = state.get("session_id") if state else None
+        api_keys = await get_api_keys_from_session(session_id) if session_id else {}
+        groq_key = get_groq_api_key(api_keys)
+        llm_kwargs = {
+            "model": "openai/gpt-oss-120b",
+            "temperature": 0.7
+        }
+        if groq_key:
+            llm_kwargs["groq_api_key"] = groq_key
+        llm = ChatGroq(**llm_kwargs)
         response = await llm.ainvoke(
             [SystemMessage(content=system_prompt), HumanMessage(content=human_prompt)]
         )
@@ -122,12 +127,17 @@ Return ONLY the JSON.
 """
 
     try:
-        import os
-        llm = ChatGroq(
-            model="openai/gpt-oss-120b",  
-            temperature=0.4,
-            groq_api_key=os.getenv("GROQ_API_KEY")
-        )   
+        from api_keys_util import get_groq_api_key, get_api_keys_from_session
+        session_id = state.get("session_id") if state else None
+        api_keys = await get_api_keys_from_session(session_id) if session_id else {}
+        groq_key = get_groq_api_key(api_keys)
+        llm_kwargs = {
+            "model": "openai/gpt-oss-120b",
+            "temperature": 0.4
+        }
+        if groq_key:
+            llm_kwargs["groq_api_key"] = groq_key
+        llm = ChatGroq(**llm_kwargs)
         response = await llm.ainvoke(
             [SystemMessage(content=system_prompt), HumanMessage(content=human_prompt)]
         )
@@ -202,7 +212,7 @@ async def generate_video(state: GraphState) -> GraphState:
             )
         else:
             print(f"✨ Detected NEW video generation intent.")
-            enhanced_prompt = await _enhance_prompt_with_context(query, conversation)
+            enhanced_prompt = await _enhance_prompt_with_context(query, conversation, state)
             
             print(f"   Using Model: {model}")
             print(f"   Original Query: {query}")

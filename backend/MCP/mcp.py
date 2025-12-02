@@ -383,11 +383,16 @@ class MCPNode:
 )
             # print(f"🔧 Loaded {len(composio_tools)} MCP tools for GPT {gpt_id}")
             # print(f"composio_tools: {composio_tools}")
-            api_key=os.getenv("OPENROUTER_API_KEY")
-            openai = OpenAI(
-    api_key=api_key,
-    base_url="https://openrouter.ai/api/v1"
-)
+            from api_keys_util import get_openrouter_api_key, get_api_keys_from_session
+            session_id = state.get("session_id") if state else None
+            api_keys = await get_api_keys_from_session(session_id) if session_id else {}
+            api_key = get_openrouter_api_key(api_keys)
+            openai_kwargs = {
+                "base_url": "https://openrouter.ai/api/v1"
+            }
+            if api_key:
+                openai_kwargs["api_key"] = api_key
+            openai = OpenAI(**openai_kwargs)
             llm_model=state.get("llm_model")
             completion = await asyncio.to_thread(
                 openai.chat.completions.create,
@@ -660,11 +665,16 @@ Analyze this output and create a clear, professional confirmation message that t
 IMPORTANT: Look for any IDs, URLs, or identifiers in the output and create direct clickable links for the user to access the resource immediately."""
 
         try:
-            api_key = os.getenv("OPENROUTER_API_KEY")
-            openai = OpenAI(
-                api_key=api_key,
-                base_url="https://openrouter.ai/api/v1"
-            )
+            from api_keys_util import get_openrouter_api_key, get_api_keys_from_session
+            session_id = state.get("session_id") if state else None
+            api_keys = await get_api_keys_from_session(session_id) if session_id else {}
+            api_key = get_openrouter_api_key(api_keys)
+            openai_kwargs = {
+                "base_url": "https://openrouter.ai/api/v1"
+            }
+            if api_key:
+                openai_kwargs["api_key"] = api_key
+            openai = OpenAI(**openai_kwargs)
             llm_model = state.get("llm_model")
             formatting_completion = await asyncio.to_thread(
                 openai.chat.completions.create,

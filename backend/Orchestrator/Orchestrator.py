@@ -101,11 +101,17 @@ async def summarizer(state, keep_last=2):
         # from langchain_google_genai import ChatGoogleGenerativeAI
         # google_api_key = os.getenv("GOOGLE_API_KEY", "")
         # llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", temperature=0.3, api_key=google_api_key)
-        llm = ChatGroq(
-        model="openai/gpt-oss-120b",  
-        temperature=0.4,
-        groq_api_key=os.getenv("GROQ_API_KEY")
-    )
+        from api_keys_util import get_groq_api_key, get_api_keys_from_session
+        api_keys = await get_api_keys_from_session(state.get("session_id")) if state else {}
+        groq_key = get_groq_api_key(api_keys)
+        # Only pass groq_api_key if we have a value, otherwise let it use env var
+        llm_kwargs = {
+            "model": "openai/gpt-oss-120b",
+            "temperature": 0.4
+        }
+        if groq_key:
+            llm_kwargs["groq_api_key"] = groq_key
+        llm = ChatGroq(**llm_kwargs)
         result = await llm.ainvoke([
             SystemMessage(content=system_prompt),
             HumanMessage(content=user_prompt)
@@ -330,6 +336,7 @@ async def analyze_query(
     new_uploaded_docs: List[dict] = None,
     custom_instruction: str = "",  # Custom GPT instruction from gpt_config
     is_websearch: bool = False,  # Full list of newly uploaded documents
+    session_id: Optional[str] = None,  # Session ID to get API keys
 ) -> Optional[Dict[str, Any]]:
     """
     Analyze the user's message in context (conversation, summary, last route)
@@ -406,11 +413,16 @@ async def analyze_query(
         #     api_key=google_api_key,
         # )
 
-        chat = ChatGroq(
-        model="openai/gpt-oss-120b",  
-        temperature=0.4,
-        groq_api_key=os.getenv("GROQ_API_KEY")
-    )
+        from api_keys_util import get_groq_api_key, get_api_keys_from_session
+        api_keys = await get_api_keys_from_session(session_id) if session_id else {}
+        groq_key = get_groq_api_key(api_keys)
+        chat_kwargs = {
+            "model": "openai/gpt-oss-120b",
+            "temperature": 0.4
+        }
+        if groq_key:
+            chat_kwargs["groq_api_key"] = groq_key
+        chat = ChatGroq(**chat_kwargs)
         # chat= get_llm("google/gemini-2.5-flash-lite", 0.3)
         response = await chat.ainvoke(messages)
         content = (response.content or "").strip()
@@ -510,11 +522,17 @@ Guidelines:
         #     api_key=google_api_key,
         # )
         # llm= get_llm("google/gemini-2.5-flash-lite", 0.3)
-        llm = ChatGroq(
-        model="openai/gpt-oss-120b",  
-        temperature=0.4,
-        groq_api_key=os.getenv("GROQ_API_KEY")
-    )
+        from api_keys_util import get_groq_api_key, get_api_keys_from_session
+        api_keys = await get_api_keys_from_session(state.get("session_id")) if state else {}
+        groq_key = get_groq_api_key(api_keys)
+        # Only pass groq_api_key if we have a value, otherwise let it use env var
+        llm_kwargs = {
+            "model": "openai/gpt-oss-120b",
+            "temperature": 0.4
+        }
+        if groq_key:
+            llm_kwargs["groq_api_key"] = groq_key
+        llm = ChatGroq(**llm_kwargs)
         system_msg = SystemMessage(content=STATIC_SYS_REWRITE)
         human_msg = HumanMessage(content=prompt)
         print("🚀 Sending rewrite prompt to LLM with cached prefix...")
@@ -660,6 +678,7 @@ async def orchestrator(state: GraphState) -> GraphState:
             new_uploaded_docs=new_Doc,
             custom_instruction=custom_instruction,
             is_websearch=is_websearch_enabled,
+            session_id=state.get("session_id"),
         )
         
         tentative_rewrite_task = rewrite_query(state)

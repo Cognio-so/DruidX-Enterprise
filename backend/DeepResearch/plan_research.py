@@ -101,15 +101,13 @@ Generate a research plan that follows the user feedback exactly.
     else:
         planning_prompt = base_prompt
 
-    # Don't send generating message as content - status event already sent
-    # generating_msg = "🤔 **Generating research plan...**\n\n"
-    # if chunk_callback:
-    #     await chunk_callback(generating_msg)
+
     print(f"llm..................", llm_model)
-    llm2 = get_reasoning_llm(llm_model)
+    from api_keys_util import get_api_keys_from_session
+    api_keys = await get_api_keys_from_session(state.get("session_id")) if state else {}
+    llm2 = get_reasoning_llm(llm_model, api_keys=api_keys)
     
-    # Create a no-op callback for planning phase to suppress content streaming
-    # We only want status events, not the actual plan content (plan will be shown in dialog)
+   
     async def planning_chunk_callback(chunk_content: str):
         # Suppress content during planning - we'll show it in the approval dialog instead
         pass
