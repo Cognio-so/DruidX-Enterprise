@@ -319,22 +319,22 @@ export default function ChatMessage({
                 )}
                 {message ? (
                   <div className="bg-muted/60 border border-border rounded-lg p-4 break-words">
-                    <div className="flex justify-end mb-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-muted-foreground"
-                        onClick={handleCopy}
-                        title="Copy response"
-                      >
-                        {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                    </div>
                     <Response sources={sources}>{message}</Response>
                     <div className="flex items-center justify-between mt-2">
-                      <div className="text-xs opacity-70 text-muted-foreground">
-                        {timestamp}
+                      <div className="flex items-center gap-2">
+                        <div className="text-xs opacity-70 text-muted-foreground">
+                          {timestamp}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5 text-muted-foreground"
+                          onClick={handleCopy}
+                          title="Copy response"
+                        >
+                          {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
+                        </Button>
                       </div>
                       {tokenUsage && !isStreaming && (
                         <div className="flex items-center gap-3 text-xs text-muted-foreground">
