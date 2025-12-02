@@ -76,21 +76,32 @@ import time
 
 
 
-async def clear_kb_cache(collection_name: str = None):
-    """Clear KB embedding cache for a specific collection or all collections"""
+async def clear_json_documents(session_id: str = None, gpt_id: str = None, userId: str = None):
+    """Clear JSON documents from Redis cache for a specific session or KB"""
     redis_client = await ensure_redis_client()
     if not redis_client:
         return
-    if collection_name:
-        keys_to_delete = await redis_client.keys(f"kb_cache:{collection_name}:*")
-        if keys_to_delete:
-            await redis_client.delete(*keys_to_delete)
-        print(f"[RAG] Cleared KB cache for {collection_name}")
-    else:
-        keys_to_delete = await redis_client.keys("kb_cache:*")
-        if keys_to_delete:
-            await redis_client.delete(*keys_to_delete)
-        print("[RAG] Cleared all KB embedding cache")
+    
+    deleted_count = 0
+    
+    # Clear user JSON documents
+    if session_id:
+        user_json_keys = await redis_client.keys(f"user_json:{session_id}:*")
+        if user_json_keys:
+            await redis_client.delete(*user_json_keys)
+            deleted_count += len(user_json_keys)
+            print(f"[RAG] Cleared {len(user_json_keys)} user JSON documents for session {session_id}")
+    
+    # Clear KB JSON documents (if gpt_id and userId provided)
+    if gpt_id and userId:
+        kb_json_keys = await redis_client.keys(f"kb_json:{gpt_id}_{userId}:*")
+        if kb_json_keys:
+            await redis_client.delete(*kb_json_keys)
+            deleted_count += len(kb_json_keys)
+            print(f"[RAG] Cleared {len(kb_json_keys)} KB JSON documents for gpt_id={gpt_id}, userId={userId}")
+    
+    if deleted_count > 0:
+        print(f"[RAG] Total cleared: {deleted_count} JSON documents from Redis")
 
 async def clear_user_doc_cache(session_id: str = None):
     """Clear user document embedding cache for a specific session or all sessions"""
@@ -105,7 +116,11 @@ async def clear_user_doc_cache(session_id: str = None):
             keys_to_delete.extend(binary_keys)
         if keys_to_delete:
             await redis_client.delete(*keys_to_delete)
-        print(f"[RAG] Cleared user doc cache for session {session_id}")
+        
+        # Also clear user JSON documents for this session
+        await clear_json_documents(session_id=session_id)
+        
+        print(f"[RAG] Cleared user doc cache (embeddings, BM25, JSON) for session {session_id}")
     else:
         keys_to_delete = await redis_client.keys("user_doc_cache:*")
         if redis_client_binary:
@@ -113,7 +128,14 @@ async def clear_user_doc_cache(session_id: str = None):
             keys_to_delete.extend(binary_keys)
         if keys_to_delete:
             await redis_client.delete(*keys_to_delete)
-        print("[RAG] Cleared all user document caches (embeddings, BM25)")
+        
+        # Clear all user JSON documents
+        all_user_json_keys = await redis_client.keys("user_json:*")
+        if all_user_json_keys:
+            await redis_client.delete(*all_user_json_keys)
+            print(f"[RAG] Cleared {len(all_user_json_keys)} user JSON documents")
+        
+        print("[RAG] Cleared all user document caches (embeddings, BM25, JSON)")
 
 
 async def cleanup_expired_user_docs(session_id: str) -> bool:
@@ -161,6 +183,95 @@ async def clear_image_cache(session_id: str = None):
         if keys_to_delete:
             await redis_client.delete(*keys_to_delete)
         print("[RAG] Cleared all image analysis cache")
+
+def is_json_document(doc: dict) -> bool:
+    """Check if a document is a JSON file based on file_type or filename"""
+    if not isinstance(doc, dict):
+        return False
+    file_type = doc.get("file_type", "").lower()
+    filename = doc.get("filename", "").lower()
+    file_url = doc.get("file_url", "").lower()
+    
+    # Check file_type
+    if file_type == "json" or file_type == "application/json":
+        return True
+    
+    # Check file extension
+    if filename.endswith('.json') or file_url.endswith('.json'):
+        return True
+    
+    return False
+
+async def store_json_document(doc: dict, is_kb: bool, gpt_id: str = None, userId: str = None, session_id: str = None):
+    """Store JSON document content in Redis for direct LLM input"""
+    if not is_json_document(doc):
+        return False
+    
+    content = doc.get("content", "")
+    if not content:
+        return False
+    
+    redis_client = await ensure_redis_client()
+    if not redis_client:
+        print(f"[RAG] Warning: Redis not available, cannot store JSON document")
+        return False
+    
+    try:
+        if is_kb:
+            if not gpt_id or not userId:
+                print(f"[RAG] Warning: Missing gpt_id or userId for KB JSON document")
+                return False
+            key = f"kb_json:{gpt_id}_{userId}:{doc.get('file_url', doc.get('id', ''))}"
+        else:
+            if not session_id:
+                print(f"[RAG] Warning: Missing session_id for user JSON document")
+                return False
+            key = f"user_json:{session_id}:{doc.get('file_url', doc.get('id', ''))}"
+        
+        # Store the JSON content
+        await redis_client.set(key, content)
+        if is_kb:
+            await redis_client.expire(key, 86400 * 7)  # 7 days for KB
+        else:
+            await redis_client.expire(key, USER_DOC_TTL_SECONDS)  # Same TTL as user docs
+        
+        print(f"[RAG] Stored JSON document: {doc.get('filename', 'unknown')} (key: {key})")
+        return True
+    except Exception as e:
+        print(f"[RAG] Error storing JSON document: {e}")
+        return False
+
+async def get_json_documents(is_kb: bool, gpt_id: str = None, userId: str = None, session_id: str = None) -> List[str]:
+    """Retrieve all JSON document contents from Redis"""
+    redis_client = await ensure_redis_client()
+    if not redis_client:
+        return []
+    
+    try:
+        if is_kb:
+            if not gpt_id or not userId:
+                return []
+            pattern = f"kb_json:{gpt_id}_{userId}:*"
+        else:
+            if not session_id:
+                return []
+            pattern = f"user_json:{session_id}:*"
+        
+        keys = await redis_client.keys(pattern)
+        if not keys:
+            return []
+        
+        contents = []
+        for key in keys:
+            content = await redis_client.get(key)
+            if content:
+                contents.append(content.decode('utf-8') if isinstance(content, bytes) else content)
+        
+        print(f"[RAG] Retrieved {len(contents)} JSON documents ({'KB' if is_kb else 'user'})")
+        return contents
+    except Exception as e:
+        print(f"[RAG] Error retrieving JSON documents: {e}")
+        return []
 
 async def get_existing_kb_file_urls(gpt_id: str, userId: str) -> set:
     """
@@ -230,6 +341,7 @@ async def preprocess_kb_documents(kb_docs: List[dict], gpt_id: str, userId: str,
     Pre-process KB documents when custom GPT is loaded.
     Generate embeddings once per gpt_id+userId combination.
     Only embeds files that haven't been embedded yet (checked by file_url).
+    JSON documents are stored separately without embeddings.
     """
     if not kb_docs:
         return
@@ -254,9 +366,33 @@ async def preprocess_kb_documents(kb_docs: List[dict], gpt_id: str, userId: str,
     
     print(f"[RAG] Pre-processing {len(new_kb_docs)} new KB documents (out of {len(kb_docs)} total) for gpt_id={gpt_id}, userId={userId}")
 
+    # Separate JSON documents from non-JSON documents
+    json_docs = []
+    non_json_docs = []
+    
+    for doc in new_kb_docs:
+        if is_json_document(doc):
+            json_docs.append(doc)
+        else:
+            non_json_docs.append(doc)
+    
+    # Store JSON documents directly without embeddings
+    json_count = 0
+    for doc in json_docs:
+        if await store_json_document(doc, is_kb=True, gpt_id=gpt_id, userId=userId):
+            json_count += 1
+    
+    if json_count > 0:
+        print(f"[RAG] Stored {json_count} JSON KB documents without embeddings")
+    
+    # Process non-JSON documents with embeddings
+    if not non_json_docs:
+        print(f"[RAG] All new KB documents are JSON, skipping embeddings")
+        return
+
     kb_texts = []
     kb_metadatas = []
-    for doc in new_kb_docs:
+    for doc in non_json_docs:
         if isinstance(doc, dict) and "content" in doc:
             kb_texts.append(doc["content"])
             kb_metadatas.append({
@@ -289,13 +425,14 @@ async def preprocess_kb_documents(kb_docs: List[dict], gpt_id: str, userId: str,
         })
         await redis_client.expire(cache_key, 86400)
     
-    print(f"[RAG] Pre-processed and cached {len(kb_texts)} new KB documents for gpt_id={gpt_id}, userId={userId}")
+    print(f"[RAG] Pre-processed and cached {len(kb_texts)} new KB documents (non-JSON) for gpt_id={gpt_id}, userId={userId}")
 
 async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid: bool = False, is_new_upload: bool = False):
     """
     Pre-process user documents by generating embeddings and storing them in cache.
     This is called immediately after document upload to prepare for fast RAG retrieval.
     Now accumulates documents instead of clearing old ones (similar to images).
+    JSON documents are stored separately without embeddings.
     
     Args:
         docs: List of document dictionaries with content (ONLY the new documents)
@@ -322,9 +459,38 @@ async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid
     
     print(f"[RAG] Pre-processing {len(docs)} NEW user documents for session {session_id} (accumulating, starting at index {current_doc_index + 1})")
 
+    # Separate JSON documents from non-JSON documents
+    json_docs = []
+    non_json_docs = []
+    
+    for doc in docs:
+        if is_json_document(doc):
+            json_docs.append(doc)
+        else:
+            non_json_docs.append(doc)
+    
+    # Store JSON documents directly without embeddings
+    json_count = 0
+    for doc in json_docs:
+        if await store_json_document(doc, is_kb=False, session_id=session_id):
+            json_count += 1
+    
+    if json_count > 0:
+        print(f"[RAG] Stored {json_count} JSON user documents without embeddings")
+    
+    # Process non-JSON documents with embeddings
+    if not non_json_docs:
+        print(f"[RAG] All new user documents are JSON, skipping embeddings")
+        # Still store document order for JSON docs
+        if redis_client:
+            for doc in json_docs:
+                if isinstance(doc, dict) and doc.get("id"):
+                    await redis_client.rpush(order_key, doc.get("id"))
+        return
+
     doc_texts = []
     doc_metas = []
-    for i, doc in enumerate(docs):
+    for i, doc in enumerate(non_json_docs):
         if isinstance(doc, dict) and "content" in doc:
             doc_texts.append(doc["content"])
         else:
@@ -352,7 +518,7 @@ async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid
         metadatas=doc_metas,
     )
 
-    # Store document order in Redis (similar to images)
+    # Store document order in Redis (similar to images) - include both JSON and non-JSON
     if redis_client:
         for doc in docs:
             if isinstance(doc, dict) and doc.get("id"):
@@ -369,7 +535,7 @@ async def preprocess_user_documents(docs: List[dict], session_id: str, is_hybrid
         await redis_client.expire(cache_key, USER_DOC_TTL_SECONDS)
         await redis_client.expire(order_key, USER_DOC_TTL_SECONDS)
     
-    print(f"[RAG] Pre-processed and cached {len(doc_texts)} NEW user documents for session {session_id} (total documents in session: {len(doc_texts) + current_doc_index})")
+    print(f"[RAG] Pre-processed and cached {len(doc_texts)} NEW user documents (non-JSON) for session {session_id} (total documents in session: {len(doc_texts) + current_doc_index})")
 
 async def preprocess_images(uploaded_images: List[Dict[str, Any]], state: GraphState):
     """
@@ -1408,6 +1574,43 @@ async def intelligent_document_selection(
         print(f"[DOC-ORCHESTRATOR] Error getting all documents from Qdrant: {e}")
         all_docs_info = []
     
+    # Add JSON documents from Redis to the document list
+    try:
+        redis_client = await ensure_redis_client()
+        if redis_client:
+            json_keys = await redis_client.keys(f"user_json:{session_id}:*")
+            if json_keys:
+                # Extract doc info from Redis keys: user_json:{session_id}:{file_url_or_id}
+                max_doc_index = max([doc.get("doc_index", 0) for doc in all_docs_info]) if all_docs_info else 0
+                for key in json_keys:
+                    # Key format: user_json:{session_id}:{file_url_or_id}
+                    key_parts = key.split(":", 2)  # Split into max 3 parts
+                    if len(key_parts) >= 3:
+                        doc_identifier = key_parts[2]
+                        # Try to find this doc in new_docs or previously_uploaded_docs to get metadata
+                        doc_meta = None
+                        for doc in new_docs + previously_uploaded_docs:
+                            if doc.get("file_url") == doc_identifier or doc.get("id") == doc_identifier:
+                                doc_meta = doc
+                                break
+                        
+                        if doc_meta:
+                            doc_id = doc_meta.get("id", doc_identifier)
+                            # Check if already in all_docs_info
+                            if not any(doc.get("id") == doc_id for doc in all_docs_info):
+                                max_doc_index += 1
+                                all_docs_info.append({
+                                    "id": doc_id,
+                                    "filename": doc_meta.get("filename", "unknown.json"),
+                                    "doc_index": max_doc_index,
+                                    "file_type": "json",
+                                    "is_newly_uploaded": doc_id in new_doc_ids if new_doc_ids else False,
+                                    "is_json": True  # Flag to identify JSON docs
+                                })
+                                print(f"[DOC-ORCHESTRATOR] Added JSON document to list: {doc_meta.get('filename', 'unknown')} (ID: {doc_id})")
+    except Exception as e:
+        print(f"[DOC-ORCHESTRATOR] Error getting JSON documents from Redis: {e}")
+    
     if not all_docs_info:
         if new_docs:
             all_docs_info = [
@@ -2092,6 +2295,16 @@ async def _process_user_docs(state, docs, user_query, rag, filter_doc_ids: Optio
     if redis_client:
         cache_data = await redis_client.hgetall(f"user_doc_cache:{session_id}")
 
+    # Check if we have JSON documents even if no cache_data (JSON-only documents)
+    has_json_docs = False
+    if redis_client and not cache_data:
+        json_keys = await redis_client.keys(f"user_json:{session_id}:*")
+        has_json_docs = len(json_keys) > 0
+        if has_json_docs:
+            print(f"[RAG] No embedded documents found, but {len(json_keys)} JSON documents exist. Returning empty chunks (JSON will be added separately).")
+            # Return empty results - JSON documents will be handled separately in RAG function
+            return ("user", [])
+
     if not cache_data:
         raise Exception(f"User documents not pre-processed for session {session_id}. Please upload documents first.")
     
@@ -2368,15 +2581,26 @@ async def Rag(state: GraphState) -> GraphState:
 
         redis_client = await ensure_redis_client()
         has_user_docs = False
+        has_json_docs = False
         if redis_client:
             user_doc_cache_exists = await redis_client.exists(f"user_doc_cache:{session_id}")
             has_user_docs = bool(user_doc_cache_exists)
             if has_user_docs:
                 print(f"[RAG] Found user document cache in Redis for session {session_id}")
+            
+            # Check for JSON documents in Redis
+            json_keys = await redis_client.keys(f"user_json:{session_id}:*")
+            has_json_docs = len(json_keys) > 0
+            if has_json_docs:
+                print(f"[RAG] Found {len(json_keys)} JSON user documents in Redis for session {session_id}")
 
+        # has_user_docs should be True if either embedded docs or JSON docs exist
         if not has_user_docs:
-            has_user_docs = bool(docs)
+            has_user_docs = bool(docs) or has_json_docs
+        else:
+            has_user_docs = has_user_docs or has_json_docs
         has_kb = False
+        has_kb_json = False
         gpt_id = gpt_config.get("gpt_id")
         userId = gpt_config.get("userId")
         
@@ -2387,6 +2611,16 @@ async def Rag(state: GraphState) -> GraphState:
                 print(f"[RAG] Found KB collection in Qdrant for gpt_id={gpt_id}, userId={userId}")
             else:
                 print(f"[RAG] KB collection not found or empty for gpt_id={gpt_id}, userId={userId}")
+            
+            # Check for JSON KB documents in Redis
+            if redis_client:
+                kb_json_keys = await redis_client.keys(f"kb_json:{gpt_id}_{userId}:*")
+                has_kb_json = len(kb_json_keys) > 0
+                if has_kb_json:
+                    print(f"[RAG] Found {len(kb_json_keys)} JSON KB documents in Redis for gpt_id={gpt_id}, userId={userId}")
+            
+            # has_kb should be True if either embedded docs or JSON docs exist
+            has_kb = has_kb or has_kb_json
         else:
             # Fallback: rely on KB docs present in state (may be metadata only)
             has_kb = bool(kb_docs)
@@ -2630,12 +2864,111 @@ async def Rag(state: GraphState) -> GraphState:
         context_parts.append(f"\nSOURCE ROUTING DECISION:\nStrategy: {strategy}\nReasoning: {source_decision['reasoning']}")
         
         
+        # Retrieve JSON documents (with filtering support)
+        kb_json_content = []
+        user_json_content = []
+        
+        if use_kb and gpt_id and userId:
+            kb_json_content = await get_json_documents(is_kb=True, gpt_id=gpt_id, userId=userId)
+            if kb_json_content:
+                print(f"[RAG] Retrieved {len(kb_json_content)} JSON KB documents")
+        
+        if use_user_docs and session_id:
+            # Get all JSON documents first
+            all_user_json = await get_json_documents(is_kb=False, session_id=session_id)
+            
+            # Apply document selection filtering if available
+            if doc_selection_result and all_user_json:
+                filter_doc_ids = doc_selection_result.get("selected_doc_ids", [])
+                filter_doc_indices = doc_selection_result.get("selected_doc_indices", [])
+                
+                if filter_doc_ids or filter_doc_indices:
+                    # Filter JSON documents based on selection
+                    redis_client = await ensure_redis_client()
+                    if redis_client:
+                        filtered_json_content = []
+                        json_keys = await redis_client.keys(f"user_json:{session_id}:*")
+                        
+                        # Get document order to map indices
+                        order_key = f"doc_order:{session_id}"
+                        doc_order = await redis_client.lrange(order_key, 0, -1) if redis_client else []
+                        
+                        # Get all uploaded docs metadata for matching
+                        all_uploaded_docs = state.get("uploaded_docs", []) + state.get("new_uploaded_docs", [])
+                        
+                        for key in json_keys:
+                            key_parts = key.split(":", 2)
+                            if len(key_parts) >= 3:
+                                doc_identifier = key_parts[2]  # This could be file_url or id
+                                should_include = False
+                                
+                                # Find the matching doc metadata
+                                matching_doc = None
+                                for doc in all_uploaded_docs:
+                                    if isinstance(doc, dict):
+                                        if (doc.get("file_url") == doc_identifier or 
+                                            doc.get("id") == doc_identifier):
+                                            matching_doc = doc
+                                            break
+                                
+                                if matching_doc:
+                                    doc_id = matching_doc.get("id")
+                                    
+                                    # Check by ID
+                                    if filter_doc_ids and doc_id in filter_doc_ids:
+                                        should_include = True
+                                    
+                                    # Check by index
+                                    if not should_include and filter_doc_indices and doc_order:
+                                        try:
+                                            if doc_id in doc_order:
+                                                doc_index = doc_order.index(doc_id) + 1  # 1-based
+                                                if doc_index in filter_doc_indices:
+                                                    should_include = True
+                                        except (ValueError, AttributeError):
+                                            pass
+                                
+                                if should_include:
+                                    content = await redis_client.get(key)
+                                    if content:
+                                        filtered_json_content.append(
+                                            content.decode('utf-8') if isinstance(content, bytes) else content
+                                        )
+                        
+                        user_json_content = filtered_json_content
+                        print(f"[RAG] Filtered JSON user documents: {len(user_json_content)}/{len(all_user_json)} selected")
+                    else:
+                        user_json_content = all_user_json
+                else:
+                    # No filtering, include all JSON documents
+                    user_json_content = all_user_json
+            else:
+                # No selection result, include all JSON documents
+                user_json_content = all_user_json
+            
+            if user_json_content:
+                print(f"[RAG] Retrieved {len(user_json_content)} JSON user documents")
+        
         if user_result and use_user_docs:
             context_parts.append(f"\nUSER DOCUMENT CONTEXT:\n{chr(10).join(user_result)}")
+        
+        # Add JSON user documents
+        if user_json_content and use_user_docs:
+            json_context = "\n\nUSER JSON DOCUMENTS (Full Content):\n"
+            for i, json_content in enumerate(user_json_content, 1):
+                json_context += f"\n## JSON Document {i}:\n{json_content}\n"
+            context_parts.append(json_context)
         
         if kb_result and use_kb:
             print(f"kb gwdsjqfifsdgilghsdfiushleroge.................")
             context_parts.append(f"\nKNOWLEDGE BASE CONTEXT:\n{chr(10).join(kb_result)}")
+        
+        # Add JSON KB documents
+        if kb_json_content and use_kb:
+            json_context = "\n\nKNOWLEDGE BASE JSON DOCUMENTS (Full Content):\n"
+            for i, json_content in enumerate(kb_json_content, 1):
+                json_context += f"\n## JSON Document {i}:\n{json_content}\n"
+            context_parts.append(json_context)
         # Add image embedding results
         if images_result:
             context_parts.append(f"\nIMAGE DOCUMENT CONTEXT:\n{chr(10).join(images_result)}")

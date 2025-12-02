@@ -53,22 +53,22 @@ def extract_text_from_txt(file_content: bytes) -> str:
         return ""
 
 def extract_text_from_json(file_content: bytes) -> str:
-    """Extract text from JSON file"""
+    """Extract text from JSON file - returns raw JSON string for direct LLM input"""
     try:
-        data = json.loads(file_content.decode('utf-8'))
-        # Convert JSON to readable text format
-        if isinstance(data, dict):
-            text = ""
-            for key, value in data.items():
-                text += f"{key}: {value}\n"
-            return text
-        elif isinstance(data, list):
-            text = ""
-            for i, item in enumerate(data):
-                text += f"Item {i+1}: {item}\n"
-            return text
-        else:
-            return str(data)
+        # Decode and return raw JSON string (not converted to text format)
+        # This allows the full JSON content to be passed directly to LLM
+        json_str = file_content.decode('utf-8')
+        # Validate it's valid JSON by parsing it
+        json.loads(json_str)
+        return json_str
+    except json.JSONDecodeError as e:
+        print(f"Error: Invalid JSON format: {e}")
+        # Fallback: try to return as text if JSON parsing fails
+        try:
+            return file_content.decode('utf-8')
+        except Exception as e2:
+            print(f"Error decoding JSON file: {e2}")
+            return ""
     except Exception as e:
         print(f"Error reading JSON: {e}")
         return ""

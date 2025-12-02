@@ -317,7 +317,7 @@ async def add_documents_by_url(session_id: str, request: dict):
             )
             
             print(f"[Parallel] Detected file extension: {file_extension}, is_image: {is_image}")
-    
+
             content = ""
             if is_image:
                 content = f"[Image file: {filename}]"  
@@ -332,6 +332,11 @@ async def add_documents_by_url(session_id: str, request: dict):
                 }
                 uploaded_images.append(image_data)
                 print(f"[Parallel] Image detected: {filename} - stored {len(file_content)} bytes for RAG processing")
+            # Check JSON first by extension (more reliable than file_type which can be wrong)
+            elif file_extension == 'json':
+                content = extract_text_from_json(file_content)
+                if not content.strip():
+                    print(f"⚠️ Warning: JSON {filename} appears to be empty or unreadable")
             elif file_type == "application/pdf" or file_extension == 'pdf':
                 content = await asyncio.to_thread(extract_text_from_pdf, file_content)
                 if not content.strip():
@@ -340,7 +345,7 @@ async def add_documents_by_url(session_id: str, request: dict):
                 content = await asyncio.to_thread(extract_text_from_docx, file_content)
                 if not content.strip():
                     print(f"⚠️ Warning: DOCX {filename} appears to be empty or unreadable")
-            elif file_type == "application/json" or file_extension == 'json':
+            elif file_type == "application/json":
                 content = extract_text_from_json(file_content)
                 if not content.strip():
                     print(f"⚠️ Warning: JSON {filename} appears to be empty or unreadable")
@@ -1159,7 +1164,7 @@ async def handle_research_approval(session_id: str, request: dict):
 
 @app.delete("/api/sessions/{session_id}")
 async def delete_session(session_id: str):
-    """Delete a session"""
+    """Delete a session and clear all associated caches"""
     redis_client = await ensure_redis_client()
     if redis_client:
         if not await redis_client.delete(f"session:{session_id}"):
@@ -1169,6 +1174,18 @@ async def delete_session(session_id: str):
         if session_id not in sessions:
             raise HTTPException(status_code=404, detail="Session not found")
         del sessions[session_id]
+    
+    # Clear all session-related caches including JSON documents
+    try:
+        from Rag.Rag import clear_user_doc_cache, clear_image_cache, clear_json_documents
+        await clear_user_doc_cache(session_id)
+        await clear_image_cache(session_id)
+        # clear_json_documents is already called by clear_user_doc_cache, but being explicit
+        await clear_json_documents(session_id=session_id)
+        print(f"[MAIN] Cleared all caches for deleted session {session_id}")
+    except Exception as e:
+        print(f"[MAIN] Warning: Error clearing caches for session {session_id}: {e}")
+    
     return {"message": "Session deleted successfully"}
 
 # MCP Endpoints
@@ -1551,5 +1568,4 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(app, host="0.0.0.0", port=8080)
