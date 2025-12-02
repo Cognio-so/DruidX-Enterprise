@@ -83,6 +83,7 @@ class SessionManager:
             "doc_embeddings":False,
             "img_urls": [],
             "video_urls": [],
+            "api_keys":[],
         }
         redis_client = await ensure_redis_client()
         if redis_client:

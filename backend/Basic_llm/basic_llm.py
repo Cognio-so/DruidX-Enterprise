@@ -98,7 +98,9 @@ async def SimpleLLm(state: GraphState) -> GraphState:
             print(f"[SimpleLLM-KB] Missing gpt_id or userId, skipping KB search")
         from langchain_groq import ChatGroq
         from llm import get_llm, stream_with_token_tracking
-        chat=get_llm(llm_model, temperature=0.9)
+        from api_keys_util import get_api_keys_from_session
+        api_keys = await get_api_keys_from_session(state.get("session_id")) if state else {}
+        chat=get_llm(llm_model, temperature=0.9, api_keys=api_keys)
         # chat = get_llm("openai/gpt-oss-120b", 0.8)
     #     chat= ChatGroq(
     #     model="openai/gpt-oss-20b",  

@@ -7,9 +7,7 @@ from WebSearch.websearch import web_search
 from Rag.Rag import _search_collection, _hybrid_search_rrf
 import json
 from llm import get_reasoning_llm
-
-# Example inside planning step
-llm1 = get_reasoning_llm()
+from typing import Optional
 
 
 prompt_path = os.path.join(os.path.dirname(__file__), "deepresearch.md")
@@ -59,7 +57,7 @@ class DeepResearchState:
         self.sources: List[str] = []
 
 
-async def plan_research(query: str, llm_model: str) -> List[str]:
+async def plan_research(query: str, llm_model: str, session_id: Optional[str] = None) -> List[str]:
     """
     Break down the complex query into sub-questions dynamically based on query complexity
     """
@@ -68,8 +66,10 @@ async def plan_research(query: str, llm_model: str) -> List[str]:
         query=query
     )
 
-    # llm = ChatOpenAI(model=llm_model, temperature=0.2)
-    response = await llm1.ainvoke([HumanMessage(content=planning_prompt)])
+    from api_keys_util import get_api_keys_from_session
+    api_keys = await get_api_keys_from_session(session_id) if session_id else {}
+    llm = get_reasoning_llm(llm_model, api_keys=api_keys)
+    response = await llm.ainvoke([HumanMessage(content=planning_prompt)])
     
     sub_questions = []
     for line in response.content.split('\n'):
@@ -93,11 +93,13 @@ async def execute_research_iteration(
     """
     Execute research for given queries using web search and RAG
     """
+    from api_keys_util import get_api_keys_from_session
+    api_keys = await get_api_keys_from_session(state.get("session_id")) if state else {}
     findings = []
     for query in queries:
         print(f"[DeepResearch] Researching: {query}")
         try:
-            web_results = await web_search(query, max_results=3, search_depth="advanced")
+            web_results = await web_search(query, max_results=3, search_depth="advanced", api_keys=api_keys)
             if web_results:
                 findings.append({
                     "query": query,
@@ -145,8 +147,10 @@ async def analyze_gaps(
         info_summary=info_summary_text
     )
 
-    # llm = ChatOpenAI(model=llm_model, temperature=0.2)
-    response = await llm1.ainvoke([HumanMessage(content=analysis_prompt)])
+    from api_keys_util import get_api_keys_from_session
+    api_keys = await get_api_keys_from_session(state.get("session_id")) if state else {}
+    llm = get_reasoning_llm(llm_model, api_keys=api_keys)
+    response = await llm.ainvoke([HumanMessage(content=analysis_prompt)])
     content = response.content
     
     analysis = {
@@ -237,8 +241,10 @@ async def synthesize_report(
         sources=sources_text
     )
 
-    llm = ChatOpenAI(model=llm_model, temperature=0.3)
-    response = await llm1.ainvoke([HumanMessage(content=synthesis_prompt)])
+    from api_keys_util import get_api_keys_from_session
+    api_keys = await get_api_keys_from_session(state.get("session_id")) if state else {}
+    llm = get_reasoning_llm(llm_model, api_keys=api_keys)
+    response = await llm.ainvoke([HumanMessage(content=synthesis_prompt)])
     
     final_report = response.content
     
@@ -263,7 +269,8 @@ async def run_deep_research(state: GraphState) -> GraphState:
     print(f"[DeepResearch] Starting deep research for: {query}")
     research_state = DeepResearchState()
     research_state.max_iterations = max_iterations
-    research_state.research_plan = await plan_research(query, llm_model)
+    session_id = state.get("session_id")
+    research_state.research_plan = await plan_research(query, llm_model, session_id=session_id)
     print(f"Research plan: {research_state.research_plan}")
     
     if not research_state.research_plan:

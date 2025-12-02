@@ -1,5 +1,5 @@
 import os
-from typing import List, Optional
+from typing import List, Optional, Dict
 from tavily import AsyncTavilyClient
 from langchain_core.documents import Document
 from langchain_openai import ChatOpenAI
@@ -124,10 +124,30 @@ except FileNotFoundError:
 STATIC_SYS_WEBSEARCH = normalize_prefix([CORE_PREFIX, WEB_RULES])
 STATIC_SYS_WEBSEARCH_BASIC = normalize_prefix([CORE_PREFIX, WEB_RULES_BASIC])
 
-async def web_search(query: str, max_results: int = 5, search_depth: str="basic") -> List[Document]:
+async def web_search(query: str, max_results: int = 5, search_depth: str="basic", api_keys: Optional[Dict[str, str]] = None) -> List[Document]:
     """Perform Tavily web search and return results as LangChain Documents."""
     print(f"[WebSearch] Starting web search for: {query}")
     
+    # Use session API key if available
+    from api_keys_util import get_tavily_api_key
+    tavily_key = get_tavily_api_key(api_keys)
+    if tavily_key:
+        try:
+            from tavily import AsyncTavilyClient
+            tavily_client = AsyncTavilyClient(api_key=tavily_key)
+            results = await tavily_client.search(query=query, max_results=max_results, search_depth=search_depth)
+            docs = []
+            for r in results.get("results", []):
+                docs.append(
+                    Document(
+                        page_content=r.get("content", ""),
+                        metadata={"title": r.get("title", ""), "url": r.get("url", "")}
+                    )
+                )
+            print(f"[WebSearch] Created {len(docs)} documents from search results")
+            return docs
+        except Exception as e:
+            print(f"[Tavily] Error with session API key: {e}, falling back to module client")
     
     if not _tavily:
         print(f"[WebSearch] No Tavily client available")
@@ -204,16 +224,28 @@ def has_url(query: str) -> bool:
     return bool(extract_urls_from_query(query))
 
 
-async def scrape_url_with_firecrawl(url: str) -> Optional[Document]:
+async def scrape_url_with_firecrawl(url: str, api_keys: Optional[Dict[str, str]] = None) -> Optional[Document]:
     """Scrape a single URL using Firecrawl and return as Document."""
     print(f"[Firecrawl] Scraping URL: {url}")
     
-    if not _firecrawl:
+    from api_keys_util import get_firecrawl_api_key
+    firecrawl_key = get_firecrawl_api_key(api_keys)
+    
+    firecrawl_client = None
+    if firecrawl_key:
+        try:
+            from firecrawl import Firecrawl
+            firecrawl_client = Firecrawl(api_key=firecrawl_key)
+        except Exception as e:
+            print(f"[Firecrawl] Failed to create client: {e}")
+    
+    if not firecrawl_client and not _firecrawl:
         print(f"[Firecrawl] No Firecrawl client available")
         return None
 
     try:
-        result = _firecrawl.scrape(
+        client = firecrawl_client if firecrawl_client else _firecrawl
+        result = client.scrape(
             url=url,
             formats=["markdown"],
             only_main_content=True,
@@ -358,6 +390,10 @@ async def run_web_search(state: GraphState) -> GraphState:
     print(f"[WebSearch] Starting run_web_search for query: {query}")
     print(f"[WebSearch] Original user query: {original_user_query}")
     
+    # Get API keys from session
+    from api_keys_util import get_api_keys_from_session
+    api_keys = await get_api_keys_from_session(state.get("session_id")) if state else {}
+    
     if not query:
         state["response"] = "No query provided for web search."
         print(f"[WebSearch] No query provided")
@@ -378,7 +414,7 @@ async def run_web_search(state: GraphState) -> GraphState:
         results = []
         for url in urls_in_query[:3]: 
             print(f"[WebSearch] Scraping full page: {url}")
-            doc = await scrape_url_with_firecrawl(url)
+            doc = await scrape_url_with_firecrawl(url, api_keys=api_keys)
             if doc:
                 results.append(doc)
                 print(f"[WebSearch] Successfully scraped {url}: {len(doc.page_content)} chars")
@@ -387,7 +423,7 @@ async def run_web_search(state: GraphState) -> GraphState:
             # Fallback to Tavily if Firecrawl fails
             print(f"[WebSearch] Firecrawl failed, falling back to Tavily")
             await send_status_update(state, "⚠️ Firecrawl failed, using Tavily fallback...", 30)
-            results = await web_search(state.get("user_query"), max_results=5, search_depth="advanced")
+            results = await web_search(state.get("user_query"), max_results=5, search_depth="advanced", api_keys=api_keys)
         else:
             print(f"[WebSearch] Firecrawl successfully retrieved {len(results)} result(s)")
     else:
@@ -396,9 +432,9 @@ async def run_web_search(state: GraphState) -> GraphState:
         await send_status_update(state, "🌐 Gathering information from websites...", 20)
         
         if is_web_search:
-            results = await web_search(query, max_results=5, search_depth="advanced")
+            results = await web_search(query, max_results=5, search_depth="advanced", api_keys=api_keys)
         else:
-            results = await web_search(query, max_results=2, search_depth="basic")
+            results = await web_search(query, max_results=2, search_depth="basic", api_keys=api_keys)
     # ========================================================================
         
     print(f"[WebSearch] Got {len(results)} results")
@@ -462,7 +498,9 @@ Note: If the conversation context suggests this is a follow-up question, ensure 
         #         temperature=0.3,
         #         google_api_key=google_api_key,
         #     )
-        llm=get_llm(llm_model, temperature=0.7)
+        from api_keys_util import get_api_keys_from_session
+        api_keys = await get_api_keys_from_session(state.get("session_id")) if state else {}
+        llm=get_llm(llm_model, temperature=0.7, api_keys=api_keys)
         system_msg = SystemMessage(content=STATIC_SYS_WEBSEARCH_BASIC)
         human_msg = HumanMessage(content=user_prompt)
 
@@ -480,7 +518,9 @@ Note: If the conversation context suggests this is a follow-up question, ensure 
         #         temperature=0.3,
         #         google_api_key=google_api_key,
         #     )
-        llm=get_llm(llm_model, temperature=0.5)
+        from api_keys_util import get_api_keys_from_session
+        api_keys = await get_api_keys_from_session(state.get("session_id")) if state else {}
+        llm=get_llm(llm_model, temperature=0.5, api_keys=api_keys)
         system_msg = SystemMessage(content=STATIC_SYS_WEBSEARCH)
         human_msg = HumanMessage(content=user_prompt)
 

@@ -3,6 +3,7 @@ import os
 from langchain_openai import ChatOpenAI
 from typing import Dict, Any, Optional
 import httpx
+from api_keys_util import get_openrouter_api_key
 
 _persistent_http_client = httpx.Client(
     http2=True,
@@ -46,14 +47,14 @@ def _extract_usage(ai_message):
     
     return {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
 
-def get_reasoning_llm(model_name: str):
+def get_reasoning_llm(model_name: str, api_keys: Optional[Dict[str, str]] = None):
     """
     Returns a ChatOpenAI instance configured to use DeepSeek via OpenRouter.
     """
     return ChatOpenAI(
         model=model_name,   
         openai_api_base="https://openrouter.ai/api/v1",
-        openai_api_key=os.getenv("OPENROUTER_API_KEY"),
+        openai_api_key=get_openrouter_api_key(api_keys),
         temperature=0.9,
         default_headers={
             "HTTP-Referer": os.getenv("APP_URL", "http://localhost"),
@@ -64,7 +65,7 @@ def get_reasoning_llm(model_name: str):
         },
     )
 
-def get_llm(model_name: str, temperature: float = 0.3):
+def get_llm(model_name: str, temperature: float = 0.3, api_keys: Optional[Dict[str, str]] = None):
     """
     Optimized ChatOpenAI constructor for OpenRouter.
     ⚙️ Features:
@@ -75,12 +76,14 @@ def get_llm(model_name: str, temperature: float = 0.3):
     - Includes stream_options to get token usage
     """
     global _cached_llms
-    if model_name in _cached_llms:
-        return _cached_llms[model_name]
+    # Cache key includes api_keys to avoid using wrong keys
+    cache_key = f"{model_name}_{temperature}_{id(api_keys) if api_keys else 'env'}"
+    if cache_key in _cached_llms:
+        return _cached_llms[cache_key]
     llm = ChatOpenAI(
         model=model_name,
         openai_api_base="https://openrouter.ai/api/v1",
-        openai_api_key=os.getenv("OPENROUTER_API_KEY"),
+        openai_api_key=get_openrouter_api_key(api_keys),
         temperature=temperature,
         http_client=_persistent_http_client,
         default_headers={
@@ -93,7 +96,7 @@ def get_llm(model_name: str, temperature: float = 0.3):
         },
     )
 
-    _cached_llms[model_name] = llm
+    _cached_llms[cache_key] = llm
     return llm
 
 
