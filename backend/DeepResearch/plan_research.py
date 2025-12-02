@@ -3,7 +3,9 @@ from graph_type import GraphState
 from langchain_core.messages import HumanMessage
 from llm import get_reasoning_llm, get_llm, stream_with_token_tracking
 from DeepResearch.prompt_loader import PROMPTS
+from DeepResearch.reasoning_utils import extract_reasoning
 import asyncio
+import json
 
 
 
@@ -17,10 +19,7 @@ async def plan_research_node(state: GraphState) -> GraphState:
     plan_history = research_state_dict.get("plan_history", [])
     user_feedback = research_state_dict.get("user_feedback", [])
     if planning_attempts > 0:
-        planning_intro = f"## 🔄 Research Planning Phase (Attempt {planning_attempts + 1})\n\n"
-        planning_intro += "Regenerating research plan based on your feedback...\n\n"
-        if chunk_callback:
-            await chunk_callback(planning_intro)
+        # Don't show regeneration messages - silently regenerate based on feedback
         if plan_history:
             feedback_summary = "**Previous Attempts & Feedback:**\n\n"
             for attempt in plan_history[-3:]:
@@ -36,7 +35,6 @@ async def plan_research_node(state: GraphState) -> GraphState:
         # This will be handled by frontend to show shimmer/loading state
         if chunk_callback:
             # Send status event for planning phase
-            import json
             await chunk_callback(json.dumps({
                 "type": "status",
                 "data": {
@@ -120,6 +118,10 @@ Generate a research plan that follows the user feedback exactly.
         chunk_callback=planning_chunk_callback,  # Use no-op callback to suppress content
         state=state
     )
+    
+    # Extract reasoning trace
+    reasoning = extract_reasoning(response_text)
+    
     sub_questions = []
     for line in response_text.splitlines():
         line = line.strip()
@@ -134,15 +136,15 @@ Generate a research plan that follows the user feedback exactly.
     state["response"] = ""
     state["route"] = "human_approval" if sub_questions else "END"
     if sub_questions:
-        # Send status event instead of content
-        import json
+        # Send status event with reasoning trace
         if chunk_callback:
             await chunk_callback(json.dumps({
                 "type": "status",
                 "data": {
                     "phase": "planning_complete",
                     "message": f"Generated {len(sub_questions)} research questions",
-                    "questions_count": len(sub_questions)
+                    "questions_count": len(sub_questions),
+                    "reasoning": reasoning
                 }
             }))
     else:

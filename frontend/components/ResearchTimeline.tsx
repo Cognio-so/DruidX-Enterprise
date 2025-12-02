@@ -16,6 +16,7 @@ interface ResearchPhase {
   iteration?: number;
   maxIterations?: number;
   status?: "pending" | "active" | "completed";
+  reasoning?: string;
 }
 
 interface ResearchTimelineProps {
@@ -63,6 +64,9 @@ export function ResearchTimeline({ phases, currentPhase }: ResearchTimelineProps
 
   const activePhase = phases.find(p => p.phase === currentPhase);
   const allCompleted = phases.every(p => p.status === "completed");
+  
+  // Show all phases - don't hide any completed steps
+  const visiblePhases = phases;
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-2">
@@ -91,7 +95,7 @@ export function ResearchTimeline({ phases, currentPhase }: ResearchTimelineProps
         <CollapsibleContent className="mt-2">
           <div className="bg-muted/40 border border-border rounded-lg p-6">
             <div className="space-y-4">
-              {phases.map((phase, index) => {
+              {visiblePhases.map((phase, index) => {
                 const config = phaseConfig[phase.phase] || {
                   icon: <Brain className="h-5 w-5" />,
                   label: phase.phase,
@@ -99,15 +103,15 @@ export function ResearchTimeline({ phases, currentPhase }: ResearchTimelineProps
                 };
                 
                 const isActive = phase.phase === currentPhase && phase.status !== "completed";
-                const isCompleted = phase.status === "completed" || (index < phases.length - 1 && !isActive);
+                const isCompleted = phase.status === "completed";
                 
                 return (
-                  <div key={index} className="flex gap-4">
+                  <div key={`${phase.phase}-${index}`} className="flex gap-4">
                     {/* Timeline line and icon */}
                     <div className="flex flex-col items-center">
                       <div
                         className={cn(
-                          "rounded-full p-2 border-2 transition-colors",
+                          "rounded-full p-2 border-2 transition-colors flex items-center justify-center",
                           isActive
                             ? "bg-primary/10 border-primary"
                             : isCompleted
@@ -115,15 +119,18 @@ export function ResearchTimeline({ phases, currentPhase }: ResearchTimelineProps
                             : "bg-muted border-border"
                         )}
                       >
-                        {isActive && !isCompleted ? (
+                        {isActive ? (
                           <Loader2 className={cn("h-5 w-5 animate-spin", config.color)} />
                         ) : isCompleted ? (
-                          <CheckCircle2 className="h-5 w-5 text-green-500" />
+                          <div className="relative">
+                            <div className={cn("h-5 w-5", config.color)}>{config.icon}</div>
+                            <CheckCircle2 className="h-3 w-3 text-green-500 absolute -bottom-0.5 -right-0.5 bg-background rounded-full" />
+                          </div>
                         ) : (
                           <div className={cn("h-5 w-5", config.color)}>{config.icon}</div>
                         )}
                       </div>
-                      {index < phases.length - 1 && (
+                      {index < visiblePhases.length - 1 && (
                         <div
                           className={cn(
                             "w-0.5 h-full min-h-[40px] mt-2",
@@ -160,12 +167,20 @@ export function ResearchTimeline({ phases, currentPhase }: ResearchTimelineProps
                                 (Iteration {phase.iteration}/{phase.maxIterations})
                               </span>
                             )}
-                            {phase.message && phase.status !== "completed" && (
+                            {phase.message && !isCompleted && (
                               <span className="text-muted-foreground"> - {phase.message}</span>
                             )}
                           </>
                         )}
                       </div>
+                      {/* Reasoning trace description */}
+                      {phase.reasoning && (
+                        <div className="mt-2 text-xs">
+                          <ShimmeringText variant="subtle" className="text-muted-foreground italic">
+                            {phase.reasoning}
+                          </ShimmeringText>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );

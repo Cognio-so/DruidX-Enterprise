@@ -3,6 +3,8 @@ from graph_type import GraphState
 from langchain_core.messages import HumanMessage
 from llm import get_reasoning_llm, get_llm, stream_with_token_tracking
 from DeepResearch.prompt_loader import PROMPTS
+from DeepResearch.reasoning_utils import extract_reasoning
+import json
 
 
 
@@ -58,6 +60,20 @@ async def analyze_gaps_node(state: GraphState) -> GraphState:
         state=state
     )
     full_response = llm_response
+    
+    # Extract reasoning trace
+    reasoning = extract_reasoning(full_response)
+    
+    # Send reasoning update if available
+    if reasoning and chunk_callback:
+        await chunk_callback(json.dumps({
+            "type": "status",
+            "data": {
+                "phase": "gap_analysis",
+                "message": "Analyzing gathered information and identifying knowledge gaps...",
+                "reasoning": reasoning
+            }
+        }))
 
     analysis = {
         "confidence": 0.5,
