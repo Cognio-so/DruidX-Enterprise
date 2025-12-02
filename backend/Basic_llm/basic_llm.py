@@ -88,12 +88,22 @@ async def SimpleLLm(state: GraphState) -> GraphState:
     try:
        
         kb_chunks = []
+        kb_json_content = []
         # Check Qdrant directly instead of checking kb_docs in state
         if gpt_id and userId:
             print(f"[SimpleLLM-KB] Checking for KB availability...")
             is_hybrid = gpt_config.get("hybridRag", False)
             kb_chunks = await _quick_kb_search(gpt_id, userId, user_query, is_hybrid=is_hybrid, limit=2)
             print(f"[SimpleLLM-KB] Retrieved {len(kb_chunks)} KB chunks")
+            
+            # Retrieve JSON KB documents (even if no embedded chunks found)
+            from Rag.Rag import get_json_documents
+            kb_json_content = await get_json_documents(is_kb=True, gpt_id=gpt_id, userId=userId)
+            if kb_json_content:
+                print(f"[SimpleLLM-KB] Retrieved {len(kb_json_content)} JSON KB documents")
+            elif not kb_chunks:
+                # No embedded chunks and no JSON - KB is empty
+                print(f"[SimpleLLM-KB] No KB documents found (neither embedded nor JSON)")
         elif not gpt_id or not userId:
             print(f"[SimpleLLM-KB] Missing gpt_id or userId, skipping KB search")
         from langchain_groq import ChatGroq
@@ -147,9 +157,26 @@ async def SimpleLLm(state: GraphState) -> GraphState:
         if kb_chunks:
             kb_context = f"\n\n# AVAILABLE KNOWLEDGE BASE CONTEXT:\n{chr(10).join(kb_chunks)}"
         
+        # Add JSON KB documents to context
+        json_context = ""
+        if kb_json_content:
+            json_context = "\n\n# KNOWLEDGE BASE JSON DOCUMENTS (Full Content):\n"
+            for i, json_content in enumerate(kb_json_content, 1):
+                json_context += f"\n## JSON Document {i}:\n{json_content}\n"
+            kb_context += json_context
+        
         custom_instructions = ""
         if custom_system_prompt:
             custom_instructions = f"\n\n# AVAILABLE CUSTOM INSTRUCTIONS:\n{custom_system_prompt}"
+        
+        # Build context sources description
+        kb_sources = []
+        if kb_chunks:
+            kb_sources.append(f"{len(kb_chunks)} embedded chunks")
+        if kb_json_content:
+            kb_sources.append(f"{len(kb_json_content)} JSON document(s)")
+        kb_status = ", ".join(kb_sources) if kb_sources else "Not available"
+        
         enhanced_prompt = f"""{STATIC_SYS}
 
 {custom_instructions}
@@ -162,11 +189,19 @@ You are an intelligent assistant that can access multiple context sources. Analy
 
 CONTEXT SOURCES AVAILABLE:
 1. **Custom Instructions**: {f"Available ({len(custom_system_prompt.split())} words)" if custom_system_prompt else "Not available"}
-2. **Knowledge Base**: {f"Available ({len(kb_chunks)} chunks)" if kb_chunks else "Not available"}  
+2. **Knowledge Base**: {kb_status}
 3. **Conversation History**: {f"Available ({len(past_messages)} messages)" if past_messages else "Not available"}
 4. **General Knowledge**: Always available
 
+CRITICAL INSTRUCTIONS:
+{"**IMPORTANT: JSON Schema Available in Knowledge Base**" if kb_json_content else ""}
+{"- A JSON schema/document is available in the Knowledge Base above. You MUST use this JSON schema when the user asks about design, components, or related tasks." if kb_json_content else ""}
+{"- DO NOT ask the user to provide the JSON schema - it's already available in the Knowledge Base context above." if kb_json_content else ""}
+{"- When the user says 'design', 'create component', or similar, immediately use the JSON schema from the Knowledge Base to generate the requested design/component." if kb_json_content else ""}
+{"- Follow the Custom Instructions above which specify how to use the JSON schema for design tasks." if (kb_json_content and custom_system_prompt) else ""}
+
 INTELLIGENT DECISION RULES:
+- **For design/component creation tasks**: {"USE the JSON schema from Knowledge Base immediately. Do not ask for it." if kb_json_content else "Use Custom Instructions if available"}
 - **For general knowledge questions** (stories, explanations, creative content): Use your general knowledge, ignore specialized context unless directly relevant
 - **For domain-specific questions**: Use Knowledge Base context if it's relevant to the query
 - **For content processing tasks**: Use Custom Instructions if they help format/process the content appropriately
@@ -175,12 +210,12 @@ INTELLIGENT DECISION RULES:
 
 RESPONSE STRATEGY:
 1. Analyze what the user is actually asking for
-2. Determine which context sources (if any) are relevant and helpful
+2. {"If JSON schema is in Knowledge Base and user asks about design/component, USE IT IMMEDIATELY" if kb_json_content else "Determine which context sources (if any) are relevant and helpful"}
 3. Respond naturally using only the relevant context
 4. If context sources are not relevant, ignore them and use general knowledge
 5. Be conversational and helpful while being accurate
 
-Remember: Only use context sources when they genuinely help answer the user's question. Don't force irrelevant context into your response."""
+Remember: {"When JSON schema is available in KB, USE IT for design tasks. Don't ask the user to provide it again." if kb_json_content else "Only use context sources when they genuinely help answer the user's question. Don't force irrelevant context into your response."}"""
 
         system_msg = SystemMessage(content=enhanced_prompt)
         messages = [system_msg] + formatted_history + [HumanMessage(content=f"CURRENT USER INPUT: {user_query}")]

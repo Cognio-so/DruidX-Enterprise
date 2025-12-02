@@ -1,0 +1,952 @@
+[
+  {
+    "components": {
+      "header_nav": {
+      "type": "nav",
+      "description": "Dark background navigation bar with logo on left and menu links aligned right.",
+      "typography": {
+        "links": {
+          "visual_description": "small uppercase sans-serif, white text",
+          "weight": "regular",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        }
+      },
+      "spacing": {
+        "padding": "small vertical, medium horizontal",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "black",
+        "text": "white",
+        "accent": "gold"
+      },
+      "image_style": "thin script-like gold logo on left",
+      "other_visual_notes": "hover likely changes link color"
+    },
+    "hero_banner": {
+      "type": "hero",
+      "description": "Two-column layout with text on left and doctor photo on right.",
+      "typography": {
+        "heading": {
+          "visual_description": "large uppercase serif, white text",
+          "weight": "bold",
+          "letter_spacing": "normal",
+          "text_transform": "uppercase"
+        },
+        "body": {
+          "visual_description": "smaller white sans-serif text",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "black",
+        "text": "white",
+        "accent": "light gray"
+      },
+      "image_style": "doctor portrait on right with solid background",
+      "other_visual_notes": "social media icons under text"
+    },
+    "press_logos": {
+      "type": "section",
+      "description": "Row of monochrome press logos centered horizontally.",
+      "typography": {
+        "logos": {
+          "visual_description": "brand-specific logotypes in white",
+          "weight": "varies",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        }
+      },
+      "spacing": {
+        "padding": "medium vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "black",
+        "text": "white",
+        "accent": "none"
+      },
+      "image_style": "logos evenly spaced",
+      "other_visual_notes": "subtle divider above and below"
+    },
+    "book_promo": {
+      "type": "card",
+      "description": "Split section with bold heading on left and book image on right.",
+      "typography": {
+        "heading": {
+          "visual_description": "large serif, red/orange text",
+          "weight": "bold",
+          "letter_spacing": "normal",
+          "text_transform": "capitalize"
+        },
+        "body": {
+          "visual_description": "smaller serif in black",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "white",
+        "text": "black",
+        "accent": "red-orange"
+      },
+      "image_style": "book cover with Amazon badge",
+      "other_visual_notes": "clean split layout"
+    },
+    "about_section": {
+      "type": "text_block",
+      "description": "Blue background section with heading, portrait, and descriptive text.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase sans-serif, white",
+          "weight": "bold",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        },
+        "body": {
+          "visual_description": "white sans-serif paragraph text",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "bright blue",
+        "text": "white",
+        "accent": "light gray"
+      },
+      "image_style": "doctor with group staff photo and smiling closeup portrait",
+      "other_visual_notes": "button styled link at bottom"
+    },
+    "services_section": {
+      "type": "card_grid",
+      "description": "Two-column layout: dental image left, service description right.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase sans-serif black",
+          "weight": "bold",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        },
+        "body": {
+          "visual_description": "serif paragraph text in dark gray",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "white",
+        "text": "black",
+        "accent": "gray"
+      },
+      "image_style": "before/after dental photo, smiling patient portrait",
+      "other_visual_notes": "symmetrical spacing between text and imagery"
+    },
+    "callout_banner": {
+      "type": "banner",
+      "description": "Full-width banner with mountain background and centered text.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase white sans-serif, large size",
+          "weight": "bold",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        },
+        "body": {
+          "visual_description": "white sans-serif smaller size",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        }
+      },
+      "spacing": {
+        "padding": "medium vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "mountain scenic photo",
+        "text": "white",
+        "accent": "none"
+      },
+      "image_style": "full-width scenic background",
+      "other_visual_notes": "overlay ensures text visibility"
+    },
+    "credentials_section": {
+      "type": "text_block",
+      "description": "Centered white text on deep blue background, describing doctor’s qualifications.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase sans-serif white",
+          "weight": "bold",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        },
+        "body": {
+          "visual_description": "serif paragraph text in white",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "dark blue",
+        "text": "white",
+        "accent": "light blue"
+      },
+      "image_style": "none",
+      "other_visual_notes": "call-to-action link under text"
+    },
+    "testimonials_section": {
+      "type": "card_grid",
+      "description": "Testimonial quotes with star ratings and embedded YouTube videos.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase black sans-serif",
+          "weight": "bold",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        },
+        "body": {
+          "visual_description": "italic serif text in gray-black",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "white",
+        "text": "black",
+        "accent": "gold (stars)"
+      },
+      "image_style": "video thumbnails with play buttons",
+      "other_visual_notes": "carousel style navigation for quotes"
+    },
+    "contact_section": {
+      "type": "form",
+      "description": "Split layout with Google map on left and contact form on right.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase black sans-serif",
+          "weight": "bold",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        },
+        "body": {
+          "visual_description": "black sans-serif text, smaller size",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "light gray-white",
+        "text": "black",
+        "accent": "blue (submit button)"
+      },
+      "image_style": "embedded Google map",
+      "other_visual_notes": "rounded input fields with blue button"
+    },
+    "footer": {
+      "type": "footer",
+      "description": "Dark footer with doctor portrait above, contact details, association logos, and site navigation.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase white sans-serif",
+          "weight": "bold",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        },
+        "body": {
+          "visual_description": "small white sans-serif links",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "black",
+        "text": "white",
+        "accent": "gold"
+      },
+      "image_style": "association logos in grayscale",
+      "other_visual_notes": "chat widget icon floating bottom right"
+    }
+  },
+  "page_structure": [
+    {"component": "header_nav", "order": 1},
+    {"component": "hero_banner", "order": 2},
+    {"component": "press_logos", "order": 3},
+    {"component": "book_promo", "order": 4},
+    {"component": "about_section", "order": 5},
+    {"component": "services_section", "order": 6},
+    {"component": "callout_banner", "order": 7},
+    {"component": "credentials_section", "order": 8},
+    {"component": "testimonials_section", "order": 9},
+    {"component": "contact_section", "order": 10},
+    {"component": "footer", "order": 11}
+  ]
+},
+{
+  "url": "https://accessoralsurgery.com/",
+  "components": {
+    "header_nav": {
+      "type": "nav",
+      "description": "White background header with logo on left, horizontal links in center, and contact info with buttons on right.",
+      "typography": {
+        "links": {
+          "visual_description": "small sans-serif, dark gray text",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "capitalize"
+        }
+      },
+      "spacing": {
+        "padding": "small vertical, medium horizontal",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "white",
+        "text": "dark gray",
+        "accent": "blue"
+      },
+      "image_style": "blue and gray logo with tooth icon",
+      "other_visual_notes": "rounded blue buttons for 'Book Now' and 'Pay My Bill'"
+    },
+    "hero_banner": {
+      "type": "hero",
+      "description": "Full-width background image of a bridge with overlaid service cards below.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase sans-serif white",
+          "weight": "bold",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        },
+        "button": {
+          "visual_description": "small uppercase sans-serif, white text on blue pill button",
+          "weight": "regular",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "bridge photo in blue tones",
+        "text": "white",
+        "accent": "blue"
+      },
+      "image_style": "full-width scenic bridge photo",
+      "other_visual_notes": "three overlay service cards (dental implant, sinus lift, biopsies)"
+    },
+    "services_preview": {
+      "type": "card_grid",
+      "description": "Three evenly spaced square cards with faint background images and centered text.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase sans-serif white",
+          "weight": "bold",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        },
+        "button": {
+          "visual_description": "small uppercase sans-serif, white text on blue button",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "uppercase"
+        }
+      },
+      "spacing": {
+        "padding": "medium vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "blue overlays with faded images",
+        "text": "white",
+        "accent": "blue"
+      },
+      "image_style": "soft grayscale dental-related images with blue overlay",
+      "other_visual_notes": "hover likely brightens overlay"
+    },
+    "insurance_banner": {
+      "type": "banner",
+      "description": "Horizontal section promoting insurance acceptance with split layout: text left, image right.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase sans-serif blue",
+          "weight": "bold",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        },
+        "body": {
+          "visual_description": "smaller sans-serif gray text",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "white",
+        "text": "blue",
+        "accent": "gray"
+      },
+      "image_style": "portrait of woman in mask on right",
+      "other_visual_notes": "minimalist two-column split"
+    },
+    "appointment_form": {
+      "type": "form",
+      "description": "Two-column section with form on left and doctor image on right.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase white sans-serif",
+          "weight": "bold",
+          "letter_spacing": "normal",
+          "text_transform": "uppercase"
+        },
+        "fields": {
+          "visual_description": "rounded white input fields with gray placeholder text",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        },
+        "button": {
+          "visual_description": "white uppercase text on rounded blue button",
+          "weight": "bold",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "blue",
+        "text": "white",
+        "accent": "light blue"
+      },
+      "image_style": "close-up of dentist wearing magnification glasses",
+      "other_visual_notes": "stacked buttons under form"
+    },
+    "cta_section": {
+      "type": "banner",
+      "description": "Wide call-to-action section with image left and large text right.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase sans-serif dark blue",
+          "weight": "bold",
+          "letter_spacing": "normal",
+          "text_transform": "uppercase"
+        },
+        "button": {
+          "visual_description": "uppercase white text on dark blue pill button",
+          "weight": "bold",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "light gray",
+        "text": "dark blue",
+        "accent": "blue"
+      },
+      "image_style": "two staff members on left smiling",
+      "other_visual_notes": "button centered under heading"
+    },
+    "social_section": {
+      "type": "text_block",
+      "description": "Centered Instagram icon with 'Follow Us' text above.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase sans-serif gray",
+          "weight": "regular",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        }
+      },
+      "spacing": {
+        "padding": "medium vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "white",
+        "text": "gray",
+        "accent": "blue"
+      },
+      "image_style": "Instagram logo icon",
+      "other_visual_notes": "minimalist and centered"
+    },
+    "location_cards": {
+      "type": "card_grid",
+      "description": "Stacked cards with location details, icons for phone and address, repeated multiple times.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase sans-serif dark blue",
+          "weight": "bold",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        },
+        "body": {
+          "visual_description": "small sans-serif gray text",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "medium vertical"
+      },
+      "colors": {
+        "background": "white with faint image overlay",
+        "text": "dark blue",
+        "accent": "blue"
+      },
+      "image_style": "faded background portrait image with white overlay box",
+      "other_visual_notes": "rounded corners, consistent stacked style"
+    },
+    "footer": {
+      "type": "footer",
+      "description": "Dark blue background footer with white text and navigation links.",
+      "typography": {
+        "links": {
+          "visual_description": "small uppercase sans-serif, white text",
+          "weight": "regular",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        }
+      },
+      "spacing": {
+        "padding": "medium vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "dark blue",
+        "text": "white",
+        "accent": "light gray"
+      },
+      "image_style": "none",
+      "other_visual_notes": "legal links and copyright text at bottom"
+    }
+  },
+  "page_structure": [
+    {"component": "header_nav", "order": 1},
+    {"component": "hero_banner", "order": 2},
+    {"component": "services_preview", "order": 3},
+    {"component": "insurance_banner", "order": 4},
+    {"component": "appointment_form", "order": 5},
+    {"component": "cta_section", "order": 6},
+    {"component": "social_section", "order": 7},
+    {"component": "location_cards", "order": 8},
+    {"component": "footer", "order": 9}
+  ]
+},
+{
+  "url": "https://solomondentistry.com/",
+  "components": {
+    "top_bar": {
+      "type": "nav",
+      "description": "Thin top strip with phone number and quick links centered.",
+      "typography": {
+        "links": {
+          "visual_description": "tiny sans-serif gray text",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        }
+      },
+      "spacing": {
+        "padding": "extra small vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "light gray-blue",
+        "text": "dark gray",
+        "accent": "blue"
+      },
+      "image_style": "none",
+      "other_visual_notes": "minimal top utility bar"
+    },
+    "header_nav": {
+      "type": "nav",
+      "description": "White background header with logo on left, horizontal nav links in center, and button on right.",
+      "typography": {
+        "links": {
+          "visual_description": "small sans-serif dark gray text",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "capitalize"
+        },
+        "button": {
+          "visual_description": "uppercase sans-serif white text on blue pill button",
+          "weight": "bold",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        }
+      },
+      "spacing": {
+        "padding": "small vertical, medium horizontal",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "white",
+        "text": "dark gray",
+        "accent": "blue"
+      },
+      "image_style": "blue tooth logo on left",
+      "other_visual_notes": "clean and minimal navigation"
+    },
+    "hero_banner": {
+      "type": "hero",
+      "description": "Large full-width photo of dental room interior.",
+      "typography": {
+        "heading": {
+          "visual_description": "small uppercase sans-serif overlay text",
+          "weight": "regular",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "interior photo",
+        "text": "dark gray",
+        "accent": "blue"
+      },
+      "image_style": "bright office room with dental chair",
+      "other_visual_notes": "simple centered caption below"
+    },
+    "awards_strip": {
+      "type": "banner",
+      "description": "Row of award logos centered in white background.",
+      "typography": {
+        "body": {
+          "visual_description": "small uppercase sans-serif black",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "uppercase"
+        }
+      },
+      "spacing": {
+        "padding": "medium vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "white",
+        "text": "black",
+        "accent": "gold"
+      },
+      "image_style": "award badges in full color",
+      "other_visual_notes": "center-aligned row"
+    },
+    "services_preview": {
+      "type": "card_grid",
+      "description": "Horizontal row of translucent blue cards with service titles.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase white sans-serif",
+          "weight": "bold",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        }
+      },
+      "spacing": {
+        "padding": "medium vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "blue overlay",
+        "text": "white",
+        "accent": "blue"
+      },
+      "image_style": "dental imagery faintly visible under blue overlay",
+      "other_visual_notes": "uniform card grid"
+    },
+    "about_section": {
+      "type": "text_block",
+      "description": "Section with text on left and group staff photo on right.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase sans-serif dark gray",
+          "weight": "bold",
+          "letter_spacing": "normal",
+          "text_transform": "uppercase"
+        },
+        "body": {
+          "visual_description": "serif paragraph text in gray",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        },
+        "button": {
+          "visual_description": "small uppercase white text on blue pill button",
+          "weight": "regular",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "light blue-white",
+        "text": "dark gray",
+        "accent": "blue"
+      },
+      "image_style": "staff group photo",
+      "other_visual_notes": "left aligned text block"
+    },
+    "service_detail_blocks": {
+      "type": "card_grid",
+      "description": "Alternating image and text service highlight blocks stacked vertically.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase sans-serif dark gray",
+          "weight": "bold",
+          "letter_spacing": "normal",
+          "text_transform": "uppercase"
+        },
+        "body": {
+          "visual_description": "serif paragraph text in dark gray",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        },
+        "button": {
+          "visual_description": "small white text on rounded dark blue button",
+          "weight": "regular",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        }
+      },
+      "spacing": {
+        "padding": "medium vertical",
+        "margin": "medium vertical"
+      },
+      "colors": {
+        "background": "white",
+        "text": "black",
+        "accent": "blue"
+      },
+      "image_style": "photos of dental staff working with patients",
+      "other_visual_notes": "alternating image left/right"
+    },
+    "insurance_banner": {
+      "type": "banner",
+      "description": "Blue background section with white text emphasizing insurance acceptance.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase white sans-serif large",
+          "weight": "bold",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        },
+        "body": {
+          "visual_description": "white smaller sans-serif",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        },
+        "button": {
+          "visual_description": "uppercase white text on dark blue button",
+          "weight": "bold",
+          "letter_spacing": "normal",
+          "text_transform": "uppercase"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "medium vertical"
+      },
+      "colors": {
+        "background": "blue",
+        "text": "white",
+        "accent": "dark blue"
+      },
+      "image_style": "smiling couple photo",
+      "other_visual_notes": "center aligned text"
+    },
+    "savings_banner": {
+      "type": "banner",
+      "description": "Light blue section promoting savings plan with group photo.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase white sans-serif",
+          "weight": "bold",
+          "letter_spacing": "normal",
+          "text_transform": "uppercase"
+        },
+        "body": {
+          "visual_description": "white sans-serif smaller",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        },
+        "button": {
+          "visual_description": "uppercase white text on dark blue button",
+          "weight": "regular",
+          "letter_spacing": "wide",
+          "text_transform": "uppercase"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "medium vertical"
+      },
+      "colors": {
+        "background": "light blue",
+        "text": "white",
+        "accent": "dark blue"
+      },
+      "image_style": "team group photo",
+      "other_visual_notes": "center aligned text"
+    },
+    "contact_form": {
+      "type": "form",
+      "description": "Full-width light gray block with centered form fields and button.",
+      "typography": {
+        "fields": {
+          "visual_description": "rounded white input fields with gray placeholder text",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        },
+        "button": {
+          "visual_description": "white text on rounded dark blue button",
+          "weight": "bold",
+          "letter_spacing": "normal",
+          "text_transform": "uppercase"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "medium vertical"
+      },
+      "colors": {
+        "background": "light gray",
+        "text": "black",
+        "accent": "blue"
+      },
+      "image_style": "none",
+      "other_visual_notes": "center aligned form"
+    },
+    "locations_section": {
+      "type": "card_grid",
+      "description": "Multiple stacked location cards with faint background images and overlayed details.",
+      "typography": {
+        "heading": {
+          "visual_description": "uppercase sans-serif dark blue",
+          "weight": "bold",
+          "letter_spacing": "normal",
+          "text_transform": "uppercase"
+        },
+        "body": {
+          "visual_description": "small sans-serif gray",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "none"
+        }
+      },
+      "spacing": {
+        "padding": "large vertical",
+        "margin": "medium vertical"
+      },
+      "colors": {
+        "background": "white with faint gray overlay",
+        "text": "dark blue",
+        "accent": "blue"
+      },
+      "image_style": "photos of building exteriors lightly faded under overlay",
+      "other_visual_notes": "grid of address/phone info cards"
+    },
+    "footer": {
+      "type": "footer",
+      "description": "Light blue footer with white text and navigation links.",
+      "typography": {
+        "links": {
+          "visual_description": "small sans-serif white text",
+          "weight": "regular",
+          "letter_spacing": "normal",
+          "text_transform": "capitalize"
+        }
+      },
+      "spacing": {
+        "padding": "medium vertical",
+        "margin": "none"
+      },
+      "colors": {
+        "background": "light blue",
+        "text": "white",
+        "accent": "gray"
+      },
+      "image_style": "none",
+      "other_visual_notes": "copyright and small navigation links"
+    }
+  },
+  "page_structure": [
+    {"component": "top_bar", "order": 1},
+    {"component": "header_nav", "order": 2},
+    {"component": "hero_banner", "order": 3},
+    {"component": "awards_strip", "order": 4},
+    {"component": "services_preview", "order": 5},
+    {"component": "about_section", "order": 6},
+    {"component": "service_detail_blocks", "order": 7},
+    {"component": "insurance_banner", "order": 8},
+    {"component": "savings_banner", "order": 9},
+    {"component": "contact_form", "order": 10},
+    {"component": "locations_section", "order": 11},
+    {"component": "footer", "order": 12}
+    ]
+  }
+]
