@@ -50,6 +50,13 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Log port configuration on startup
+@app.on_event("startup")
+async def startup_event():
+    port = os.getenv("PORT", "8000")
+    print(f"[Startup] Server will run on port: {port}")
+    print(f"[Startup] PORT environment variable: {os.getenv('PORT', 'NOT SET')}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "https://druidx.co"],

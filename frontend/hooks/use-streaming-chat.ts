@@ -89,6 +89,7 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
     iteration?: number;
     maxIterations?: number;
     status?: "pending" | "active" | "completed";
+    reasoning?: string;
   }>>([]);
   const [webSearchStatus, setWebSearchStatus] = useState<WebSearchStatus>({
     isActive: false,
@@ -267,6 +268,7 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
                       iteration: phaseData.iteration,
                       maxIterations: phaseData.max_iterations,
                       status: "active" as const,
+                      reasoning: phaseData.reasoning || undefined,
                     };
                     
                     if (existingIndex >= 0) {
@@ -274,10 +276,20 @@ export function useStreamingChat(sessionId: string): StreamingChatHook {
                       const updated = [...prev];
                       // If it's execution phase with iteration, update the message but keep it active
                       if (phaseData.phase === "execution" && phaseData.iteration) {
-                        updated[existingIndex] = { ...updated[existingIndex], ...newPhase };
+                        updated[existingIndex] = { 
+                          ...updated[existingIndex], 
+                          ...newPhase,
+                          // Preserve existing reasoning if new one not provided
+                          reasoning: phaseData.reasoning || updated[existingIndex].reasoning
+                        };
                       } else {
                         // For other phases, mark previous as completed and update
-                        updated[existingIndex] = { ...updated[existingIndex], ...newPhase };
+                        updated[existingIndex] = { 
+                          ...updated[existingIndex], 
+                          ...newPhase,
+                          // Preserve existing reasoning if new one not provided
+                          reasoning: phaseData.reasoning || updated[existingIndex].reasoning
+                        };
                       }
                       return updated;
                     } else {

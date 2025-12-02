@@ -161,6 +161,10 @@ export default function ChatGptById() {
       });
       if (response.ok) {
         clearApprovalRequest();
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Failed to submit rejection:", errorData);
+        // Error will be shown by the dialog validation, but log it for debugging
       }
     } catch (error) {
       console.error("Failed to submit cancellation:", error);

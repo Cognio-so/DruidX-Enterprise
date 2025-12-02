@@ -38,11 +38,14 @@ async def human_approval_node(state: GraphState) -> GraphState:
     
     if chunk_callback:
         await chunk_callback(json.dumps(approval_event))
+        # Extract reasoning from research plan if available
+        reasoning = f"Generated {len(research_plan)} research questions based on query analysis. Review and approve to proceed with research execution."
         await chunk_callback(json.dumps({
             "type": "status",
             "data": {
                 "phase": "waiting_approval",
-                "message": "Review the research plan and approve to continue"
+                "message": "Review the research plan and approve to continue",
+                "reasoning": reasoning
             }
         }))
     
@@ -62,9 +65,11 @@ async def human_approval_node(state: GraphState) -> GraphState:
         
         if pending_approval and pending_approval.get("status") != "waiting":
             approval_status = pending_approval.get("status")
-            feedback = pending_approval.get("feedback", "")
+            feedback = pending_approval.get("feedback", "").strip()
             
             print(f"✅ Approval received: {approval_status}")
+            if not approval_status == "approved" and feedback:
+                print(f"📝 Feedback received: {feedback[:100]}...")  # Log first 100 chars
             
             # Mark waiting_approval as completed
             if chunk_callback:
@@ -82,23 +87,26 @@ async def human_approval_node(state: GraphState) -> GraphState:
                 state["route"] = "execute_research"
             else:
                 # Rejected → regenerate plan with feedback
+                # Feedback should always be provided (enforced by frontend and backend validation)
                 if feedback:
+                    planning_attempts = research_state_dict.get("planning_attempts", 0) + 1
                     research_state_dict.setdefault("plan_history", []).append({
-                        "attempt": research_state_dict.get("planning_attempts", 0) + 1,
+                        "attempt": planning_attempts,
                         "plan": pending_approval.get("plan", []),
                         "feedback": feedback,
                         "timestamp": "now"
                     })
                     research_state_dict.setdefault("user_feedback", []).append(feedback)
-                    research_state_dict["planning_attempts"] = research_state_dict.get("planning_attempts", 0) + 1
+                    research_state_dict["planning_attempts"] = planning_attempts
                     
-                    if chunk_callback:
-                        await chunk_callback(f"❌ **Rejected! Feedback collected.**\n\n")
-                        await chunk_callback(f"📝 **Your feedback:** {feedback}\n\n")
-                        await chunk_callback(f"🔄 **Regenerating plan (Attempt {research_state_dict['planning_attempts']})...**\n\n")
+                    print(f"🔄 Regenerating plan with feedback (Attempt {planning_attempts})")
+                    
+                    # Don't show rejection messages to user - silently regenerate
                 else:
-                    if chunk_callback:
-                        await chunk_callback("❌ **Rejected! No feedback provided. Regenerating plan...**\n\n")
+                    # This should not happen due to validation, but handle gracefully
+                    print("⚠️ Warning: Plan rejected without feedback (should not happen)")
+                    research_state_dict["planning_attempts"] = research_state_dict.get("planning_attempts", 0) + 1
+                    # Don't show rejection messages to user - silently regenerate
                 
                 state["route"] = "plan_research"
             

@@ -4,10 +4,12 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
 from llm import get_reasoning_llm, get_llm, stream_with_token_tracking
 from DeepResearch.prompt_loader import PROMPTS
+from DeepResearch.reasoning_utils import extract_reasoning
 from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 load_dotenv()
 import os
+import json
 google_api_key=os.getenv("GOOGLE_API_KEY", "")
 
 
