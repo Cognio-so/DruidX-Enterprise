@@ -40,6 +40,7 @@ from livekit.plugins import (
     elevenlabs,
     cartesia,
     hume,
+    sarvam
 )
 
 # Import the web search tool
@@ -127,13 +128,15 @@ ELEVENLABS_TTS_MODELS = ("ODq5zmih8GrVes37Dizd","Xb7hH8MSUJpSbSDYk0k2", "iP95p4x
 CARTESIA_TTS_MODELS = ("f786b574-daa5-4673-aa0c-cbe3e8534c02", "9626c31c-bec5-4cca-baa8-f8ba9e84c8bc")
 CARTESIA_SONI3_MODEL = "sonic-3"
 HUME_TTS_MODELS = ("Colton Rivers", "Ava Song","Priya","Suresh")
+SARVAM_STT_MODEL = ("saarika:v2.5")
+SARVAM_TTS_VOICE = ("anushka", "vidya", "manisha", "Arya", "karun", "hitesh")
 
 class VoiceAssistant:
     def __init__(
         self,
         instructions: str = None,
         tools: List[Callable] = None,
-        openai_model: str = "gpt-4.1-nano",
+        llm_model: str = "gpt-4.1-nano",
         stt_model: str = "nova-3",
         tts_model: str = "aura-2-ophelia-en", 
         initial_greeting: str = "Greet the user warmly, introduce yourself as a voice assistant, and offer your assistance.",
@@ -153,7 +156,7 @@ class VoiceAssistant:
                 Summarize search results into a natural, conversational response."""
         else:
             self.instructions = instructions
-        self.openai_model = openai_model
+        self.llm_model = llm_model
         self.stt_model = stt_model
         self.tts_model = tts_model
         self.initial_greeting = initial_greeting
@@ -270,11 +273,13 @@ class VoiceAssistant:
             "LIVEKIT_API_SECRET": os.getenv("LIVEKIT_API_SECRET"),
             "LIVEKIT_URL": os.getenv("LIVEKIT_URL"),
             "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
+            "OPENROUTER_API_KEY": os.getenv("OPENROUTER_API_KEY"),
             "DEEPGRAM_API_KEY": os.getenv("DEEPGRAM_API_KEY"),
             "TAVILY_API_KEY": os.getenv("TAVILY_API_KEY"),
             "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY"),
             "CARTESIA_API_KEY": os.getenv("CARTESIA_API_KEY"),
             "HUME_API_KEY": os.getenv("HUME_API_KEY"),
+            "SARVAM_API_KEY": os.getenv("SARVAM_API_KEY"),
         }
 
         missing_keys = [key for key, value in required_keys.items() if not value]
@@ -301,6 +306,9 @@ class VoiceAssistant:
         elif self.stt_model in CARTESIA_STT_MODELS:
             stt_plugin = cartesia.STT(model=self.stt_model, api_key=os.getenv("CARTESIA_API_KEY"))
             logger.info("Using Cartesia STT plugin.")
+        elif self.stt_model in SARVAM_STT_MODEL:
+            stt_plugin=sarvam.STT(language="unknown", model=self.stt_model, api_key=os.getenv("SARVAM_API_KEY"))
+            logger.info("Using Sarvam STT plugin.")
         else:
             logger.warning(f"STT model '{self.stt_model}' not recognized. Defaulting to Deepgram's 'nova-3'.")
             stt_plugin = deepgram.STT(model="nova-3")
@@ -316,6 +324,10 @@ class VoiceAssistant:
         elif self.tts_model in ELEVENLABS_TTS_MODELS:
             tts_plugin = elevenlabs.TTS(voice_id=self.tts_model, model="eleven_turbo_v2_5", api_key=os.getenv("ELEVENLABS_API_KEY"))
             logger.info(f"Using ElevenLabs TTS plugin with voice ID from main.py: {self.tts_model}")
+        elif self.tts_model in SARVAM_TTS_VOICE:
+            # tts_plugin = sarvam.TTS(target_language_code="hi-IN", model="bulbul:v2" speaker="anushka",)
+            tts_plugin = sarvam.TTS(target_language_code="hi-IN", model="bulbul:v2", speaker="anushka",)
+            logger.info(f"Using Sarvam TTS plugin with voice from main.py: {self.tts_model}")
         elif self.tts_model in HUME_TTS_MODELS:
             tts_plugin = hume.TTS(voice=hume.VoiceByName(name=self.tts_model, provider=hume.VoiceProvider.hume), api_key=os.getenv("HUME_API_KEY"))
             logger.info(f"Using Hume TTS plugin with voice from main.py: {self.tts_model}")
@@ -338,7 +350,7 @@ class VoiceAssistant:
                 max_buffered_speech=self.max_buffered_speech or 60.0,
                 sample_rate=16000,),
             stt=stt_plugin,
-            llm=openai.LLM(model=self.openai_model),
+            llm=openai.LLM.with_openrouter(model=self.llm_model, api_key=os.getenv("OPENROUTER_API_KEY")),
             tts=tts_plugin,
             use_tts_aligned_transcript=True,
         )
@@ -349,7 +361,7 @@ class VoiceAssistant:
         logger.info(f"    Min Speech Duration: {self.min_speech_duration or 0.05}s")
         logger.info(f"    Max Buffered Speech: {self.max_buffered_speech or 60.0}s")
         logger.info(f"  - STT: {stt_plugin.__class__.__module__} (Model: {self.stt_model})")
-        logger.info(f"  - LLM: OpenAI (Model: {self.openai_model})")
+        logger.info(f"  - LLM: (Model: {self.llm_model})")
         logger.info(f"  - TTS: {tts_plugin.__class__.__module__} (Model: {self.tts_model})")
 
 
@@ -622,7 +634,7 @@ async def entrypoint(ctx: agents.JobContext):
         # Define default models and instructions
         #--------------------------------------------------------------
         # These defaults will be overridden by values from Redis if available (set in main.py)
-        openai_model = "gpt-4.1-nano"
+        llm_model = "gpt-4.1-nano"
         stt_model = "nova-3"
         tts_model = "aura-2-ophelia-en"  # Default TTS model (matches main.py default, can be overridden via Redis)
         instructions = None  # Default to None, letting VoiceAssistant use its internal default
@@ -643,7 +655,7 @@ async def entrypoint(ctx: agents.JobContext):
                         logger.info(f"Found voice config in Redis for session {session_id}: {config}")
                         
                         # Override defaults with values from Redis if they are not None/empty
-                        openai_model = config.get("openai_model") or openai_model
+                        llm_model = config.get("llm_model") or llm_model
                         stt_model = config.get("stt_model") or stt_model
                         tts_model = config.get("tts_model") or tts_model
                         instructions = config.get("instructions") or instructions
@@ -661,7 +673,7 @@ async def entrypoint(ctx: agents.JobContext):
             logger.warning("Could not determine session_id from room name. Using default models.")
 
         logger.info("Initializing VoiceAssistant with the following config:")
-        logger.info(f"  - OpenAI LLM Model: {openai_model}")
+        logger.info(f"  - LLM Model: {llm_model}")
         logger.info(f"  - STT Model: {stt_model}")
         logger.info(f"  - TTS Model: {tts_model}")
         logger.info(f"  - Instructions: {'Custom' if instructions else 'Default'}")
@@ -671,7 +683,7 @@ async def entrypoint(ctx: agents.JobContext):
         logger.info(f"  - Max Buffered Speech: {max_buffered_speech}")
         assistant = VoiceAssistant(
             instructions=instructions,
-            openai_model=openai_model,
+            llm_model=llm_model,
             stt_model=stt_model,
             tts_model=tts_model,
             activation_threshold=activation_threshold,

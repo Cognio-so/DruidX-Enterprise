@@ -71,3 +71,4 @@ livekit-agents[cartesia]~=1.2
 livekit-agents[elevenlabs]~=1.2
 livekit-agents[hume]~=1.2
 firecrawl-py
+livekit-agents[sarvam]~=1.2
