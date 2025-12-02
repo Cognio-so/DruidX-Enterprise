@@ -287,13 +287,15 @@ async def execute_research_node(state: GraphState) -> GraphState:
     # Send status event instead of content for execution phase
     import json
     if chunk_callback:
+        reasoning = f"Executing web research for iteration {current_iteration + 1}/{max_iterations}. Searching and extracting information from multiple sources to gather comprehensive data."
         await chunk_callback(json.dumps({
             "type": "status",
             "data": {
                 "phase": "execution",
                 "message": f"Research Execution Phase - Iteration {current_iteration + 1}/{max_iterations}",
                 "iteration": current_iteration + 1,
-                "max_iterations": max_iterations
+                "max_iterations": max_iterations,
+                "reasoning": reasoning
             }
         }))
     
