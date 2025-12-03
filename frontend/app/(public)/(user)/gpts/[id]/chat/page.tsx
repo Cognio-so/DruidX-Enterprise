@@ -129,6 +129,8 @@ export default function ChatGptById() {
     gptName: gptData?.name || "Unknown GPT",
     sessionId,
     messages,
+    // When opening from history, this keeps updating the same DB row
+    conversationId,
   });
 
   const handleApproval = async () => {
