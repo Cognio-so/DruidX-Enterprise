@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { protectRoute } from "@/lib/arcjet";
 
 export async function GET(request: NextRequest) {
+  const protection = await protectRoute(request);
+  if (protection) {
+    return protection;
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const connectionRequestId = searchParams.get("connection_request_id");

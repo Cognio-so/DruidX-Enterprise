@@ -13,16 +13,16 @@ export const auth = betterAuth({
 
   trustedOrigins: [
     process.env.BETTER_AUTH_URL as string,
-    ...(process.env.BETTER_AUTH_TRUSTED_ORIGINS?.split(",") || []) 
+    ...(process.env.BETTER_AUTH_TRUSTED_ORIGINS?.split(",") || []),
   ],
 
   session: {
     cookieCache: {
       enabled: true,
-      maxAge: 60 * 60 * 24 * 7, 
+      maxAge: 60 * 60 * 24 * 7,
     },
-    expiresIn: 60 * 60 * 24 * 7, 
-    updateAge: 60 * 60 * 24, 
+    expiresIn: 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 24,
   },
   plugins: [
     admin({
@@ -31,6 +31,10 @@ export const auth = betterAuth({
     }),
   ],
   socialProviders: {
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID as string,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+    },
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,

@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { protectRoute } from "@/lib/arcjet";
 
 export async function POST(request: NextRequest) {
+  const protection = await protectRoute(request);
+  if (protection) {
+    return protection;
+  }
+
   try {
     const { email, name, role, message, token, expiresAt } =
       await request.json();

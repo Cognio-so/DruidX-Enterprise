@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireUser } from "@/data/requireUser";
+import { protectRoute } from "@/lib/arcjet";
 
 const backendUrl = process.env.BACKEND_URL || "http://localhost:8000";
 
@@ -8,6 +9,11 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ gptId: string }> }
 ) {
+  const protection = await protectRoute(request);
+  if (protection) {
+    return protection;
+  }
+
   try {
     const session = await requireUser();
     const currentUserId = session.user.id;

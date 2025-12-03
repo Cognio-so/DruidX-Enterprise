@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { protectRoute } from "@/lib/arcjet";
 
 const BACKEND_URL = process.env.BACKEND_URL;
 
@@ -6,6 +7,11 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
 ) {
+  const protection = await protectRoute(request);
+  if (protection) {
+    return protection;
+  }
+
   try {
     const { sessionId } = await params;
 

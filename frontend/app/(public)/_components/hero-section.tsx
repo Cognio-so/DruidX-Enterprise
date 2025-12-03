@@ -3,12 +3,12 @@ import Link from 'next/link'
 import { ArrowRight, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
-import { TextEffect } from '@/app/(public)/_components/text-effect'
-import { AnimatedGroup } from '@/app/(public)/_components/animated-group'
 import { HeroHeader } from './header'
-import { Variants } from 'motion/react'
+import { AnimatedGroup } from './animated-group'
+import type { AnimatedGroupProps } from './animated-group'
+import { TextEffect } from './text-effect'
 
-const transitionVariants: { item: Variants } = {
+const transitionVariants: AnimatedGroupProps['variants'] = {
     item: {
         hidden: {
             opacity: 0,
@@ -42,6 +42,41 @@ export default function HeroSection() {
                 </div>
                 <section>
                     <div className="relative pt-24 md:pt-36">
+                        <AnimatedGroup
+                            variants={{
+                                container: {
+                                    visible: {
+                                        transition: {
+                                            delayChildren: 1,
+                                        },
+                                    },
+                                },
+                                item: {
+                                    hidden: {
+                                        opacity: 0,
+                                        y: 20,
+                                    },
+                                    visible: {
+                                        opacity: 1,
+                                        y: 0,
+                                        transition: {
+                                            type: 'spring' as const,
+                                            bounce: 0.3,
+                                            duration: 2,
+                                        },
+                                    },
+                                },
+                            }}
+                            className="mask-b-from-35% mask-b-to-90% absolute inset-0 top-56 -z-20 lg:top-32">
+                            <Image
+                                src="/background.png"
+                                alt="background"
+                                className="hidden size-full dark:block"
+                                width="3276"
+                                height="4095"
+                            />
+                        </AnimatedGroup>
+
                         <div
                             aria-hidden
                             className="absolute inset-0 -z-10 size-full [background:radial-gradient(125%_125%_at_50%_100%,transparent_0%,var(--color-background)_75%)]"
@@ -53,7 +88,7 @@ export default function HeroSection() {
                                     <Link
                                         href="#link"
                                         className="hover:bg-background dark:hover:border-t-border bg-muted group mx-auto flex w-fit items-center gap-4 rounded-full border p-1 pl-4 shadow-md shadow-zinc-950/5 transition-colors duration-300 dark:border-t-white/5 dark:shadow-zinc-950">
-                                        <span className="text-foreground text-sm">Introducing DruidX AI Assistant Platform</span>
+                                        <span className="text-foreground text-sm">Introducing Support for AI Models</span>
                                         <span className="dark:border-background block h-4 w-0.5 border-l bg-white dark:bg-zinc-700"></span>
 
                                         <div className="bg-background group-hover:bg-muted size-6 overflow-hidden rounded-full duration-500">
@@ -74,7 +109,7 @@ export default function HeroSection() {
                                     speedSegment={0.3}
                                     as="h1"
                                     className="mx-auto mt-8 max-w-4xl text-balance text-5xl max-md:font-semibold md:text-7xl lg:mt-16 xl:text-[5.25rem]">
-                                    Build Custom AI Assistants with DruidX
+                                    Modern Solutions for Customer Engagement
                                 </TextEffect>
                                 <TextEffect
                                     per="line"
@@ -83,7 +118,7 @@ export default function HeroSection() {
                                     delay={0.5}
                                     as="p"
                                     className="mx-auto mt-8 max-w-2xl text-balance text-lg">
-                                    Create, manage, and deploy custom GPTs with advanced capabilities including RAG, web search, deep research, and multi-modal interactions powered by 15+ AI models.
+                                    Highly customizable components for building modern websites and applications that look and feel the way you mean it.
                                 </TextEffect>
 
                                 <AnimatedGroup
@@ -141,14 +176,14 @@ export default function HeroSection() {
                                 <div className="inset-shadow-2xs ring-background dark:inset-shadow-white/20 bg-background relative mx-auto max-w-6xl overflow-hidden rounded-2xl border p-4 shadow-lg shadow-zinc-950/15 ring-1">
                                     <Image
                                         className="bg-background aspect-15/8 relative hidden rounded-2xl dark:block"
-                                        src="/app-screen.png"
+                                        src="/mail2.png"
                                         alt="app screen"
                                         width="2700"
                                         height="1440"
                                     />
                                     <Image
                                         className="z-2 border-border/25 aspect-15/8 relative rounded-2xl border dark:hidden"
-                                        src="/app-screen.png"
+                                        src="/mail2-light.png"
                                         alt="app screen"
                                         width="2700"
                                         height="1440"

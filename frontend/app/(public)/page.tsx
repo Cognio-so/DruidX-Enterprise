@@ -10,6 +10,7 @@ import Pricing from "@/app/(public)/_components/pricing";
 import FAQsThree from "@/components/faqs-3";
 import FooterSection from "@/app/(public)/_components/footer";
 import ContentSection from "./_components/content-7";
+import FeaturesScaleSection from "@/app/(public)/_components/features-scale-section";
 
 export default async function Home() {
   const session = await auth.api.getSession({
@@ -33,6 +34,7 @@ export default async function Home() {
       <FeaturesSection />
       <IntegrationsSection />
       <ContentSection />
+      <FeaturesScaleSection />
       <WallOfLoveSection />
       <Pricing />
       <FAQsThree />

@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import r2 from "@/lib/S3Client";
 import { requireUser } from "@/data/requireUser";
+import { protectRoute } from "@/lib/arcjet";
 
 const BUCKET = process.env.R2_BUCKET_NAME!;
 
 export async function DELETE(req: NextRequest) {
+  const protection = await protectRoute(req);
+  if (protection) {
+    return protection;
+  }
+
   const { user } = await requireUser();
   try {
     if (!user) {
