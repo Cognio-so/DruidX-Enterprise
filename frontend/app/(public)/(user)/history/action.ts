@@ -98,6 +98,64 @@ export async function saveUserConversation(conversationData: ConversationData) {
   }
 }
 
+export async function updateUserConversationById(
+  conversationId: string,
+  conversationData: ConversationData
+) {
+  try {
+    const { user } = await requireUser();
+
+    // Ensure the conversation belongs to the current user before updating
+    const existing = await prisma.conversation.findFirst({
+      where: {
+        id: conversationId,
+        userId: user.id,
+      },
+    });
+
+    if (!existing) {
+      return { success: false, error: "Conversation not found" };
+    }
+
+    const conversation = await prisma.conversation.update({
+      where: { id: existing.id },
+      data: {
+        // Keep original title/gptId unless caller changed them intentionally
+        title: conversationData.title ?? existing.title,
+        gptId: conversationData.gptId ?? existing.gptId,
+        // SessionId may change when resuming, so always update it
+        sessionId: conversationData.sessionId,
+        updatedAt: new Date(),
+        messages: {
+          deleteMany: {}, // Clear old messages
+          create: conversationData.messages.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+            timestamp: msg.timestamp,
+            uploadedDocs: msg.uploadedDocs ?? undefined,
+            imageUrls: msg.imageUrls ?? undefined,
+            videoUrls: msg.videoUrls ?? undefined,
+          })),
+        },
+      },
+      include: {
+        messages: true,
+        gpt: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
+      },
+    });
+
+    return { success: true, conversation };
+  } catch (error) {
+    console.error("Error updating user conversation by id:", error);
+    return { success: false, error: "Failed to update conversation" };
+  }
+}
+
 export async function deleteUserConversation(conversationId: string) {
   try {
     const { user } = await requireUser();
