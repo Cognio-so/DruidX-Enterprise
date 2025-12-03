@@ -3,11 +3,17 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import r2 from "@/lib/S3Client";
 import { requireUser } from "@/data/requireUser";
+import { protectRoute } from "@/lib/arcjet";
 
 const BUCKET = process.env.R2_BUCKET_NAME!;
 const PUBLIC_URL = process.env.R2_PUBLIC_URL!;
 
 export async function POST(req: NextRequest) {
+  const protection = await protectRoute(req);
+  if (protection) {
+    return protection;
+  }
+
   const { user } = await requireUser();
 
   try {

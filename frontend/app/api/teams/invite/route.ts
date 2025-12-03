@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as nodemailer from "nodemailer";
+import { protectRoute } from "@/lib/arcjet";
 
 const transporter = nodemailer.createTransport({
   service: process.env.EMAIL_SERVICE || "gmail",
@@ -45,6 +46,11 @@ const INVITATION_EMAIL_TEMPLATE = `
 `;
 
 export async function POST(request: NextRequest) {
+  const protection = await protectRoute(request);
+  if (protection) {
+    return protection;
+  }
+
   try {
     const { email, name, role, message, invitationToken } =
       await request.json();

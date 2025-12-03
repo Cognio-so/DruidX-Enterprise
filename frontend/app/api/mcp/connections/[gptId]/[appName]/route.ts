@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { protectRoute } from "@/lib/arcjet";
 
 const backendUrl = process.env.BACKEND_URL || "http://localhost:8000";
 
@@ -7,6 +8,11 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ gptId: string; appName: string }> }
 ) {
+  const protection = await protectRoute(request);
+  if (protection) {
+    return protection;
+  }
+
   try {
     const { gptId, appName } = await params;
     

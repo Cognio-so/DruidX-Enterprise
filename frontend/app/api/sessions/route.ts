@@ -1,8 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { protectRoute } from "@/lib/arcjet";
 
 const BACKEND_URL = process.env.BACKEND_URL;
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  const protection = await protectRoute(request);
+  if (protection) {
+    return protection;
+  }
+
   try {
     const response = await fetch(`${BACKEND_URL}/api/sessions`, {
       method: "POST",

@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAllApiKeysForBackend } from "@/app/admin/settings/action";
+import { protectRoute } from "@/lib/arcjet";
 
 export async function GET(request: NextRequest) {
   try {
-    // This endpoint is used to get all API keys (decrypted) to send to backend
-    // It should only be called from server-side code when opening a GPT
+    const protection = await protectRoute(request);
+    if (protection) {
+      return protection;
+    }
+
     const apiKeys = await getAllApiKeysForBackend();
     
     return NextResponse.json({ success: true, apiKeys });

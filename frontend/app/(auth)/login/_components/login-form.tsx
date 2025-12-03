@@ -8,24 +8,42 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+
 import { useTransition } from "react";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { FaGithub } from "react-icons/fa";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [isPending, startTransition] = useTransition();
+  const [isPendingGoogle, startTransitionGoogle] = useTransition();
+  const [isPendingGithub, startTransitionGithub] = useTransition();
 
   async function signInWithGoogle() {
-    startTransition(async () => {
+    startTransitionGoogle(async () => {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/", // Redirect to home, let the layout handle role-based routing
+        callbackURL: "/", 
+        fetchOptions: {
+          onSuccess: () => {
+            toast.success("Signed in successfully, redirecting...");
+          },
+          onError: () => {
+            toast.error("Internal server error");
+          },
+        },
+      });
+    });
+  }
+
+  async function signInWithGithub() {
+    startTransitionGithub(async () => {
+      await authClient.signIn.social({
+        provider: "github",
+        callbackURL: "/", 
         fetchOptions: {
           onSuccess: () => {
             toast.success("Signed in successfully, redirecting...");
@@ -39,37 +57,28 @@ export function LoginForm({
   }
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn("flex flex-col gap-6", className)} {...props} >
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-center">Login to your account</CardTitle>
+          <CardDescription className="text-center">
             Enter your email below to login to your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                />
-              </div>
+            <div className="flex flex-col gap-2">
               <Button
                 type="submit"
                 variant="outline"
                 className="w-full flex items-center gap-2 cursor-pointer"
-                disabled={isPending}
+                disabled={isPendingGoogle}
                 onClick={signInWithGoogle}
               >
-                {isPending ? (
+                {isPendingGoogle ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in ...
+                    Signing in with Google ...
                   </>
                 ) : (
                   <>
@@ -96,6 +105,25 @@ export function LoginForm({
                       />
                     </svg>
                     Login with Google
+                  </>
+                )}
+              </Button>
+              <Button
+                type="submit"
+                variant="outline"
+                className="w-full flex items-center gap-2 cursor-pointer"
+                disabled={isPendingGithub}
+                onClick={signInWithGithub}
+              >
+                {isPendingGithub  ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing in with Github ...
+                  </>
+                ) : (
+                  <>
+                    <FaGithub className="w-5 h-5" />
+                    Login with Github
                   </>
                 )}
               </Button>

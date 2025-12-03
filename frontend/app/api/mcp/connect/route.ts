@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireUser } from "@/data/requireUser";
+import { protectRoute } from "@/lib/arcjet";
 
 export async function POST(request: NextRequest) {
+  const protection = await protectRoute(request);
+  if (protection) {
+    return protection;
+  }
+
   try {
     // Get current user to ensure authentication
     await requireUser();

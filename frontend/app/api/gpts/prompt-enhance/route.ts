@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/data/requireUser";
 import { createOpenAI } from "@ai-sdk/openai";
 import { streamText } from "ai";
+import { protectRoute } from "@/lib/arcjet";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
@@ -10,6 +11,11 @@ const openai = createOpenAI({
 });
 
 export async function POST(req: NextRequest) {
+  const protection = await protectRoute(req);
+  if (protection) {
+    return protection;
+  }
+
   try {
     await requireUser();
 

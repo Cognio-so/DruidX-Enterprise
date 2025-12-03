@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { protectRoute } from "@/lib/arcjet";
 
 // Revalidate every 5 minutes - tools don't change frequently
 export const revalidate = 300;
 
 export async function GET(request: NextRequest) {
+  const protection = await protectRoute(request);
+  if (protection) {
+    return protection;
+  }
+
   try {
     const backendUrl = process.env.BACKEND_URL || "http://localhost:8000";
     
