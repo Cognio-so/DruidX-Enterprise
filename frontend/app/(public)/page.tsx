@@ -2,15 +2,18 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import HeroSection from "@/app/(public)/_components/hero-section";
-import LogoCloud from "@/app/(public)/_components/logo-cloud";
-import FeaturesSection from "@/app/(public)/_components/features-8";
-import IntegrationsSection from "@/app/(public)/_components/integrations-7";
+
 import WallOfLoveSection from "@/app/(public)/_components/testimonials";
-import Pricing from "@/app/(public)/_components/pricing";
-import FAQsThree from "@/components/faqs-3";
 import FooterSection from "@/app/(public)/_components/footer";
-import ContentSection from "./_components/content-7";
-import FeaturesScaleSection from "@/app/(public)/_components/features-scale-section";
+import IntegrationsSection from "./_components/integrations-section";
+import { DruidxDifferenceSection } from "./_components/druidx-difference-section";
+import { HowItWorksSection } from "./_components/how-it-works-section";
+import { RealUseCasesSection } from "./_components/real-use-cases-section";
+import Pricing from "./_components/pricing";
+import PricingComparator from "./_components/pricing-comparator";
+import FAQsThree from "./_components/faqs-3";
+import { FinalCTASection } from "./_components/final-cta-section";
+import { StatsSection } from "./_components/stats";
 
 export default async function Home() {
   const session = await auth.api.getSession({
@@ -20,25 +23,31 @@ export default async function Home() {
   if (session) {
     if (session.user.role === "admin") {
       return redirect("/admin");
-    }else if (session.user.role === "user") {
+    } else if (session.user.role === "user") {
       return redirect("/dashboard");
-    }
-    else{
+    } else {
       return redirect("/login");
     }
   }
 
   return (
-    <>
-      <HeroSection />
-      <FeaturesSection />
-      <IntegrationsSection />
-      <ContentSection />
-      <FeaturesScaleSection />
-      <WallOfLoveSection />
-      <Pricing />
-      <FAQsThree />
-      <FooterSection />
-    </>
+    <div className="min-h-screen w-full relative">
+      {/* Azure Depths background removed */}
+
+      <div className="relative z-10">
+        <HeroSection />
+        <IntegrationsSection />
+        <DruidxDifferenceSection />
+        <HowItWorksSection />
+        <RealUseCasesSection />
+        <WallOfLoveSection />
+        <Pricing />
+        <PricingComparator />
+        <FAQsThree />
+        <StatsSection />
+        <FinalCTASection />
+        <FooterSection />
+      </div>
+    </div>
   );
 }
