@@ -208,6 +208,32 @@ async def store_json_document(doc: dict, is_kb: bool, gpt_id: str = None, userId
         return False
     
     content = doc.get("content", "")
+    # If the JSON document was uploaded as a file without extracted content,
+    # fetch it from the file_url so we can pass the raw JSON straight to the LLM.
+    if not content:
+        file_url = doc.get("file_url")
+        if file_url:
+            try:
+                import httpx
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(file_url, timeout=30.0)
+                    response.raise_for_status()
+                    content = response.text
+                    print(f"[RAG] Downloaded JSON content from {file_url} ({len(content)} chars)")
+            except Exception as e:
+                print(f"[RAG] Error downloading JSON document from {file_url}: {e}")
+        else:
+            # Fall back to raw file bytes if they exist
+            file_content = doc.get("file_content")
+            if file_content:
+                try:
+                    if isinstance(file_content, bytes):
+                        content = file_content.decode("utf-8")
+                    else:
+                        content = str(file_content)
+                except Exception as e:
+                    print(f"[RAG] Error decoding JSON file_content: {e}")
+    
     if not content:
         return False
     
