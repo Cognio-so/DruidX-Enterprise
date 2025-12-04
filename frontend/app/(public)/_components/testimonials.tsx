@@ -10,76 +10,76 @@ type Testimonial = {
 
 const testimonials: Testimonial[] = [
     {
-        name: 'Jonathan Yombo',
+        name: 'Sarah Mitchell',
+        role: 'Agency Owner',
+        image: 'https://randomuser.me/api/portraits/women/1.jpg',
+        quote: 'DruidX eliminated our AI subscription chaos. We went from paying $800/month for multiple tools to $200 with better results. The agents handle everything from client research to report generation.',
+    },
+    {
+        name: 'Marcus Chen',
+        role: 'Product Manager',
+        image: 'https://randomuser.me/api/portraits/men/32.jpg',
+        quote: 'Built our first agent in 8 minutes without writing code. It now handles all our Slack notifications and Google Sheets updates automatically. Game changer for our remote team.',
+    },
+    {
+        name: 'Emily Rodriguez',
+        role: 'Startup Founder',
+        image: 'https://randomuser.me/api/portraits/women/44.jpg',
+        quote: 'The pay-as-you-go model is perfect for startups. We only spend $50-100/month and get access to GPT-4, Claude, and Gemini. No more choosing between AI models.',
+    },
+    {
+        name: 'David Thompson',
+        role: 'Freelance Consultant',
+        image: 'https://randomuser.me/api/portraits/men/22.jpg',
+        quote: 'I was skeptical about AI agents, but DruidX made it incredibly simple. My research agent saves me 10+ hours weekly by automatically gathering and summarizing industry news.',
+    },
+    {
+        name: 'Jessica Park',
+        role: 'Marketing Director',
+        image: 'https://randomuser.me/api/portraits/women/68.jpg',
+        quote: 'DruidX transformed our content workflow. Our agents draft social posts, analyze campaign data, and even schedule meetings. The Notion integration alone is worth it.',
+    },
+    {
+        name: 'Ryan Foster',
         role: 'Software Engineer',
-        image: 'https://randomuser.me/api/portraits/men/1.jpg',
-        quote: 'Tailus is really extraordinary and very practical, no need to break your head. A real gold mine.',
+        image: 'https://randomuser.me/api/portraits/men/54.jpg',
+        quote: 'Finally, an AI platform that doesn\'t force you into rigid workflows. The flexibility to connect any tool and customize agents exactly how we need them is incredible.',
     },
     {
-        name: 'Yves Kalume',
-        role: 'GDE - Android',
-        image: 'https://randomuser.me/api/portraits/men/6.jpg',
-        quote: 'With no experience in webdesign I just redesigned my entire website in a few minutes with tailwindcss thanks to Tailus.',
+        name: 'Amanda Brooks',
+        role: 'Operations Manager',
+        image: 'https://randomuser.me/api/portraits/women/26.jpg',
+        quote: 'We automated our entire client onboarding process with DruidX. What used to take 3 days now happens in hours, and our team can focus on high-value work.',
     },
     {
-        name: 'Yucel Faruksahan',
-        role: 'Tailkits Creator',
-        image: 'https://randomuser.me/api/portraits/men/7.jpg',
-        quote: 'Great work on tailfolio template. This is one of the best personal website that I have seen so far :)',
+        name: 'Kevin Walsh',
+        role: 'Creative Director',
+        image: 'https://randomuser.me/api/portraits/men/71.jpg',
+        quote: 'The voice agents in 90+ languages opened up international markets for us. DruidX handles client communications across time zones while we sleep.',
     },
     {
-        name: 'Anonymous author',
-        role: 'Doing something',
-        image: 'https://randomuser.me/api/portraits/men/8.jpg',
-        quote: 'I am really new to Tailwind and I want to give a go to make some page on my own. I searched a lot of hero pages and blocks online. However, most of them are not giving me a clear view or needed some HTML/CSS coding background to make some changes from the original or too expensive to have. I downloaded the one of Tailus template which is very clear to understand at the start and you could modify the codes/blocks to fit perfectly on your purpose of the page.',
+        name: 'Lisa Anderson',
+        role: 'Data Analyst',
+        image: 'https://randomuser.me/api/portraits/women/33.jpg',
+        quote: 'DruidX agents pull data from multiple sources, analyze trends, and update our dashboards automatically. What used to be a full-time job now runs on autopilot.',
     },
     {
-        name: 'Shekinah Tshiokufila',
-        role: 'Senior Software Engineer',
-        image: 'https://randomuser.me/api/portraits/men/4.jpg',
-        quote: 'Tailus is redefining the standard of web design, with these blocks it provides an easy and efficient way for those who love beauty but may lack the time to implement it. I can only recommend this incredible wonder.',
+        name: 'Michael Torres',
+        role: 'Business Development',
+        image: 'https://randomuser.me/api/portraits/men/18.jpg',
+        quote: 'The Gmail integration is phenomenal. Our agents draft personalized outreach emails, follow up automatically, and track responses. Our conversion rate doubled.',
     },
     {
-        name: 'Oketa Fred',
-        role: 'Fullstack Developer',
-        image: 'https://randomuser.me/api/portraits/men/2.jpg',
-        quote: 'I absolutely love Tailus! The component blocks are beautifully designed and easy to use, which makes creating a great-looking website a breeze.',
+        name: 'Rachel Kim',
+        role: 'HR Manager',
+        image: 'https://randomuser.me/api/portraits/women/52.jpg',
+        quote: 'Recruiting became so much easier with DruidX. Agents screen resumes, schedule interviews via Calendar, and send follow-ups. We filled 5 positions in record time.',
     },
     {
-        name: 'Zeki',
-        role: 'Founder of ChatExtend',
-        image: 'https://randomuser.me/api/portraits/men/5.jpg',
-        quote: "Using TailsUI has been like unlocking a secret design superpower. It's the perfect fusion of simplicity and versatility, enabling us to create UIs that are as stunning as they are user-friendly.",
-    },
-    {
-        name: 'Joseph Kitheka',
-        role: 'Fullstack Developer',
-        image: 'https://randomuser.me/api/portraits/men/9.jpg',
-        quote: 'Tailus has transformed the way I develop web applications. Their extensive collection of UI components, blocks, and templates has significantly accelerated my workflow. The flexibility to customize every aspect allows me to create unique user experiences. Tailus is a game-changer for modern web development!',
-    },
-    {
-        name: 'Khatab Wedaa',
-        role: 'MerakiUI Creator',
-        image: 'https://randomuser.me/api/portraits/men/10.jpg',
-        quote: "Tailus is an elegant, clean, and responsive tailwind css components it's very helpful to start fast with your project.",
-    },
-    {
-        name: 'Rodrigo Aguilar',
-        role: 'TailwindAwesome Creator',
-        image: 'https://randomuser.me/api/portraits/men/11.jpg',
-        quote: 'I love Tailus ❤️. The component blocks are well-structured, simple to use, and beautifully designed. It makes it really easy to have a good-looking website in no time.',
-    },
-    {
-        name: 'Eric Ampire',
-        role: 'Mobile Engineer at @BRPNews • @GoogleDevExpert for Android',
-        image: 'https://randomuser.me/api/portraits/men/12.jpg',
-        quote: 'Tailus templates are the perfect solution for anyone who wants to create a beautiful and functional website without any web design experience. The templates are easy to use, customizable, and responsive, and the support team is always available to help. I highly recommend Tailus templates to anyone who is looking to create a website.',
-    },
-    {
-        name: 'Roland Tubonge',
-        role: 'Software Engineer',
-        image: 'https://randomuser.me/api/portraits/men/13.jpg',
-        quote: 'Tailus is so well designed that even with a very poor knowledge of web design you can do miracles. Let yourself be seduced!',
+        name: 'Christopher Lee',
+        role: 'Financial Advisor',
+        image: 'https://randomuser.me/api/portraits/men/63.jpg',
+        quote: 'DruidX handles all our client reporting. Agents pull data from Google Sheets, generate insights, and email personalized reports. My clients love the consistency.',
     },
 ]
 
@@ -95,47 +95,63 @@ const testimonialChunks = chunkArray(testimonials, Math.ceil(testimonials.length
 
 export default function WallOfLoveSection() {
     return (
-        <section>
-            <div className="py-16 md:py-32">
-                <div className="mx-auto max-w-6xl px-6">
-                    <div className="text-center">
-                        <h2 className="text-3xl font-semibold">Loved by the Community</h2>
-                        <p className="mt-6">Harum quae dolore orrupti aut temporibus ariatur.</p>
-                    </div>
-                    <div className="mt-8 grid gap-3 sm:grid-cols-2 md:mt-12 lg:grid-cols-3">
-                        {testimonialChunks.map((chunk, chunkIndex) => (
-                            <div
-                                key={chunkIndex}
-                                className="space-y-3">
-                                {chunk.map(({ name, role, quote, image }, index) => (
-                                    <Card key={index}>
-                                        <CardContent className="grid grid-cols-[auto_1fr] gap-3 pt-6">
-                                            <Avatar className="size-9">
-                                                <AvatarImage
-                                                    alt={name}
-                                                    src={image}
-                                                    loading="lazy"
-                                                    width="120"
-                                                    height="120"
-                                                />
-                                                <AvatarFallback>ST</AvatarFallback>
-                                            </Avatar>
+        <section className="relative overflow-hidden bg-transparent py-24 md:py-32">
+            <div className="pointer-events-none absolute inset-0 -z-10">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.16),_transparent_60%)]" />
+                <div className="absolute inset-x-0 top-1/3 h-60 bg-gradient-to-r from-blue-500/15 via-transparent to-cyan-500/20 blur-3xl" />
+            </div>
 
-                                            <div>
-                                                <h3 className="font-medium">{name}</h3>
+            <div className="mx-auto max-w-6xl px-6">
+                <div className="text-center">
+                    <span className="inline-flex items-center justify-center rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.25em] text-blue-200">
+                        Testimonials
+                    </span>
+                    <h2 className="mt-6 text-balance text-3xl font-semibold leading-tight md:text-4xl">
+                        Loved by the Community
+                    </h2>
+                    <p className="text-muted-foreground mx-auto mt-4 max-w-2xl text-sm leading-relaxed sm:text-base">
+                        See what developers and teams are saying about their experience with DruidX.
+                    </p>
+                </div>
+                <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {testimonialChunks.map((chunk, chunkIndex) => (
+                        <div
+                            key={chunkIndex}
+                            className="space-y-4">
+                            {chunk.map(({ name, role, quote, image }, index) => (
+                                <Card 
+                                    key={index}
+                                    className="relative overflow-hidden border border-white/10 bg-gradient-to-b from-white/10 via-white/[0.02] to-transparent shadow-[0_18px_60px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-blue-400/70 hover:shadow-[0_24px_80px_rgba(59,130,246,0.35)]"
+                                >
+                                    <div className="pointer-events-none absolute inset-px rounded-2xl border border-white/5 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),_transparent_55%)] opacity-70 mix-blend-soft-light" />
+                                    <CardContent className="relative grid grid-cols-[auto_1fr] gap-3 pt-6">
+                                        <Avatar className="size-10 ring-2 ring-blue-500/20">
+                                            <AvatarImage
+                                                alt={name}
+                                                src={image}
+                                                loading="lazy"
+                                                width="120"
+                                                height="120"
+                                            />
+                                            <AvatarFallback className="bg-blue-500/10 text-blue-300">
+                                                {name.split(' ').map(n => n[0]).join('')}
+                                            </AvatarFallback>
+                                        </Avatar>
 
-                                                <span className="text-muted-foreground block text-sm tracking-wide">{role}</span>
+                                        <div>
+                                            <h3 className="font-semibold text-white">{name}</h3>
 
-                                                <blockquote className="mt-3">
-                                                    <p className="text-gray-700 dark:text-gray-300">{quote}</p>
-                                                </blockquote>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        ))}
-                    </div>
+                                            <span className="text-muted-foreground block text-xs tracking-wide">{role}</span>
+
+                                            <blockquote className="mt-3">
+                                                <p className="text-sm leading-relaxed text-white/80">{quote}</p>
+                                            </blockquote>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    ))}
                 </div>
             </div>
         </section>

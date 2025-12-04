@@ -73,7 +73,7 @@ export const HeroHeader = () => {
                   <li key={index}>
                     <Link
                       href={item.href}
-                      className="text-muted-foreground hover:text-accent-foreground block duration-150"
+                      className="text-muted-foreground hover:text-blue-600 block duration-150"
                     >
                       <span>{item.name}</span>
                     </Link>
@@ -89,7 +89,7 @@ export const HeroHeader = () => {
                     <li key={index}>
                       <Link
                         href={item.href}
-                        className="text-muted-foreground hover:text-accent-foreground block duration-150"
+                        className="text-muted-foreground hover:text-blue-600 block duration-150"
                       >
                         <span>{item.name}</span>
                       </Link>
@@ -102,7 +102,7 @@ export const HeroHeader = () => {
                   asChild
                   variant="default"
                   size="sm"
-                  className={cn(isScrolled && "lg:hidden")}
+                  className={cn(isScrolled && "lg:hidden", "bg-blue-600 hover:bg-blue-700 text-white")}
                 >
                   <Link href="/login">
                     <span>Login</span>
@@ -111,7 +111,7 @@ export const HeroHeader = () => {
                 <Button
                   asChild
                   size="sm"
-                  className={cn(isScrolled ? "lg:inline-flex" : "hidden")}
+                  className={cn(isScrolled ? "lg:inline-flex" : "hidden", "bg-blue-600 hover:bg-blue-700 text-white")}
                 >
                   <Link href="/login">
                     <span>Get Started</span>

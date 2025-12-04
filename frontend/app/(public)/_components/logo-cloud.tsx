@@ -1,5 +1,6 @@
-import { InfiniteSlider } from '@/app/(public)/_components/infinite-slider'
-import { ProgressiveBlur } from '@/app/(public)/_components/progressive-blur'
+import { InfiniteSlider } from "./infinite-slider";
+import { ProgressiveBlur } from "./progressive-blur";
+
 
 export default function LogoCloud() {
     return (
