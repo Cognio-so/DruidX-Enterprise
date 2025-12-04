@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { HeroHeader } from "./header";
@@ -58,7 +58,7 @@ export default function HeroSection() {
                     className="hover:bg-blue-500/10 dark:hover:border-t-blue-500/30 bg-blue-500/5 group mx-auto flex w-fit items-center gap-4 rounded-full border border-blue-200/20 p-1 pl-4 shadow-md shadow-blue-900/5 transition-colors duration-300 dark:border-t-blue-500/20 dark:shadow-blue-900/20"
                   >
                     <span className="text-foreground text-sm">
-                      Your Team's AI Workforce
+                      Your Team&apos;s AI Workforce
                     </span>
                     <span className="dark:border-background block h-4 w-0.5 border-l bg-blue-500/20 dark:bg-blue-500/20"></span>
 
@@ -207,7 +207,7 @@ export default function HeroSection() {
           </div>
         </section>
         <LogoCloud />
-          <PricingRealitySection />
+        <PricingRealitySection />
       </main>
     </>
   );

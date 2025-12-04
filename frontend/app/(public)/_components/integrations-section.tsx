@@ -1,30 +1,17 @@
 import * as React from "react";
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  Gemini,
-  Slack,
-  GoogleSheets,
-  Notion,
-  Calendar,
-  Gmail,
-} from "./logos";
+import { Gemini, Slack, GoogleSheets, Notion, Calendar, Gmail } from "./logos";
 
 type IntegrationCardProps = {
   title: string;
   description: string;
   children: React.ReactNode;
-  link?: string;
 };
 
 const IntegrationCard = ({
   title,
   description,
   children,
-  link = "https://github.com/meschacirung/cnblocks",
 }: IntegrationCardProps) => {
   return (
     <Card className="relative overflow-hidden border border-border/60 bg-gradient-to-b from-background/80 via-background/60 to-background/90 p-6 shadow-[0_18px_60px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-blue-400/70 hover:shadow-[0_24px_80px_rgba(59,130,246,0.35)]">
@@ -116,4 +103,3 @@ export default function IntegrationsSection() {
     </section>
   );
 }
-
