@@ -81,7 +81,7 @@ export default function HeroSection() {
                     speedSegment={0.3}
                     as="span"
                   >
-                    Your Team's AI Workforce
+                    Your Team&apos;s AI Workforce
                   </TextEffect>{" "}
                   <TextEffect
                     preset="fade-in-blur"
