@@ -2,7 +2,6 @@ import React from "react";
 import Link from "next/link";
 import { ArrowRight, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 import { HeroHeader } from "./header";
 import { AnimatedGroup } from "./animated-group";
 import type { AnimatedGroupProps } from "./animated-group";
@@ -96,7 +95,7 @@ export default function HeroSection() {
                   Describe what you need. DruidX builds intelligent agents,
                   connects them to{" "}
                   <span className="text-blue-500">100+ tools</span>, and handles
-                  the complexity. Choose from top models. Deploy in 3 minutes.
+                  the complexity. Choose from top models. Deploy in 10 minutes.
                   Start Building Free
                 </p>
 
@@ -275,20 +274,32 @@ export default function HeroSection() {
             >
               <div className="mask-b-from-55% relative -mr-56 mt-8 overflow-hidden px-2 sm:mr-0 sm:mt-12 md:mt-20">
                 <div className="inset-shadow-2xs ring-blue-500/10 dark:inset-shadow-white/20 bg-background relative mx-auto max-w-6xl overflow-hidden rounded-2xl border border-blue-500/10 p-4 shadow-lg shadow-blue-900/10 ring-1">
-                  <Image
-                    className="bg-background aspect-15/8 relative hidden rounded-2xl dark:block"
-                    src="/app-screen.png"
-                    alt="app screen"
-                    width="2700"
-                    height="1440"
-                  />
-                  <Image
-                    className="z-2 border-border/25 aspect-15/8 relative rounded-2xl border dark:hidden"
-                    src="/app-screen-light.png"
-                    alt="app screen"
-                    width="2700"
-                    height="1440"
-                  />
+                  <div
+                    style={{
+                      position: "relative",
+                      paddingBottom: "62.5%",
+                      height: 0,
+                    }}
+                    className="rounded-2xl overflow-hidden"
+                  >
+                    <iframe
+                      src="https://www.loom.com/embed/00079423a28a44ba8504574dbe27aa3f"
+                      frameBorder="0"
+                      {...({
+                        webkitallowfullscreen: true,
+                        mozallowfullscreen: true,
+                      } as React.HTMLAttributes<HTMLIFrameElement>)}
+                      allowFullScreen
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                      }}
+                      title="DruidX Demo Video"
+                    />
+                  </div>
                 </div>
               </div>
             </AnimatedGroup>
