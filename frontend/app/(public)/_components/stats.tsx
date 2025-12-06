@@ -8,7 +8,7 @@ const STATS = [
   },
   {
     icon: <Zap className="size-6 text-blue-400" />,
-    value: "10min",
+    value: "10 min",
     label: "Avg Setup Time",
   },
   {
