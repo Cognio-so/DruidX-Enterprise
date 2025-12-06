@@ -23,6 +23,8 @@ const eslintConfig = [
       "prisma/generated/**",
       "**/*.generated.*",
       "**/generated/**",
+      "**/.prisma/**",
+      "**/node_modules/.prisma/**",
     ],
   },
   {
