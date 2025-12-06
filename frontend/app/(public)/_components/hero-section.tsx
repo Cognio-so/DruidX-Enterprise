@@ -161,6 +161,7 @@ export default function HeroSection() {
                       Advanced Document Intelligence
                     </span>
                   </div>
+
                   <div className="flex items-center gap-2">
                     <span aria-hidden className="text-base text-blue-500">
                       ✓

@@ -1,105 +1,147 @@
-import * as React from "react";
-import { Card } from "@/components/ui/card";
-import { Gemini, Slack, GoogleSheets, Notion, Calendar, Gmail } from "./logos";
-
-type IntegrationCardProps = {
-  title: string;
-  description: string;
-  children: React.ReactNode;
-};
-
-const IntegrationCard = ({
-  title,
-  description,
-  children,
-}: IntegrationCardProps) => {
-  return (
-    <Card className="relative overflow-hidden border border-border/60 bg-gradient-to-b from-background/80 via-background/60 to-background/90 p-6 shadow-[0_18px_60px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-blue-400/70 hover:shadow-[0_24px_80px_rgba(59,130,246,0.35)]">
-      <div className="pointer-events-none absolute inset-px rounded-2xl border border-white/5 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),_transparent_55%)] opacity-70 mix-blend-soft-light" />
-      <div className="relative">
-        <div className="inline-flex items-center justify-center rounded-xl bg-gradient-to-tr from-background/40 via-background/10 to-blue-500/10 p-2 ring-1 ring-white/10">
-          <div className="*:size-10 *:shrink-0">{children}</div>
-        </div>
-
-        <div className="space-y-2 py-6">
-          <h3 className="text-base font-medium tracking-tight">{title}</h3>
-          <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
-            {description}
-          </p>
-        </div>
-      </div>
-    </Card>
-  );
-};
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { InfiniteSlider } from "./infinite-slider";
+import VSCodium from "./logos/VSCodium";
+import MediaWiki from "./logos/MediaWiki";
+import GooglePaLM from "./logos/GooglePaLM";
+import { Gemini, Notion, Slack } from "./logos";
+import Replit from "./logos/Replit";
+import MagicUI from "./logos/MagicUI";
+import { LogoIcon } from "./logo";
 
 export default function IntegrationsSection() {
   return (
-    <section className="relative overflow-hidden bg-transparent py-24 sm:py-28">
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),_transparent_55%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(59,130,246,0.12),_transparent_55%)]" />
-      </div>
+    <section>
+      <div className="bg-muted dark:bg-background py-24 md:py-32">
+        <div className="mx-auto max-w-7xl px-6 grid gap-12 lg:grid-cols-2 lg:items-center">
+          <div className="max-w-lg space-y-6 text-left mx-auto lg:mx-0">
+            <h2 className="text-balance text-3xl font-semibold md:text-4xl">
+              Integrate with your favorite tools
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              Connect seamlessly with popular platforms and services to enhance
+              your workflow. Automatically sync data, trigger actions, and keep
+              everything in one place.
+            </p>
 
-      <div className="mx-auto max-w-5xl px-6">
-        <div className="text-center">
-          <span className="inline-flex items-center justify-center rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.25em] text-blue-200">
-            Integrations
-          </span>
+            <Button
+              variant="outline"
+              size="lg"
+              asChild
+              className="rounded-full"
+            >
+              <Link href="/login" className="text-blue-500 font-semibold px-6">
+                Explore Integrations
+              </Link>
+            </Button>
+          </div>
 
-          <h2 className="mt-5 text-balance text-3xl font-semibold tracking-tight md:text-4xl">
-            Integrate with your favorite tools
-          </h2>
-          <p className="text-muted-foreground mx-auto mt-4 max-w-2xl text-sm leading-relaxed sm:text-base">
-            Connect seamlessly with popular platforms and services to enhance
-            your workflow, keep your team in sync, and ship faster without
-            switching tabs all day.
-          </p>
-        </div>
+          <div className="bg-muted/25 group relative mx-auto w-full max-w-[28rem] items-center justify-between space-y-6 [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]">
+            <div
+              role="presentation"
+              className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:32px_32px] opacity-50"
+            ></div>
+            <div>
+              <InfiniteSlider gap={24} speed={20} speedOnHover={10}>
+                <IntegrationCard>
+                  <VSCodium />
+                </IntegrationCard>
+                <IntegrationCard>
+                  <MediaWiki />
+                </IntegrationCard>
+                <IntegrationCard>
+                  <GooglePaLM />
+                </IntegrationCard>
+                <IntegrationCard>
+                  <Gemini />
+                </IntegrationCard>
+                <IntegrationCard>
+                  <Notion />
+                </IntegrationCard>
+                <IntegrationCard>
+                  <Slack />
+                </IntegrationCard>
+              </InfiniteSlider>
+            </div>
 
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <IntegrationCard
-            title="Google Gemini"
-            description="Ground your agents in Google's multimodal reasoning for smarter search, summarization, and on-brand content."
-          >
-            <Gemini />
-          </IntegrationCard>
-
-          <IntegrationCard
-            title="Slack"
-            description="Automate team communications, send notifications, and manage channels directly from your AI agents."
-          >
-            <Slack />
-          </IntegrationCard>
-
-          <IntegrationCard
-            title="Google Sheets"
-            description="Read, write, and analyze spreadsheet data automatically. Perfect for reports, tracking, and data management."
-          >
-            <GoogleSheets />
-          </IntegrationCard>
-
-          <IntegrationCard
-            title="Notion"
-            description="Sync your knowledge base, create pages, and update databases seamlessly with AI-powered automation."
-          >
-            <Notion />
-          </IntegrationCard>
-
-          <IntegrationCard
-            title="Calendar"
-            description="Schedule meetings, manage events, and coordinate team availability with intelligent calendar integration."
-          >
-            <Calendar />
-          </IntegrationCard>
-
-          <IntegrationCard
-            title="Gmail"
-            description="Automate email workflows, draft responses, and manage your inbox with AI-powered email agents."
-          >
-            <Gmail />
-          </IntegrationCard>
+            <div>
+              <InfiniteSlider gap={24} speed={20} speedOnHover={10} reverse>
+                <IntegrationCard>
+                  <Gemini />
+                </IntegrationCard>
+                <IntegrationCard>
+                  <Replit />
+                </IntegrationCard>
+                <IntegrationCard>
+                  <MediaWiki />
+                </IntegrationCard>
+                <IntegrationCard>
+                  <MagicUI />
+                </IntegrationCard>
+                <IntegrationCard>
+                  <VSCodium />
+                </IntegrationCard>
+                <IntegrationCard>
+                  <GooglePaLM />
+                </IntegrationCard>
+              </InfiniteSlider>
+            </div>
+            <div>
+              <InfiniteSlider gap={24} speed={20} speedOnHover={10}>
+                <IntegrationCard>
+                  <Replit />
+                </IntegrationCard>
+                <IntegrationCard>
+                  <MagicUI />
+                </IntegrationCard>
+                <IntegrationCard>
+                  <Gemini />
+                </IntegrationCard>
+                <IntegrationCard>
+                  <VSCodium />
+                </IntegrationCard>
+                <IntegrationCard>
+                  <MediaWiki />
+                </IntegrationCard>
+                <IntegrationCard>
+                  <GooglePaLM />
+                </IntegrationCard>
+              </InfiniteSlider>
+            </div>
+          </div>
         </div>
       </div>
     </section>
   );
 }
+
+const IntegrationCard = ({
+  children,
+  className,
+  isCenter = false,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  position?:
+    | "left-top"
+    | "left-middle"
+    | "left-bottom"
+    | "right-top"
+    | "right-middle"
+    | "right-bottom";
+  isCenter?: boolean;
+}) => {
+  return (
+    <div
+      className={cn(
+        "bg-background relative z-20 flex size-14 rounded-2xl border shadow-sm",
+        className
+      )}
+    >
+      <div className={cn("m-auto size-fit *:size-7", isCenter && "*:size-8")}>
+        {children}
+      </div>
+    </div>
+  );
+};
