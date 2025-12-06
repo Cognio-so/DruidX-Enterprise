@@ -1,201 +1,202 @@
 import Link from "next/link";
-import { Check, X } from "lucide-react";
+import { Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-
-const PAIN_POINTS = [
-  "Unused seats",
-  "Wasted credits that expire",
-  "Features you don’t need",
-  "Minimum commitments you can’t avoid",
-];
 
 type Tier = {
   name: string;
   price: string;
+  priceUnit?: string;
   subtitle: string;
   includes: string[];
-  excludes?: string[];
-  meta?: string;
-  ctaLabel?: string;
+  ctaLabel: string;
+  ctaVariant?: "default" | "secondary";
   highlight?: string;
 };
 
 const TIERS: Tier[] = [
   {
-    name: "Pay-As-You-Go (Start Free)",
-    price: "No monthly fee",
-    subtitle: "Perfect for: Testing, small projects, occasional use",
+    name: "Pay-As-You-Go",
+    price: "$0",
+    subtitle: "Perfect for testing and small projects",
     includes: [
       "Add credits anytime",
       "No monthly commitment",
       "No expiration",
-      "No minimums",
-      "Example: Research agent running 50 tasks/month ≈ $3-5",
+      "Example: ~$3-5/mo for 50 tasks",
     ],
     ctaLabel: "Start Free",
-    meta: "Credits only",
+    ctaVariant: "secondary",
   },
   {
-    name: "Individual Plan",
-    price: "$9 / month",
-    subtitle: "Perfect for: Solo consultants, freelancers, small business owners",
+    name: "Individual",
+    price: "$9",
+    priceUnit: "/mo",
+    subtitle: "Perfect for solo consultants",
     includes: [
       "Unlimited agents",
-      "Unlimited workflows",
-      "Access to all AI models",
-      "100+ tool integrations",
+      "All AI models",
+      "100+ integrations",
       "Document intelligence",
     ],
-    excludes: ["No team assignment", "No voice agents", "No one-click deploy"],
-    ctaLabel: "Choose Individual",
+    ctaLabel: "Get Started",
+    ctaVariant: "secondary",
+  },
+  {
+    name: "Team",
+    price: "$20",
+    priceUnit: "/user/mo",
+    subtitle: "Perfect for agencies & teams",
+    includes: [
+      "Everything in Individual",
+      "Team assignment & control",
+      "Voice agents (90+ languages)",
+      "Analytics dashboard",
+    ],
+    ctaLabel: "Start Team Trial",
     highlight: "Most Popular",
   },
   {
-    name: "Team Plan",
-    price: "$20 / user / month",
-    subtitle: "Perfect for: Agencies, remote teams, growing startups",
-    includes: [
-      "Everything in Individual",
-      "Team assignment & access control",
-      "Task scheduling",
-      "Voice agents (90+ languages)",
-      "One-click Vercel deploy",
-      "Conversation history tracking",
-      "Team analytics dashboard",
-    ],
-    meta: "Plus credits (shared pool)",
-    ctaLabel: "Choose Team",
-  },
-  {
-    name: "Pro Plan",
-    price: "$60 / user / month",
-    subtitle: "Perfect for: Agencies serving clients, data-intensive teams",
+    name: "Pro",
+    price: "$60",
+    priceUnit: "/user/mo",
+    subtitle: "Perfect for client work",
     includes: [
       "Everything in Team",
-      "Advanced document intelligence",
-      "10x higher knowledge base limits",
-      "Priority model access",
-      "Advanced analytics",
       "White-label option",
-      "Custom branding",
+      "10x knowledge base limits",
+      "Priority model access",
     ],
-    meta: "Plus credits (higher allowance)",
-    ctaLabel: "Choose Pro",
-  },
-  {
-    name: "Enterprise Plan",
-    price: "Custom pricing",
-    subtitle: "Perfect for: Companies needing security, compliance, custom deployment",
-    includes: [
-      "Everything in Pro",
-      "On-premise secure deployment",
-      "Custom agent building (we build for you)",
-      "Custom tool integrations",
-      "Deploy on your cloud infrastructure",
-      "Custom model integrations",
-      "Dedicated support & SLAs",
-    ],
-    ctaLabel: "Contact Sales",
+    ctaLabel: "Get Started",
+    ctaVariant: "secondary",
   },
 ];
 
 export default function Pricing() {
   return (
-    <section id="pricing" className="relative isolate overflow-hidden bg-transparent py-24 md:py-32">
+    <section
+      id="pricing"
+      className="relative isolate overflow-hidden bg-transparent py-24 md:py-32"
+    >
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),_transparent_55%)]" />
-        <div className="absolute inset-x-0 top-40 h-64 bg-gradient-to-r from-cyan-500/15 via-transparent to-blue-500/15 blur-3xl" />
       </div>
 
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="text-center">
-          <span className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-white/70">
-             Pricing that Makes Sense
-          </span>
-          <h2 className="mt-6 text-balance text-3xl font-semibold leading-tight md:text-4xl">
-            Pay for What You Use. Not What You Might Use.
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-balance text-4xl font-semibold leading-tight sm:text-5xl md:text-6xl mb-2">
+            Pay for What You Use.
           </h2>
+          <p className="text-blue-400 text-4xl font-semibold sm:text-5xl md:text-6xl">
+            Not What You Might Use.
+          </p>
+          <p className="text-muted-foreground mt-4 text-base">
+            Most AI platforms charge monthly whether you use them or not. DruidX
+            is different.
+          </p>
         </div>
 
-        <div className="mt-10 rounded-4xl border border-white/10 bg-gradient-to-br from-white/[0.08] via-white/[0.02] to-transparent p-8 shadow-[0_25px_100px_rgba(0,0,0,0.45)]">
-          <div className="grid gap-8 md:grid-cols-2">
-            <div className="space-y-4">
-              <p className="text-base text-muted-foreground">
-                Most AI platforms charge you monthly whether you use them or not. You end up paying for:
-              </p>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {PAIN_POINTS.map((item) => (
-                  <div key={item} className="flex items-center gap-2 rounded-2xl border border-white/10 bg-transparent px-4 py-3 text-sm text-white/80">
-                    <span className="text-base text-blue-300">•</span>
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="text-lg font-semibold text-white">DruidX is different.</p>
-            </div>
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-white/90">
-              <p>
-                True pay-as-you-go credits, optional plans for structure, and zero pressure to buy more than you’ll really use. Spin up
-                agents, pause anytime, scale only when output proves its value.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-12">
           {TIERS.map((tier) => (
-            <Card
+            <div
               key={tier.name}
-              className={`relative flex h-full flex-col rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 via-white/[0.02] to-transparent p-6 text-white shadow-[0_20px_60px_rgba(0,0,0,0.35)] ${
-                tier.highlight ? "ring-1 ring-blue-400/50" : ""
+              className={`relative flex flex-col rounded-2xl border p-6 transition-all ${
+                tier.highlight
+                  ? "border-blue-500/50 bg-blue-500/10 shadow-lg shadow-blue-500/20"
+                  : "border-border/50 bg-card/30 backdrop-blur-sm hover:border-blue-500/30"
               }`}
             >
               {tier.highlight && (
-                <span className="absolute -top-3 left-1/2 inline-flex -translate-x-1/2 items-center rounded-full border border-blue-300/50 bg-blue-400/20 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-50">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white">
                   {tier.highlight}
                 </span>
               )}
 
-              <div className="space-y-2">
-                <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">{tier.name}</p>
-                <h3 className="text-2xl font-semibold text-white">{tier.price}</h3>
-                <p className="text-sm text-white/70">{tier.subtitle}</p>
-                {tier.meta && <p className="text-xs font-medium uppercase tracking-[0.3em] text-blue-300/80">{tier.meta}</p>}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-2">{tier.name}</h3>
+                <div className="flex items-baseline gap-1 mb-2">
+                  <span className="text-4xl font-bold text-blue-400">
+                    {tier.price}
+                  </span>
+                  {tier.priceUnit && (
+                    <span className="text-muted-foreground text-sm">
+                      {tier.priceUnit}
+                    </span>
+                  )}
+                </div>
+                <p className="text-muted-foreground text-sm">{tier.subtitle}</p>
               </div>
 
-              <div className="mt-6 flex-1 space-y-3 text-sm text-white/80">
+              <div className="flex-1 space-y-3 mb-6">
                 {tier.includes.map((item) => (
-                  <div key={item} className="flex items-center gap-3">
-                    <Check className="size-4 text-blue-300" />
-                    <span>{item}</span>
+                  <div key={item} className="flex items-start gap-2">
+                    <Check className="size-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">{item}</span>
                   </div>
                 ))}
-                {tier.excludes?.length ? (
-                  <div className="pt-3 text-white/60">
-                    {tier.excludes.map((item) => (
-                      <div key={item} className="flex items-center gap-3 text-sm">
-                        <X className="size-4 text-rose-300" />
-                        <span>{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
               </div>
 
               <Button
                 asChild
-                variant={tier.highlight ? "default" : "secondary"}
-                className="mt-8 w-full rounded-full border border-white/30 bg-white/10 text-sm font-semibold text-white hover:border-blue-400/70 hover:bg-blue-400/20"
+                variant={tier.ctaVariant || "default"}
+                className={`w-full ${
+                  tier.highlight
+                    ? "bg-blue-500 hover:bg-blue-600 text-white"
+                    : "bg-card hover:bg-card/80"
+                }`}
               >
-                <Link href="/login">{tier.ctaLabel ?? "Learn More"}</Link>
+                <Link href="/login">{tier.ctaLabel}</Link>
               </Button>
-            </Card>
+            </div>
           ))}
+        </div>
+
+        {/* Enterprise Section */}
+        <div className="rounded-2xl border border-blue-500/30 bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-sm p-8 text-center">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <span className="text-2xl">🏢</span>
+            <h3 className="text-2xl font-semibold">
+              Enterprise Plan — Custom Pricing
+            </h3>
+          </div>
+          <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+            On-premise deployment, custom integrations, dedicated support, SLA
+            guarantees
+          </p>
+          <Button asChild variant="secondary">
+            <Link href="/contact">Contact Sales</Link>
+          </Button>
+        </div>
+
+        {/* Savings Calculator */}
+        <div className="mt-12 rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-8">
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <span className="text-2xl">💰</span>
+            <h3 className="text-2xl font-semibold">
+              See Your Savings (10-Person Team)
+            </h3>
+          </div>
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6 text-center">
+              <p className="text-muted-foreground text-sm mb-2">
+                Old Way (Multiple Subscriptions)
+              </p>
+              <p className="text-4xl font-bold text-red-400">$10,800</p>
+              <p className="text-muted-foreground text-xs">/year</p>
+            </div>
+            <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-6 text-center">
+              <p className="text-muted-foreground text-sm mb-2">
+                DruidX Team Plan
+              </p>
+              <p className="text-4xl font-bold text-blue-400">$3,400</p>
+              <p className="text-muted-foreground text-xs">/year</p>
+            </div>
+          </div>
+          <p className="text-center mt-6 text-2xl font-semibold text-green-400">
+            Save $7,400/year (68% reduction)
+          </p>
         </div>
       </div>
     </section>
   );
 }
-

@@ -73,12 +73,11 @@ export function DruidxDifferenceSection() {
 
       <div className="mx-auto max-w-6xl px-6">
         <div className="text-center">
-          <span className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-white/70">
-            DruidX Difference
-          </span>
-
-          <h2 className="mt-6 text-balance text-3xl font-semibold leading-tight text-white md:text-4xl">
-            One Platform. Every AI Model. All Your Tools. Your Entire Team.
+          <h2 className="mt-6 text-balance max-w-3xl mx-auto text-3xl font-semibold leading-tight text-gray-900 dark:text-white md:text-4xl">
+            One Platform. Every AI Model.{" "}
+            <span className="text-blue-500">
+              All Your Tools. Your Entire Team.
+            </span>
           </h2>
 
           <p className="text-muted-foreground mx-auto mt-4 max-w-2xl text-sm leading-relaxed sm:text-base">
@@ -97,7 +96,7 @@ export function DruidxDifferenceSection() {
               </div>
               <div className="relative">
                 <span className="text-2xl">{feature.icon}</span>
-                <h3 className="mt-4 text-lg font-semibold text-white">
+                <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
                   {feature.title}
                 </h3>
                 <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
@@ -111,5 +110,3 @@ export function DruidxDifferenceSection() {
     </section>
   );
 }
-
-
