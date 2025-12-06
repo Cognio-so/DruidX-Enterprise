@@ -1,13 +1,13 @@
 import React from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { HeroHeader } from "./header";
 import { AnimatedGroup } from "./animated-group";
 import type { AnimatedGroupProps } from "./animated-group";
 import { TextEffect } from "./text-effect";
-import { PricingRealitySection } from "./pricing-reality-section";
+
 import LogoCloud from "./logo-cloud";
 
 const transitionVariants: AnimatedGroupProps["variants"] = {
@@ -50,7 +50,7 @@ export default function HeroSection() {
               className="absolute inset-0 -z-10 size-full [background:radial-gradient(125%_125%_at_50%_100%,transparent_0%,transparent_75%)]"
             />
 
-            <div className="mx-auto max-w-7xl px-6">
+            <div className="mx-auto max-w-7xl px-6 space-y-3">
               <div className="text-center sm:mx-auto lg:mr-auto lg:mt-0">
                 <AnimatedGroup variants={transitionVariants}>
                   <Link
@@ -58,7 +58,7 @@ export default function HeroSection() {
                     className="hover:bg-blue-500/10 dark:hover:border-t-blue-500/30 bg-blue-500/5 group mx-auto flex w-fit items-center gap-4 rounded-full border border-blue-200/20 p-1 pl-4 shadow-md shadow-blue-900/5 transition-colors duration-300 dark:border-t-blue-500/20 dark:shadow-blue-900/20"
                   >
                     <span className="text-foreground text-sm">
-                      Your Team&apos;s AI Workforce
+                      Trusted by agencies across 3 continents
                     </span>
                     <span className="dark:border-background block h-4 w-0.5 border-l bg-blue-500/20 dark:bg-blue-500/20"></span>
 
@@ -75,27 +75,30 @@ export default function HeroSection() {
                   </Link>
                 </AnimatedGroup>
 
-                <TextEffect
-                  preset="fade-in-blur"
-                  speedSegment={0.3}
-                  as="h1"
-                  className="mx-auto mt-8 max-w-4xl text-balance text-5xl max-md:font-semibold md:text-7xl lg:mt-16 xl:text-[5.25rem]"
-                >
-                  Built in Minutes, Not Months
-                </TextEffect>
-                <TextEffect
-                  per="line"
-                  preset="fade-in-blur"
-                  speedSegment={0.3}
-                  delay={0.5}
-                  as="p"
-                  className="mx-auto mt-8 max-w-2xl text-balance text-lg"
-                >
-                  Just describe what you need. DruidX builds intelligent agents
-                  for every team, connects them to 100+ tools, and handles the
-                  complexity. No code. No overpriced subscriptions. No wasted
-                  credits.
-                </TextEffect>
+                <h1 className="mx-auto mt-8 max-w-7xl text-balance text-5xl max-md:font-semibold md:text-7xl lg:mt-16 xl:text-[5.25rem]">
+                  <TextEffect
+                    preset="fade-in-blur"
+                    speedSegment={0.3}
+                    as="span"
+                  >
+                    Your Team&apos;s AI Workforce
+                  </TextEffect>{" "}
+                  <TextEffect
+                    preset="fade-in-blur"
+                    speedSegment={0.3}
+                    as="span"
+                    className="text-blue-500"
+                  >
+                    Built in Minutes, Not Months
+                  </TextEffect>
+                </h1>
+                <p className="mx-auto mt-8 max-w-6xl text-balance text-xl">
+                  Describe what you need. DruidX builds intelligent agents,
+                  connects them to{" "}
+                  <span className="text-blue-500">100+ tools</span>, and handles
+                  the complexity. Choose from top models. Deploy in 3 minutes.
+                  Start Building Free
+                </p>
 
                 <AnimatedGroup
                   variants={{
@@ -121,7 +124,9 @@ export default function HeroSection() {
                       className="rounded-xl px-5 text-base bg-blue-600 hover:bg-blue-700 text-white"
                     >
                       <Link href="/login">
-                        <span className="text-nowrap">Start Building Free</span>
+                        <span className="text-nowrap">
+                          Build Your First Agent
+                        </span>
                       </Link>
                     </Button>
                   </div>
@@ -133,40 +138,122 @@ export default function HeroSection() {
                     className="h-10.5 rounded-xl px-5 hover:bg-blue-500/10 hover:text-blue-600"
                   >
                     <Link href="/login">
-                      <span className="text-nowrap">Watch How It Works</span>
+                      <Video className="h-5 w-5" />
+                      <span className="text-nowrap">See How it Works</span>
                     </Link>
                   </Button>
                 </AnimatedGroup>
-                <div className="mt-6 grid w-full max-w-8xl grid-cols-2 items-center gap-x-6 gap-y-3 text-sm text-muted-foreground sm:mx-auto sm:grid-cols-5">
+                <div className="mt-6 flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <span aria-hidden className="text-base text-blue-500">
                       ✓
                     </span>
-                    <span>No credit card required</span>
+                    <span className="whitespace-nowrap">
+                      No Coding Required
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span aria-hidden className="text-base text-blue-500">
+                      ✓
+                    </span>
+                    <span className="whitespace-nowrap">
+                      Advanced Document Intelligence
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span aria-hidden className="text-base text-blue-500">
                       ✓
                     </span>
-                    <span>No minimum spend</span>
+                    <span className="whitespace-nowrap">Pay-as-you-go</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span aria-hidden className="text-base text-blue-500">
                       ✓
                     </span>
-                    <span>Cancel anytime</span>
+                    <span className="whitespace-nowrap">
+                      Personalised Onboarding
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2 ">
+                  <div className="flex items-center gap-2">
                     <span aria-hidden className="text-base text-blue-500">
                       ✓
                     </span>
-                    <span>100+ tool integrations included</span>
+                    <span className="whitespace-nowrap">Cancel Anytime</span>
                   </div>
-                  <div className="flex items-center gap-2 ">
-                    <span aria-hidden className="text-base text-blue-500">
-                      ✓
-                    </span>
-                    <span>Pay only for what you use</span>
+                </div>
+
+                <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                  <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 hover:border-blue-500/30 transition-colors">
+                    <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-4">
+                      <svg
+                        className="w-6 h-6 text-purple-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">
+                      For Non-Technical Teams
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      Build agents by chatting—no coding required
+                    </p>
+                  </div>
+
+                  <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 hover:border-blue-500/30 transition-colors">
+                    <div className="w-12 h-12 rounded-xl bg-yellow-500/10 flex items-center justify-center mb-4">
+                      <svg
+                        className="w-6 h-6 text-yellow-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">
+                      For Budget-Conscious Leaders
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      Pay-as-you-go beats overpriced subscriptions
+                    </p>
+                  </div>
+
+                  <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 hover:border-blue-500/30 transition-colors">
+                    <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-4">
+                      <svg
+                        className="w-6 h-6 text-blue-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">
+                      For Growing Teams
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      Assign agents to departments, track centrally
+                    </p>
                   </div>
                 </div>
               </div>
@@ -207,7 +294,6 @@ export default function HeroSection() {
           </div>
         </section>
         <LogoCloud />
-        <PricingRealitySection />
       </main>
     </>
   );
