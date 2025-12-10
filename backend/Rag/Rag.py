@@ -2331,6 +2331,27 @@ async def _process_user_docs(state, docs, user_query, rag, filter_doc_ids: Optio
             # Return empty results - JSON documents will be handled separately in RAG function
             return ("user", [])
 
+    # Check if we have images even if no cache_data (images-only sessions)
+    has_images = False
+    if not cache_data:
+        try:
+            image_collection_name = f"user_images_{session_id}"
+            collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
+            collections = [c.name for c in collections_response.collections]
+            if image_collection_name in collections:
+                scroll_out, _ = await asyncio.to_thread(
+                    QDRANT_CLIENT.scroll,
+                    collection_name=image_collection_name,
+                    limit=1
+                )
+                has_images = len(scroll_out) > 0
+                if has_images:
+                    print(f"[RAG] No embedded documents found, but images exist. Returning empty chunks (images will be handled separately).")
+                    # Return empty results - images will be handled separately in RAG function
+                    return ("user", [])
+        except Exception as e:
+            print(f"[RAG] Error checking images collection: {e}")
+
     if not cache_data:
         raise Exception(f"User documents not pre-processed for session {session_id}. Please upload documents first.")
     
@@ -2608,9 +2629,12 @@ async def Rag(state: GraphState) -> GraphState:
         redis_client = await ensure_redis_client()
         has_user_docs = False
         has_json_docs = False
+        has_images = False
+        has_regular_docs = False  # Track regular documents separately from images
         if redis_client:
             user_doc_cache_exists = await redis_client.exists(f"user_doc_cache:{session_id}")
             has_user_docs = bool(user_doc_cache_exists)
+            has_regular_docs = has_user_docs  # Regular docs use cache
             if has_user_docs:
                 print(f"[RAG] Found user document cache in Redis for session {session_id}")
             
@@ -2619,12 +2643,37 @@ async def Rag(state: GraphState) -> GraphState:
             has_json_docs = len(json_keys) > 0
             if has_json_docs:
                 print(f"[RAG] Found {len(json_keys)} JSON user documents in Redis for session {session_id}")
+                has_regular_docs = True  # JSON docs are regular docs
 
-        # has_user_docs should be True if either embedded docs or JSON docs exist
+        # Check for images collection in Qdrant
+        try:
+            image_collection_name = f"user_images_{session_id}"
+            collections_response = await asyncio.to_thread(QDRANT_CLIENT.get_collections)
+            collections = [c.name for c in collections_response.collections]
+            has_images = image_collection_name in collections
+            if has_images:
+                # Check if collection has data
+                scroll_out, _ = await asyncio.to_thread(
+                    QDRANT_CLIENT.scroll,
+                    collection_name=image_collection_name,
+                    limit=1
+                )
+                has_images = len(scroll_out) > 0
+                if has_images:
+                    print(f"[RAG] Found images collection in Qdrant for session {session_id}")
+        except Exception as e:
+            print(f"[RAG] Error checking images collection: {e}")
+            has_images = False
+
+        # has_user_docs should be True if either embedded docs, JSON docs, or images exist
         if not has_user_docs:
-            has_user_docs = bool(docs) or has_json_docs
+            has_user_docs = bool(docs) or has_json_docs or has_images
         else:
-            has_user_docs = has_user_docs or has_json_docs
+            has_user_docs = has_user_docs or has_json_docs or has_images
+        
+        # has_regular_docs should be True only for non-image documents
+        if not has_regular_docs:
+            has_regular_docs = bool(docs) or has_json_docs
         has_kb = False
         has_kb_json = False
         gpt_id = gpt_config.get("gpt_id")
@@ -2685,8 +2734,9 @@ async def Rag(state: GraphState) -> GraphState:
         parallel_tasks.append(("image_selection", image_selection_task))
         
         # Add document selection task (similar to image selection)
+        # Only create if we have regular documents (not just images)
         doc_selection_task = None
-        if has_user_docs:
+        if has_regular_docs:
             doc_selection_task = asyncio.create_task(
                 intelligent_document_selection(
                     user_query=user_query,
@@ -2731,7 +2781,8 @@ async def Rag(state: GraphState) -> GraphState:
                 kb_result = result[1]
         
         # Now process user docs with intelligent filtering (after selection is done)
-        if has_user_docs and doc_selection_result:
+        # Only process if we have regular documents (not just images)
+        if has_regular_docs and doc_selection_result:
             filter_doc_ids = doc_selection_result.get("selected_doc_ids", [])
             filter_doc_indices = doc_selection_result.get("selected_doc_indices", [])
             print(f"[RAG] Document orchestrator decision: {doc_selection_result.get('reasoning')}")
@@ -2770,7 +2821,7 @@ async def Rag(state: GraphState) -> GraphState:
             )
             if isinstance(user_search_result, tuple) and len(user_search_result) == 2:
                 user_result = user_search_result[1]
-        elif has_user_docs:
+        elif has_regular_docs:
             # Fallback: search all documents if selection failed
             print(f"[RAG] Document selection failed or not available, searching all documents")
             user_search_result = await _process_user_docs(state, docs, user_query, rag)
