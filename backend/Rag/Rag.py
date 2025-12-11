@@ -622,7 +622,7 @@ async def preprocess_images(uploaded_images: List[Dict[str, Any]], state: GraphS
                 await asyncio.to_thread(
                     QDRANT_CLIENT.recreate_collection,
                     collection_name=collection_name,
-                    vectors_config=models.VectorParams(size=VECTOR_SIZE, distance=models.Distance.COSINE),
+                    vectors_config=models.VectorParams(size=VECTOR_SIZE, distance=models.Distance.COSINE, on_disk=True),
                 )
             
             try:
@@ -731,7 +731,7 @@ async def retreive_docs(doc: List[str], name: str, is_hybrid: bool = False, clea
         await asyncio.to_thread(
             QDRANT_CLIENT.recreate_collection,
             collection_name=name,
-            vectors_config=models.VectorParams(size=VECTOR_SIZE, distance=models.Distance.COSINE),
+            vectors_config=models.VectorParams(size=VECTOR_SIZE, distance=models.Distance.COSINE, on_disk=True),
         )
         await asyncio.to_thread(
             QDRANT_CLIENT.create_payload_index,
